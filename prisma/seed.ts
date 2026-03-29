@@ -7,7 +7,7 @@ import {
   PrismaClient,
   QuestionType,
   UserRole,
-} from "../app/generated/prisma/client";
+} from "@prisma/client";
 
 const connectionString = process.env.DATABASE_URL;
 
