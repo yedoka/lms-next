@@ -3,11 +3,9 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-import {
-  PrismaClient,
-  QuestionType,
-  UserRole,
-} from "@prisma/client";
+import { PrismaClient, QuestionType, UserRole } from "@prisma/client";
+
+import argon2 from "argon2";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -38,7 +36,7 @@ async function clearDatabase() {
 async function main() {
   await clearDatabase();
 
-  const defaultPassword = "changeme123";
+  const defaultPassword = await argon2.hash("changeme123");
 
   const [admin, teacher, studentA, studentB] = await Promise.all([
     prisma.user.create({
