@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ROUTES } from "@/lib/auth/routes";
 
 export default function ForbiddenPage() {
   return (
@@ -16,10 +17,10 @@ export default function ForbiddenPage() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Button asChild>
-              <Link href="/dashboard">Go to Dashboard</Link>
+              <Link href={ROUTES.DASHBOARD}>Go to Dashboard</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/auth/login">Switch Account</Link>
+              <Link href={ROUTES.AUTH_LOGIN}>Switch Account</Link>
             </Button>
           </div>
         </CardContent>

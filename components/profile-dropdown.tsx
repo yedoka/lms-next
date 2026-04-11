@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, getRoleBadgeClassName } from "@/lib/rbac";
+import { ROUTES } from "@/lib/auth/routes";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@prisma/client";
 import { signOut } from "next-auth/react";
@@ -42,7 +43,7 @@ export function ProfileDropdown({ name, email, role }: ProfileDropdownProps) {
         <Button
           className="mt-4 w-full"
           variant="outline"
-          onClick={() => signOut({ callbackUrl: "/auth/login" })}
+          onClick={() => signOut({ callbackUrl: ROUTES.AUTH_LOGIN })}
         >
           Sign Out
         </Button>

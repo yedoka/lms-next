@@ -33,46 +33,129 @@ async function clearDatabase() {
   ]);
 }
 
-async function main() {
-  await clearDatabase();
+const DEFAULT_PASSWORD = "changeme123";
+const QUIZ_SETTINGS = {
+  NEXT: {
+    timeLimit: 20,
+    passingScore: 70,
+  },
+  SQL: {
+    timeLimit: 15,
+    passingScore: 75,
+  },
+} as const;
 
-  const defaultPassword = await argon2.hash("changeme123");
+const SEED_USERS = {
+  admin: {
+    name: "Admin User",
+    email: "admin@lms.local",
+    role: UserRole.ADMIN,
+  },
+  teacher: {
+    name: "Ava Teacher",
+    email: "teacher@lms.local",
+    role: UserRole.TEACHER,
+  },
+  studentA: {
+    name: "Noah Student",
+    email: "student1@lms.local",
+    role: UserRole.STUDENT,
+  },
+  studentB: {
+    name: "Mia Student",
+    email: "student2@lms.local",
+    role: UserRole.STUDENT,
+  },
+} as const;
 
+const NOTIFICATION_TYPES = {
+  LESSON: "LESSON",
+  GRADE: "GRADE",
+  ENROLLMENT: "ENROLLMENT",
+  SYSTEM: "SYSTEM",
+} as const;
+
+const NOTIFICATION_MESSAGES = {
+  LESSON_AVAILABLE: "New lesson available: Server Components and Routing",
+  GRADE_AVAILABLE: "Your grade for Next.js Basics Quiz is now available.",
+  ENROLLED_NEXT: "You were enrolled in Next.js Fundamentals.",
+  STUDENT_JOINED_NEXT: "A new student joined your course: Next.js Fundamentals.",
+  SEED_COMPLETE: "Initial LMS seed completed successfully.",
+} as const;
+
+const QUIZ_ATTEMPT_SCORES = {
+  studentA: {
+    next: 85,
+    sql: 72,
+  },
+  studentB: {
+    next: 91,
+  },
+} as const;
+
+type SeedUsers = {
+  admin: { id: string };
+  teacher: { id: string };
+  studentA: { id: string };
+  studentB: { id: string };
+};
+
+type SeedCourses = {
+  nextCourse: { id: string };
+  sqlCourse: { id: string };
+};
+
+type SeedLessons = {
+  lessonIntroNext: { id: string };
+  lessonRouting: { id: string };
+  lessonSqlBasics: { id: string };
+};
+
+type SeedQuizzes = {
+  nextQuiz: { id: string };
+  sqlQuiz: { id: string };
+};
+
+async function seedUsers(defaultPassword: string) {
   const [admin, teacher, studentA, studentB] = await Promise.all([
     prisma.user.create({
       data: {
-        name: "Admin User",
-        email: "admin@lms.local",
+        name: SEED_USERS.admin.name,
+        email: SEED_USERS.admin.email,
         password: defaultPassword,
-        role: UserRole.ADMIN,
+        role: SEED_USERS.admin.role,
       },
     }),
     prisma.user.create({
       data: {
-        name: "Ava Teacher",
-        email: "teacher@lms.local",
+        name: SEED_USERS.teacher.name,
+        email: SEED_USERS.teacher.email,
         password: defaultPassword,
-        role: UserRole.TEACHER,
+        role: SEED_USERS.teacher.role,
       },
     }),
     prisma.user.create({
       data: {
-        name: "Noah Student",
-        email: "student1@lms.local",
+        name: SEED_USERS.studentA.name,
+        email: SEED_USERS.studentA.email,
         password: defaultPassword,
-        role: UserRole.STUDENT,
+        role: SEED_USERS.studentA.role,
       },
     }),
     prisma.user.create({
       data: {
-        name: "Mia Student",
-        email: "student2@lms.local",
+        name: SEED_USERS.studentB.name,
+        email: SEED_USERS.studentB.email,
         password: defaultPassword,
-        role: UserRole.STUDENT,
+        role: SEED_USERS.studentB.role,
       },
     }),
   ]);
 
+  return { admin, teacher, studentA, studentB };
+}
+
+async function seedCourses(teacherId: string) {
   const nextCourse = await prisma.course.create({
     data: {
       title: "Next.js Fundamentals",
@@ -81,7 +164,7 @@ async function main() {
       category: "Web Development",
       thumbnail: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6",
       isPublished: true,
-      teacherId: teacher.id,
+      teacherId,
     },
   });
 
@@ -93,10 +176,14 @@ async function main() {
       category: "Databases",
       thumbnail: "https://images.unsplash.com/photo-1544383835-bda2bc66a55d",
       isPublished: true,
-      teacherId: teacher.id,
+      teacherId,
     },
   });
 
+  return { nextCourse, sqlCourse };
+}
+
+async function seedLessons(nextCourseId: string, sqlCourseId: string) {
   const [lessonIntroNext, lessonRouting, lessonSqlBasics] = await Promise.all([
     prisma.lesson.create({
       data: {
@@ -106,7 +193,7 @@ async function main() {
         videoUrl: "https://example.com/videos/next-app-router-intro",
         position: 1,
         isPublished: true,
-        courseId: nextCourse.id,
+        courseId: nextCourseId,
       },
     }),
     prisma.lesson.create({
@@ -117,7 +204,7 @@ async function main() {
         videoUrl: "https://example.com/videos/next-server-components",
         position: 2,
         isPublished: true,
-        courseId: nextCourse.id,
+        courseId: nextCourseId,
       },
     }),
     prisma.lesson.create({
@@ -128,37 +215,43 @@ async function main() {
         videoUrl: "https://example.com/videos/sql-joins-indexes",
         position: 1,
         isPublished: true,
-        courseId: sqlCourse.id,
+        courseId: sqlCourseId,
       },
     }),
   ]);
 
+  return { lessonIntroNext, lessonRouting, lessonSqlBasics };
+}
+
+async function seedAttachments(lessons: SeedLessons) {
   await prisma.attachment.createMany({
     data: [
       {
         name: "App Router Cheat Sheet.pdf",
         url: "https://example.com/files/app-router-cheat-sheet.pdf",
-        lessonId: lessonIntroNext.id,
+        lessonId: lessons.lessonIntroNext.id,
       },
       {
         name: "Routing Examples.zip",
         url: "https://example.com/files/routing-examples.zip",
-        lessonId: lessonRouting.id,
+        lessonId: lessons.lessonRouting.id,
       },
       {
         name: "SQL Practice Queries.sql",
         url: "https://example.com/files/sql-practice-queries.sql",
-        lessonId: lessonSqlBasics.id,
+        lessonId: lessons.lessonSqlBasics.id,
       },
     ],
   });
+}
 
+async function seedQuizzes(lessons: SeedLessons) {
   const nextQuiz = await prisma.quiz.create({
     data: {
       title: "Next.js Basics Quiz",
-      lessonId: lessonIntroNext.id,
-      timeLimit: 20,
-      passingScore: 70,
+      lessonId: lessons.lessonIntroNext.id,
+      timeLimit: QUIZ_SETTINGS.NEXT.timeLimit,
+      passingScore: QUIZ_SETTINGS.NEXT.passingScore,
       isPublished: true,
       questions: {
         create: [
@@ -196,9 +289,9 @@ async function main() {
   const sqlQuiz = await prisma.quiz.create({
     data: {
       title: "PostgreSQL Essentials Quiz",
-      lessonId: lessonSqlBasics.id,
-      timeLimit: 15,
-      passingScore: 75,
+      lessonId: lessons.lessonSqlBasics.id,
+      timeLimit: QUIZ_SETTINGS.SQL.timeLimit,
+      passingScore: QUIZ_SETTINGS.SQL.passingScore,
       isPublished: true,
       questions: {
         create: [
@@ -221,36 +314,45 @@ async function main() {
     },
   });
 
+  return { nextQuiz, sqlQuiz };
+}
+
+async function seedStudentData(
+  users: SeedUsers,
+  courses: SeedCourses,
+  lessons: SeedLessons,
+  quizzes: SeedQuizzes,
+) {
   await prisma.enrollment.createMany({
     data: [
-      { userId: studentA.id, courseId: nextCourse.id },
-      { userId: studentA.id, courseId: sqlCourse.id },
-      { userId: studentB.id, courseId: nextCourse.id },
+      { userId: users.studentA.id, courseId: courses.nextCourse.id },
+      { userId: users.studentA.id, courseId: courses.sqlCourse.id },
+      { userId: users.studentB.id, courseId: courses.nextCourse.id },
     ],
   });
 
   await prisma.lessonProgress.createMany({
     data: [
       {
-        userId: studentA.id,
-        lessonId: lessonIntroNext.id,
+        userId: users.studentA.id,
+        lessonId: lessons.lessonIntroNext.id,
         isCompleted: true,
         completedAt: new Date(),
       },
       {
-        userId: studentA.id,
-        lessonId: lessonSqlBasics.id,
+        userId: users.studentA.id,
+        lessonId: lessons.lessonSqlBasics.id,
         isCompleted: false,
       },
       {
-        userId: studentB.id,
-        lessonId: lessonIntroNext.id,
+        userId: users.studentB.id,
+        lessonId: lessons.lessonIntroNext.id,
         isCompleted: true,
         completedAt: new Date(),
       },
       {
-        userId: studentB.id,
-        lessonId: lessonRouting.id,
+        userId: users.studentB.id,
+        lessonId: lessons.lessonRouting.id,
         isCompleted: false,
       },
     ],
@@ -259,56 +361,60 @@ async function main() {
   await prisma.quizAttempt.createMany({
     data: [
       {
-        userId: studentA.id,
-        quizId: nextQuiz.id,
-        score: 85,
+        userId: users.studentA.id,
+        quizId: quizzes.nextQuiz.id,
+        score: QUIZ_ATTEMPT_SCORES.studentA.next,
         submittedAt: new Date(),
       },
       {
-        userId: studentA.id,
-        quizId: sqlQuiz.id,
-        score: 72,
+        userId: users.studentA.id,
+        quizId: quizzes.sqlQuiz.id,
+        score: QUIZ_ATTEMPT_SCORES.studentA.sql,
         submittedAt: new Date(),
       },
       {
-        userId: studentB.id,
-        quizId: nextQuiz.id,
-        score: 91,
+        userId: users.studentB.id,
+        quizId: quizzes.nextQuiz.id,
+        score: QUIZ_ATTEMPT_SCORES.studentB.next,
         submittedAt: new Date(),
       },
     ],
   });
+}
 
+async function seedNotifications(users: SeedUsers) {
   await prisma.notification.createMany({
     data: [
       {
-        userId: studentA.id,
-        type: "LESSON",
-        message: "New lesson available: Server Components and Routing",
+        userId: users.studentA.id,
+        type: NOTIFICATION_TYPES.LESSON,
+        message: NOTIFICATION_MESSAGES.LESSON_AVAILABLE,
       },
       {
-        userId: studentA.id,
-        type: "GRADE",
-        message: "Your grade for Next.js Basics Quiz is now available.",
+        userId: users.studentA.id,
+        type: NOTIFICATION_TYPES.GRADE,
+        message: NOTIFICATION_MESSAGES.GRADE_AVAILABLE,
       },
       {
-        userId: studentB.id,
-        type: "ENROLLMENT",
-        message: "You were enrolled in Next.js Fundamentals.",
+        userId: users.studentB.id,
+        type: NOTIFICATION_TYPES.ENROLLMENT,
+        message: NOTIFICATION_MESSAGES.ENROLLED_NEXT,
       },
       {
-        userId: teacher.id,
-        type: "ENROLLMENT",
-        message: "A new student joined your course: Next.js Fundamentals.",
+        userId: users.teacher.id,
+        type: NOTIFICATION_TYPES.ENROLLMENT,
+        message: NOTIFICATION_MESSAGES.STUDENT_JOINED_NEXT,
       },
       {
-        userId: admin.id,
-        type: "SYSTEM",
-        message: "Initial LMS seed completed successfully.",
+        userId: users.admin.id,
+        type: NOTIFICATION_TYPES.SYSTEM,
+        message: NOTIFICATION_MESSAGES.SEED_COMPLETE,
       },
     ],
   });
+}
 
+async function getSeedCounts() {
   const counts = await Promise.all([
     prisma.user.count(),
     prisma.course.count(),
@@ -322,8 +428,7 @@ async function main() {
     prisma.notification.count(),
   ]);
 
-  console.log("Seed completed");
-  console.log({
+  return {
     users: counts[0],
     courses: counts[1],
     lessons: counts[2],
@@ -334,7 +439,31 @@ async function main() {
     lessonProgress: counts[7],
     quizAttempts: counts[8],
     notifications: counts[9],
-  });
+  };
+}
+
+async function main() {
+  await clearDatabase();
+
+  const defaultPassword = await argon2.hash(DEFAULT_PASSWORD);
+  const users = await seedUsers(defaultPassword);
+  const courses = await seedCourses(users.teacher.id);
+  const lessons = await seedLessons(
+    courses.nextCourse.id,
+    courses.sqlCourse.id,
+  );
+
+  await seedAttachments(lessons);
+
+  const quizzes = await seedQuizzes(lessons);
+
+  await seedStudentData(users, courses, lessons, quizzes);
+  await seedNotifications(users);
+
+  const counts = await getSeedCounts();
+
+  console.log("Seed completed");
+  console.log(counts);
 }
 
 main()

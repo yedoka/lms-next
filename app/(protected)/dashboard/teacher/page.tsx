@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { withRole } from "@/lib/auth/with-role";
+import { ROLE } from "@/lib/auth/roles";
 
 export default async function TeacherDashboardPage() {
-  await withRole(["TEACHER", "ADMIN"]);
+  await withRole([ROLE.TEACHER, ROLE.ADMIN]);
 
   return (
     <Card>

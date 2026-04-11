@@ -1,22 +1,28 @@
 import type { UserRole } from "@prisma/client";
+import { ROUTES } from "@/lib/auth/routes";
+import { ROLE } from "@/lib/auth/roles";
 
 export const ROLE_LABELS: Record<UserRole, string> = {
-  STUDENT: "Student",
-  TEACHER: "Teacher",
-  ADMIN: "Admin",
+  [ROLE.STUDENT]: "Student",
+  [ROLE.TEACHER]: "Teacher",
+  [ROLE.ADMIN]: "Admin",
 };
 
 const DASHBOARD_ROLE_RULES: Array<{
   prefix: string;
   allowed: UserRole[];
 }> = [
-  { prefix: "/dashboard/student", allowed: ["STUDENT", "ADMIN"] },
-  { prefix: "/dashboard/teacher", allowed: ["TEACHER", "ADMIN"] },
-  { prefix: "/dashboard/admin", allowed: ["ADMIN"] },
+  { prefix: ROUTES.DASHBOARD_STUDENT, allowed: [ROLE.STUDENT, ROLE.ADMIN] },
+  { prefix: ROUTES.DASHBOARD_TEACHER, allowed: [ROLE.TEACHER, ROLE.ADMIN] },
+  { prefix: ROUTES.DASHBOARD_ADMIN, allowed: [ROLE.ADMIN] },
 ];
 
 export const normalizeRole = (value: unknown): UserRole | null => {
-  if (value === "STUDENT" || value === "TEACHER" || value === "ADMIN") {
+  if (
+    value === ROLE.STUDENT ||
+    value === ROLE.TEACHER ||
+    value === ROLE.ADMIN
+  ) {
     return value;
   }
 
@@ -44,9 +50,9 @@ export const getRequiredRolesForPath = (
 
 export const getRoleBadgeClassName = (role: UserRole) => {
   switch (role) {
-    case "ADMIN":
+    case ROLE.ADMIN:
       return "bg-amber-100 text-amber-800";
-    case "TEACHER":
+    case ROLE.TEACHER:
       return "bg-blue-100 text-blue-800";
     default:
       return "bg-emerald-100 text-emerald-800";

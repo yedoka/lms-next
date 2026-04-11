@@ -4,13 +4,54 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 import { LoginSchema } from "@/lib/validation/login";
 import argon2 from "argon2";
-import type { UserRole } from "@prisma/client";
+import { DEFAULT_ROLE } from "@/lib/auth/roles";
+import { ROUTES } from "@/lib/auth/routes";
+import { AUTH_SESSION_TTL } from "@/lib/auth/config";
+import { normalizeRole } from "@/lib/rbac";
+import type { JWT } from "next-auth/jwt";
 
-const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
-const THIRTY_DAYS_IN_SECONDS = 30 * ONE_DAY_IN_SECONDS;
+const nowInSeconds = () => Math.floor(Date.now() / 1000);
 
 const parseRememberMe = (value: unknown) =>
   value === true || value === "true" || value === "on" || value === "1";
+
+const getTokenAuthTime = (token: JWT) =>
+  typeof token.authTime === "number" ? token.authTime : nowInSeconds();
+
+const getTokenTTL = (token: JWT) =>
+  token.rememberMe
+    ? AUTH_SESSION_TTL.THIRTY_DAYS_SECONDS
+    : AUTH_SESSION_TTL.ONE_DAY_SECONDS;
+
+const applyUserToToken = (
+  token: JWT,
+  user: {
+    id?: unknown;
+    email?: unknown;
+    role?: unknown;
+    rememberMe?: unknown;
+  },
+) => {
+  if (typeof user.id === "string") {
+    token.userId = user.id;
+  }
+
+  if (typeof user.email === "string") {
+    token.email = user.email;
+  }
+
+  token.role = normalizeRole(user.role) ?? DEFAULT_ROLE;
+  token.rememberMe = parseRememberMe(user.rememberMe);
+  token.authTime = nowInSeconds();
+};
+
+const resolveUserIdFromToken = (token: JWT) => {
+  if (typeof token.userId === "string") {
+    return token.userId;
+  }
+
+  return typeof token.sub === "string" ? token.sub : "";
+};
 
 const validateUser = async (email: string, password: string) => {
   const user = await prisma.user.findUnique({ where: { email } });
@@ -31,11 +72,11 @@ const validateUser = async (email: string, password: string) => {
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   pages: {
-    signIn: "/auth/login",
+    signIn: ROUTES.AUTH_LOGIN,
   },
   session: {
     strategy: "jwt",
-    maxAge: THIRTY_DAYS_IN_SECONDS,
+    maxAge: AUTH_SESSION_TTL.THIRTY_DAYS_SECONDS,
   },
   providers: [
     Credentials({
@@ -71,22 +112,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.userId = user.id;
-        token.email = user.email ?? token.email;
-        token.role = (user as { role?: UserRole }).role;
-        token.rememberMe = parseRememberMe(
-          (user as { rememberMe?: unknown }).rememberMe,
-        );
-        token.authTime = Math.floor(Date.now() / 1000);
+        applyUserToToken(token, user);
       }
 
-      const authTime =
-        typeof token.authTime === "number"
-          ? token.authTime
-          : Math.floor(Date.now() / 1000);
-      const ttl = token.rememberMe
-        ? THIRTY_DAYS_IN_SECONDS
-        : ONE_DAY_IN_SECONDS;
+      const authTime = getTokenAuthTime(token);
+      const ttl = getTokenTTL(token);
 
       token.authTime = authTime;
       token.exp = authTime + ttl;
@@ -95,11 +125,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.userId =
-          typeof token.userId === "string" ? token.userId : (token.sub ?? "");
+        session.user.userId = resolveUserIdFromToken(token);
         session.user.email =
           typeof token.email === "string" ? token.email : session.user.email;
-        session.user.role = (token.role as UserRole | undefined) ?? "STUDENT";
+        session.user.role = normalizeRole(token.role) ?? DEFAULT_ROLE;
       }
 
       return session;

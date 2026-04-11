@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { ProfileDropdown } from "@/components/profile-dropdown";
+import { ROUTES } from "@/lib/auth/routes";
 import { redirect } from "next/navigation";
 
 export default async function ProtectedLayout({
@@ -10,7 +11,7 @@ export default async function ProtectedLayout({
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/auth/login");
+    redirect(ROUTES.AUTH_LOGIN);
   }
 
   return (
