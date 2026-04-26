@@ -1,7 +1,6 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { ROUTES } from "@/lib/auth/routes";
 import { SIGNUP_ROLES } from "@/lib/auth/roles";
 import { executeSignup } from "@/lib/auth/server-actions";
 
@@ -30,17 +29,7 @@ export type SignupActionInput = {
   passwordConfirmation: string;
 };
 
-const toErrorMessage = (body: unknown, fallback: string) => {
-  if (body && typeof body === "object" && "error" in body) {
-    const error = body.error;
 
-    if (typeof error === "string" && error.trim()) {
-      return error;
-    }
-  }
-
-  return fallback;
-};
 
 export const submitLogin = async (
   input: LoginActionInput,
