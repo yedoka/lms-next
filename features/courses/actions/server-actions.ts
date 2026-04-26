@@ -55,7 +55,7 @@ export async function updateCourse(id: string, data: CourseFormData) {
     throw new Error("Unauthorized: No user ID");
   }
 
-  await validateCourseOwnership(id, session.user.id, session.user.role!);
+  const course = await validateCourseOwnership(id, session.user.id, session.user.role!);
 
   const parsed = courseSchema.safeParse(data);
   if (!parsed.success) {
@@ -88,16 +88,7 @@ export async function deleteCourse(id: string) {
     throw new Error("Unauthorized: No user ID");
   }
 
-  const course = await prisma.course.findUnique({
-    where: { id },
-    select: { isPublished: true }
-  });
-
-  if (!course) {
-    throw new Error("Course not found");
-  }
-
-  await validateCourseOwnership(id, session.user.id, session.user.role!);
+  const course = await validateCourseOwnership(id, session.user.id, session.user.role!);
 
   await prisma.course.delete({
     where: { id },
