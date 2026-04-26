@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { ROUTES } from "@/lib/auth/routes";
 import { SIGNUP_ROLES } from "@/lib/auth/roles";
+import { executeSignup } from "@/lib/auth/server-actions";
 
 type ActionSuccess = {
   ok: true;
@@ -70,22 +71,7 @@ export const submitSignup = async (
   input: SignupActionInput,
 ): Promise<ActionResult> => {
   try {
-    const response = await fetch(ROUTES.API_AUTH_SIGNUP, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    });
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
-
-      return {
-        ok: false,
-        message: toErrorMessage(body, "Signup request failed"),
-      };
-    }
-
-    return { ok: true };
+    return await executeSignup(input);
   } catch {
     return { ok: false, message: "Network error during signup" };
   }

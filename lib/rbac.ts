@@ -18,12 +18,8 @@ const DASHBOARD_ROLE_RULES: Array<{
 ];
 
 export const normalizeRole = (value: unknown): UserRole | null => {
-  if (
-    value === ROLE.STUDENT ||
-    value === ROLE.TEACHER ||
-    value === ROLE.ADMIN
-  ) {
-    return value;
+  if (Object.values(ROLE).includes(value as UserRole)) {
+    return value as UserRole;
   }
 
   return null;
