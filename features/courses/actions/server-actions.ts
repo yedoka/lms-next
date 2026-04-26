@@ -7,6 +7,7 @@ import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { courseSchema, CourseFormData } from "@/features/courses/schemas/schema";
 import { v2 as cloudinary } from "cloudinary";
+import { validateCourseOwnership } from "../utils/auth";
 
 cloudinary.config({
   secure: true,
@@ -54,17 +55,7 @@ export async function updateCourse(id: string, data: CourseFormData) {
     throw new Error("Unauthorized: No user ID");
   }
 
-  const course = await prisma.course.findUnique({
-    where: { id },
-  });
-
-  if (!course) {
-    throw new Error("Course not found");
-  }
-
-  if (course.teacherId !== session.user.id && session.user.role !== ROLE.ADMIN) {
-    throw new Error("Unauthorized");
-  }
+  await validateCourseOwnership(id, session.user.id, session.user.role!);
 
   const parsed = courseSchema.safeParse(data);
   if (!parsed.success) {
@@ -99,15 +90,14 @@ export async function deleteCourse(id: string) {
 
   const course = await prisma.course.findUnique({
     where: { id },
+    select: { isPublished: true }
   });
 
   if (!course) {
     throw new Error("Course not found");
   }
 
-  if (course.teacherId !== session.user.id && session.user.role !== ROLE.ADMIN) {
-    throw new Error("Unauthorized");
-  }
+  await validateCourseOwnership(id, session.user.id, session.user.role!);
 
   await prisma.course.delete({
     where: { id },
