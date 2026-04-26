@@ -3,8 +3,14 @@ import prisma from "@/shared/db/prisma";
 import { notFound } from "next/navigation";
 import { Button } from "@/shared/ui/button";
 import { sanitizeHtml } from "@/shared/lib/sanitize";
+import { auth } from "@/auth";
+import { EnrollButton } from "@/features/courses/components/enroll-button";
+import Link from "next/link";
 
 async function CourseContent({ courseId }: { courseId: string }) {
+  const session = await auth();
+  const userId = session?.user?.id;
+
   const course = await prisma.course.findFirst({
     where: {
       id: courseId,
@@ -26,6 +32,19 @@ async function CourseContent({ courseId }: { courseId: string }) {
   if (!course) {
     return notFound();
   }
+
+  const enrollment = userId 
+    ? await prisma.enrollment.findUnique({
+        where: {
+          userId_courseId: {
+            userId,
+            courseId,
+          },
+        },
+      })
+    : null;
+
+  const firstLessonId = course.lessons[0]?.id;
 
   return (
     <div className="container mx-auto py-10 px-4 max-w-4xl">
@@ -49,6 +68,11 @@ async function CourseContent({ courseId }: { courseId: string }) {
               course.lessons.map((lesson) => (
                 <div key={lesson.id} className="p-4 border rounded-md flex items-center justify-between">
                   <span className="font-medium">{lesson.title}</span>
+                  {enrollment && (
+                    <Link href={`/courses/${courseId}/lessons/${lesson.id}`}>
+                      <Button variant="ghost" size="sm">View</Button>
+                    </Link>
+                  )}
                 </div>
               ))
             )}
@@ -70,9 +94,15 @@ async function CourseContent({ courseId }: { courseId: string }) {
               </div>
             )}
             
-            <Button className="w-full mb-2">Enroll Now</Button>
-            <p className="text-xs text-center text-muted-foreground">
-              Enrollment feature coming soon (LMS-008)
+            {enrollment ? (
+              <Link href={`/courses/${courseId}/lessons/${firstLessonId}`}>
+                <Button className="w-full mb-2">Continue to Course</Button>
+              </Link>
+            ) : (
+              <EnrollButton courseId={courseId} />
+            )}
+            <p className="text-xs text-center text-muted-foreground mt-2">
+              {enrollment ? "You are enrolled in this course" : "Full access to all lessons"}
             </p>
           </div>
         </div>

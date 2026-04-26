@@ -4,8 +4,6 @@ import prisma from "@/shared/db/prisma";
  * Получает список курсов, созданных конкретным преподавателем.
  */
 export async function getTeacherCourses(teacherId: string) {
-  // В Next.js 16 мы можем использовать "use cache" на уровне функции
-  // Но для начала реализуем базовый запрос.
   return prisma.course.findMany({
     where: {
       teacherId,
@@ -14,4 +12,36 @@ export async function getTeacherCourses(teacherId: string) {
       createdAt: "desc",
     },
   });
+}
+
+/**
+ * Получает список курсов, на которые записан студент.
+ */
+export async function getStudentCourses(userId: string) {
+  const enrollments = await prisma.enrollment.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      course: {
+        include: {
+          teacher: {
+            select: {
+              name: true,
+            },
+          },
+          _count: {
+            select: {
+              lessons: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return enrollments.map((enrollment) => enrollment.course);
 }

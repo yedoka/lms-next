@@ -100,3 +100,59 @@ export async function deleteCourse(id: string) {
 
   return { success: true };
 }
+
+export async function enrollInCourse(courseId: string) {
+  const session = await requireAuth();
+
+  if (!session.user.id) {
+    throw new Error("Unauthorized: No user ID");
+  }
+
+  // Check if already enrolled
+  const existingEnrollment = await prisma.enrollment.findUnique({
+    where: {
+      userId_courseId: {
+        userId: session.user.id,
+        courseId,
+      },
+    },
+  });
+
+  if (existingEnrollment) {
+    // Already enrolled, just redirect to the first lesson
+    return await redirectToFirstLesson(courseId);
+  }
+
+  // Create enrollment
+  await prisma.enrollment.create({
+    data: {
+      userId: session.user.id,
+      courseId,
+    },
+  });
+
+  // Revalidate to show "Continue" instead of "Enroll" on details/catalog pages
+  revalidateTag(`enrollment:${session.user.id}:${courseId}`, "max");
+  revalidateTag("courses", "max");
+
+  return await redirectToFirstLesson(courseId);
+}
+
+async function redirectToFirstLesson(courseId: string) {
+  const firstLesson = await prisma.lesson.findFirst({
+    where: {
+      courseId,
+      isPublished: true,
+    },
+    orderBy: {
+      position: "asc",
+    },
+  });
+
+  if (!firstLesson) {
+    // If no lessons, just redirect back to course page or dashboard
+    redirect(`/courses/${courseId}`);
+  }
+
+  redirect(`/courses/${courseId}/lessons/${firstLesson.id}`);
+}
