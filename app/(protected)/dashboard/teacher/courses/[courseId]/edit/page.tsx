@@ -7,9 +7,9 @@ import { redirect } from "next/navigation";
 export default async function EditCoursePage({
   params,
 }: {
-  params: Promise<{ courseId: string }>;
+  params: { courseId: string };
 }) {
-  const resolvedParams = await params;
+  const { courseId } = params;
   const session = await requireAuth();
 
   if (session.user.role !== ROLE.TEACHER && session.user.role !== ROLE.ADMIN) {
@@ -18,7 +18,7 @@ export default async function EditCoursePage({
 
   const course = await prisma.course.findUnique({
     where: {
-      id: resolvedParams.courseId,
+      id: courseId,
     },
   });
 

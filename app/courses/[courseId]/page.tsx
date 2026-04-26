@@ -1,17 +1,18 @@
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 export default async function CourseDetailsPage({
   params,
 }: {
-  params: Promise<{ courseId: string }>;
+  params: { courseId: string };
 }) {
-  const resolvedParams = await params;
+  const { courseId } = params;
   
-  const course = await prisma.course.findUnique({
+  const course = await prisma.course.findFirst({
     where: {
-      id: resolvedParams.courseId,
+      id: courseId,
       isPublished: true,
     },
     include: {
@@ -40,7 +41,10 @@ export default async function CourseDetailsPage({
             Created by {course.teacher?.name || "Unknown"} • {course.category || "Uncategorized"}
           </div>
           
-          <div className="prose max-w-none mb-8" dangerouslySetInnerHTML={{ __html: course.description || "No description provided." }} />
+          <div 
+            className="prose max-w-none mb-8" 
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(course.description || "No description provided.") }} 
+          />
           
           <h2 className="text-2xl font-bold mb-4">Course Content</h2>
           <div className="space-y-2">
