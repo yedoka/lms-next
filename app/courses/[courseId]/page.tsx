@@ -1,15 +1,10 @@
+import { Suspense } from "react";
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { sanitizeHtml } from "@/lib/sanitize";
 
-export default async function CourseDetailsPage({
-  params,
-}: {
-  params: { courseId: string };
-}) {
-  const { courseId } = params;
-  
+async function CourseContent({ courseId }: { courseId: string }) {
   const course = await prisma.course.findFirst({
     where: {
       id: courseId,
@@ -79,6 +74,51 @@ export default async function CourseDetailsPage({
             <p className="text-xs text-center text-muted-foreground">
               Enrollment feature coming soon (LMS-008)
             </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default async function CourseDetailsPage({
+  params,
+}: {
+  params: Promise<{ courseId: string }>;
+}) {
+  const { courseId } = await params;
+
+  return (
+    <Suspense fallback={<CourseDetailsSkeleton />}>
+      <CourseContent courseId={courseId} />
+    </Suspense>
+  );
+}
+
+function CourseDetailsSkeleton() {
+  return (
+    <div className="container mx-auto py-10 px-4 max-w-4xl">
+      <div className="flex flex-col md:flex-row gap-8">
+        <div className="w-full md:w-2/3">
+          <div className="h-9 w-3/4 bg-slate-200 rounded animate-pulse mb-4" />
+          <div className="h-5 w-1/2 bg-slate-200 rounded animate-pulse mb-6" />
+          <div className="space-y-3 mb-8">
+            <div className="h-4 bg-slate-200 rounded animate-pulse" />
+            <div className="h-4 bg-slate-200 rounded animate-pulse" />
+            <div className="h-4 w-2/3 bg-slate-200 rounded animate-pulse" />
+          </div>
+          <div className="h-8 w-48 bg-slate-200 rounded animate-pulse mb-4" />
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-14 bg-slate-200 rounded animate-pulse" />
+            ))}
+          </div>
+        </div>
+        <div className="w-full md:w-1/3">
+          <div className="bg-slate-50 p-6 rounded-lg border">
+            <div className="w-full aspect-video bg-slate-200 rounded-md mb-6 animate-pulse" />
+            <div className="h-10 bg-slate-200 rounded animate-pulse mb-2" />
+            <div className="h-4 w-3/4 mx-auto bg-slate-200 rounded animate-pulse" />
           </div>
         </div>
       </div>
