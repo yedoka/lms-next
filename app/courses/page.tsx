@@ -3,12 +3,8 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { cacheTag } from "next/cache";
 
 async function CourseList() {
-  "use cache";
-  cacheTag("courses");
-
   const courses = await prisma.course.findMany({
     where: {
       isPublished: true,
