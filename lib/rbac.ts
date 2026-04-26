@@ -1,5 +1,5 @@
 import type { UserRole } from "@prisma/client";
-import { ROUTES } from "@/lib/auth/routes";
+import { matchesRoutePrefix, ROUTES } from "@/lib/auth/routes";
 import { ROLE } from "@/lib/auth/roles";
 
 export const ROLE_LABELS: Record<UserRole, string> = {
@@ -42,7 +42,7 @@ export const getRequiredRolesForPath = (
   pathname: string,
 ): UserRole[] | null => {
   const routeRule = DASHBOARD_ROLE_RULES.find(
-    ({ prefix }) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    ({ prefix }) => matchesRoutePrefix(pathname, prefix),
   );
 
   return routeRule ? routeRule.allowed : null;
