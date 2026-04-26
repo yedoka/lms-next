@@ -132,7 +132,7 @@ export async function enrollInCourse(courseId: string) {
   });
 
   // Revalidate to show "Continue" instead of "Enroll" on details/catalog pages
-  revalidateTag(`enrollment:${session.user.id}:${courseId}`);
+  revalidateTag(`enrollment:${session.user.id}:${courseId}`, "max");
   revalidateTag("courses", "max");
 
   return await redirectToFirstLesson(courseId);
