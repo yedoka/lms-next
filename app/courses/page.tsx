@@ -1,8 +1,8 @@
 import { Suspense } from "react";
-import prisma from "@/lib/prisma";
+import prisma from "@/shared/db/prisma";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/ui/card";
+import { Badge } from "@/shared/ui/badge";
 
 async function CourseList() {
   const courses = await prisma.course.findMany({

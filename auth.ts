@@ -1,13 +1,13 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import prisma from "@/lib/prisma";
-import { LoginSchema } from "@/lib/validation/login";
+import prisma from "@/shared/db/prisma";
+import { LoginSchema } from "@/features/auth/schemas/login";
 import argon2 from "argon2";
-import { DEFAULT_ROLE } from "@/lib/auth/roles";
-import { ROUTES } from "@/lib/auth/routes";
-import { AUTH_SESSION_TTL } from "@/lib/auth/config";
-import { normalizeRole } from "@/lib/rbac";
+import { DEFAULT_ROLE } from "@/features/auth/utils/roles";
+import { ROUTES } from "@/features/auth/utils/routes";
+import { AUTH_SESSION_TTL } from "@/features/auth/utils/config";
+import { normalizeRole } from "@/features/auth/utils/rbac";
 import type { JWT } from "next-auth/jwt";
 
 const nowInSeconds = () => Math.floor(Date.now() / 1000);

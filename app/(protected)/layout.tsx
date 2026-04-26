@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
-import { ProfileDropdown } from "@/components/profile-dropdown";
-import { ROUTES } from "@/lib/auth/routes";
+import { ProfileDropdown } from "@/features/auth/components/profile-dropdown";
+import { ROUTES } from "@/features/auth/utils/routes";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 

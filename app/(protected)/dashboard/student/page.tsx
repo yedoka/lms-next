@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { withRole } from "@/lib/auth/with-role";
-import { ROLE } from "@/lib/auth/roles";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { withRole } from "@/features/auth/utils/with-role";
+import { ROLE } from "@/features/auth/utils/roles";
 
 export default async function StudentDashboardPage() {
   await withRole([ROLE.STUDENT, ROLE.ADMIN]);

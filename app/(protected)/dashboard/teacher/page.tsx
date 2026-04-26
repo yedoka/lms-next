@@ -1,10 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { withRole } from "@/lib/auth/with-role";
-import { ROLE } from "@/lib/auth/roles";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { withRole } from "@/features/auth/utils/with-role";
+import { ROLE } from "@/features/auth/utils/roles";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { CourseTable } from "@/components/courses/course-table";
-import { getTeacherCourses } from "@/lib/courses/service";
+import { Button } from "@/shared/ui/button";
+import { CourseTable } from "@/features/courses/components/course-table";
+import { getTeacherCourses } from "@/features/courses/services/service";
 
 export default async function TeacherDashboardPage() {
   const session = await withRole([ROLE.TEACHER, ROLE.ADMIN]);
