@@ -3,11 +3,20 @@ import prisma from "@/shared/db/prisma";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
+import { CourseFilters } from "@/features/courses/components/course-filters";
 
-async function CourseList() {
+async function CourseList({ 
+  searchParams 
+}: { 
+  searchParams: { title?: string; category?: string } 
+}) {
+  const { title, category } = searchParams;
+
   const courses = await prisma.course.findMany({
     where: {
       isPublished: true,
+      ...(title ? { title: { contains: title, mode: "insensitive" } } : {}),
+      ...(category ? { category: { equals: category } } : {}),
     },
     include: {
       teacher: true,
@@ -23,7 +32,7 @@ async function CourseList() {
   if (courses.length === 0) {
     return (
       <div className="text-center py-20 text-muted-foreground">
-        No courses available at the moment.
+        No courses found matching your criteria.
       </div>
     );
   }
@@ -66,11 +75,32 @@ async function CourseList() {
   );
 }
 
-export default function CoursesPage() {
+export default async function CoursesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ title?: string; category?: string }>;
+}) {
+  const params = await searchParams;
+
+  const coursesWithCategories = await prisma.course.findMany({
+    where: { isPublished: true },
+    select: { category: true },
+    distinct: ["category"],
+  });
+
+  const categories = coursesWithCategories
+    .map((c) => c.category)
+    .filter((c): c is string => !!c);
+
   return (
     <div className="container mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold mb-8">Course Catalog</h1>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <h1 className="text-3xl font-bold">Course Catalog</h1>
+        <CourseFilters categories={categories} />
+      </div>
+      
       <Suspense
+        key={JSON.stringify(params)}
         fallback={
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -89,7 +119,7 @@ export default function CoursesPage() {
           </div>
         }
       >
-        <CourseList />
+        <CourseList searchParams={params} />
       </Suspense>
     </div>
   );
