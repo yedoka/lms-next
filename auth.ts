@@ -71,6 +71,7 @@ const validateUser = async (email: string, password: string) => {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
+  trustHost: true,
   pages: {
     signIn: ROUTES.AUTH_LOGIN,
   },
