@@ -7,9 +7,9 @@ import { redirect } from "next/navigation";
 export default async function EditCoursePage({
   params,
 }: {
-  params: { courseId: string };
+  params: Promise<{ courseId: string }>;
 }) {
-  const { courseId } = params;
+  const { courseId } = await params;
   const session = await requireAuth();
 
   if (session.user.role !== ROLE.TEACHER && session.user.role !== ROLE.ADMIN) {
