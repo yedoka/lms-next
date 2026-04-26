@@ -1,8 +1,8 @@
 import { Suspense } from "react";
-import prisma from "@/lib/prisma";
+import prisma from "@/shared/db/prisma";
 import { notFound } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { sanitizeHtml } from "@/lib/sanitize";
+import { Button } from "@/shared/ui/button";
+import { sanitizeHtml } from "@/shared/lib/sanitize";
 
 async function CourseContent({ courseId }: { courseId: string }) {
   const course = await prisma.course.findFirst({

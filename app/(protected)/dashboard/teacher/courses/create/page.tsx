@@ -1,6 +1,6 @@
-import { requireAuth } from "@/lib/auth/with-role";
-import { ROLE } from "@/lib/auth/roles";
-import { CourseForm } from "@/components/courses/course-form";
+import { requireAuth } from "@/features/auth/utils/with-role";
+import { ROLE } from "@/features/auth/utils/roles";
+import { CourseForm } from "@/features/courses/components/course-form";
 import { redirect } from "next/navigation";
 
 export default async function CreateCoursePage() {

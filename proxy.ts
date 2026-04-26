@@ -1,11 +1,11 @@
 import { auth } from "./auth";
 import { NextResponse } from "next/server";
-import { ROUTES } from "@/lib/auth/routes";
+import { ROUTES } from "@/features/auth/utils/routes";
 import {
   canAccessPath,
   isProtectedPath,
   isPublicAuthPath,
-} from "@/lib/auth/route-guards";
+} from "@/features/auth/utils/route-guards";
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;

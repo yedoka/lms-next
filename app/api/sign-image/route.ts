@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth/with-role";
-import { ROLE } from "@/lib/auth/roles";
+import { requireAuth } from "@/features/auth/utils/with-role";
+import { ROLE } from "@/features/auth/utils/roles";
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
