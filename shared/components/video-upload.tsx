@@ -1,34 +1,33 @@
 "use client";
 
-import { ImagePlus, Trash } from "lucide-react";
+import { Video, Trash, Loader2 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { CLOUDINARY_CONFIG } from "@/shared/lib/config";
 
-interface ImageUploadProps {
-  value: string;
+interface VideoUploadProps {
+  value?: string;
   onChange: (url: string) => void;
   onRemove: () => void;
 }
 
-function UploadPlaceholder() {
-  return (
-    <div className="mt-2 text-sm text-muted-foreground border border-dashed rounded-md p-4 text-center">
-      <p>Image upload unavailable.</p>
-      <p className="text-xs">
-        Set <code>NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME</code> in your .env file.
-      </p>
-    </div>
-  );
-}
-
-export const ImageUpload = ({ value, onChange, onRemove }: ImageUploadProps) => {
+export const VideoUpload = ({ value, onChange, onRemove }: VideoUploadProps) => {
+  const [isMounted, setIsMounted] = (require("react")).useState(false);
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+
+  (require("react")).useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
 
   if (value) {
     return (
       <div className="relative aspect-video mt-2 rounded-md overflow-hidden bg-slate-100 flex items-center justify-center">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={value} alt="Upload" className="object-cover w-full h-full" />
+        <video
+          src={value}
+          controls
+          className="object-cover w-full h-full"
+        />
         <div className="absolute top-2 right-2">
           <Button
             type="button"
@@ -45,10 +44,16 @@ export const ImageUpload = ({ value, onChange, onRemove }: ImageUploadProps) => 
   }
 
   if (!cloudName) {
-    return <UploadPlaceholder />;
+    return (
+      <div className="mt-2 text-sm text-muted-foreground border border-dashed rounded-md p-4 text-center">
+        <p>Video upload unavailable.</p>
+        <p className="text-xs">
+          Set <code>NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME</code> in your .env file.
+        </p>
+      </div>
+    );
   }
 
-  // Dynamically import to avoid SSR issues with next-cloudinary
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { CldUploadWidget } = require("next-cloudinary");
 
@@ -57,22 +62,28 @@ export const ImageUpload = ({ value, onChange, onRemove }: ImageUploadProps) => 
       onSuccess={(result: { info: { secure_url: string } }) => {
         onChange(result.info.secure_url);
       }}
-      uploadPreset={CLOUDINARY_CONFIG.PRESETS.THUMBNAILS}
-      signatureEndpoint="/api/sign-image"
+      uploadPreset={CLOUDINARY_CONFIG.PRESETS.VIDEOS}
+      signatureEndpoint="/api/sign-video"
       options={{
         maxFiles: 1,
+        resourceType: "video",
       }}
     >
-      {({ open }: { open: () => void }) => {
+      {({ open, isLoading }: { open: () => void; isLoading: boolean }) => {
         return (
           <Button
             type="button"
             variant="outline"
             onClick={() => open()}
             className="mt-2"
+            disabled={isLoading}
           >
-            <ImagePlus className="h-4 w-4 mr-2" />
-            Upload an Image
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Video className="h-4 w-4 mr-2" />
+            )}
+            Upload a Video
           </Button>
         );
       }}
