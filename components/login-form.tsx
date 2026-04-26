@@ -18,12 +18,13 @@ import {
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { toast } from "sonner";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import z from "zod";
 import { LoginSchema } from "@/lib/validation/login";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ROUTES } from "@/lib/auth/routes";
+import { submitLogin } from "@/lib/auth/client-actions";
 
 type LoginInputValues = z.input<typeof LoginSchema>;
 
@@ -49,30 +50,20 @@ export function LoginForm({
   });
 
   const onSubmit = async (data: LoginInputValues) => {
-    try {
-      const res = await signIn("credentials", {
-        email: data.email as string,
-        password: data.password as string,
-        rememberMe: data.rememberMe ? "true" : "false",
-        redirect: false,
-      });
+    const result = await submitLogin({
+      ...data,
+      rememberMe: !!data.rememberMe,
+    });
 
-      if (res?.error) {
-        toast.error("Invalid email or password");
-        return;
-      }
-
-      if (res?.ok) {
-        toast.success("Login successful!");
-        reset();
-        router.push("/");
-        router.refresh();
-      } else {
-        toast.error("Login request failed");
-      }
-    } catch {
-      toast.error("Network error during login");
+    if (!result.ok) {
+      toast.error(result.message);
+      return;
     }
+
+    toast.success("Login successful!");
+    reset();
+    router.push(ROUTES.HOME);
+    router.refresh();
   };
 
   return (
@@ -137,7 +128,7 @@ export function LoginForm({
                 </Button>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account?{" "}
-                  <Link href="/auth/signup">Sign up</Link>
+                  <Link href={ROUTES.AUTH_SIGNUP}>Sign up</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>

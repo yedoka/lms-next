@@ -21,8 +21,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupSchema } from "@/lib/validation/signup";
 import z from "zod";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { ROUTES } from "@/lib/auth/routes";
+import { ROLE } from "@/lib/auth/roles";
+import {
+  autoSignInAfterSignup,
+  submitSignup,
+} from "@/lib/auth/client-actions";
 
 type SignupInput = z.infer<typeof SignupSchema>;
 
@@ -47,41 +52,26 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   });
 
   const onSubmit = async (data: SignupInput) => {
-    try {
-      const signupRes = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+    const signupResult = await submitSignup(data);
 
-      if (!signupRes.ok) {
-        const body = (await signupRes.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-        toast.error(body?.error ?? "Signup request failed");
-        return;
-      }
-
-      const signInRes = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
-
-      if (signInRes?.ok) {
-        toast.success("Account created. Welcome!");
-        reset();
-        router.push("/");
-        router.refresh();
-        return;
-      }
-
-      toast.success("Account created. Please login.");
-      reset();
-      router.push("/auth/login");
-    } catch {
-      toast.error("Network error during login");
+    if (!signupResult.ok) {
+      toast.error(signupResult.message);
+      return;
     }
+
+    const signInResult = await autoSignInAfterSignup(data.email, data.password);
+
+    if (signInResult.ok) {
+      toast.success("Account created. Welcome!");
+      reset();
+      router.push(ROUTES.HOME);
+      router.refresh();
+      return;
+    }
+
+    toast.success(signInResult.message);
+    reset();
+    router.push(ROUTES.AUTH_LOGIN);
   };
 
   return (
@@ -117,11 +107,11 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
               <FieldLabel>I am signing up as</FieldLabel>
               <div className="flex items-center gap-6">
                 <label className="flex items-center gap-2 text-sm">
-                  <input type="radio" value="STUDENT" {...register("role")} />
+                  <input type="radio" value={ROLE.STUDENT} {...register("role")} />
                   Student
                 </label>
                 <label className="flex items-center gap-2 text-sm">
-                  <input type="radio" value="TEACHER" {...register("role")} />
+                  <input type="radio" value={ROLE.TEACHER} {...register("role")} />
                   Teacher
                 </label>
               </div>
@@ -172,7 +162,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                   Sign up with Google
                 </Button>
                 <FieldDescription className="px-6 text-center">
-                  Already have an account? <Link href="/auth/login">Login</Link>
+                  Already have an account? <Link href={ROUTES.AUTH_LOGIN}>Login</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>

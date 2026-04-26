@@ -1,21 +1,26 @@
 import { auth } from "./auth";
 import { NextResponse } from "next/server";
-
-const protectedRoutes = ["/", "/dashboard"];
-const publicAuthRoutes = ["/auth/login", "/auth/signup"];
+import { ROUTES } from "@/lib/auth/routes";
+import {
+  canAccessPath,
+  isProtectedPath,
+  isPublicAuthPath,
+} from "@/lib/auth/route-guards";
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const path = req.nextUrl.pathname;
-  const isProtectedRoute = protectedRoutes.includes(path);
-  const isPublicAuthRoute = publicAuthRoutes.includes(path);
 
-  if (isProtectedRoute && !isLoggedIn) {
-    return NextResponse.redirect(new URL("/auth/login", req.nextUrl));
+  if (isProtectedPath(path) && !isLoggedIn) {
+    return NextResponse.redirect(new URL(ROUTES.AUTH_LOGIN, req.nextUrl));
   }
 
-  if (isPublicAuthRoute && isLoggedIn) {
-    return NextResponse.redirect(new URL("/", req.nextUrl));
+  if (isLoggedIn && !canAccessPath(path, req.auth?.user?.role)) {
+    return NextResponse.redirect(new URL(ROUTES.FORBIDDEN, req.nextUrl));
+  }
+
+  if (isPublicAuthPath(path) && isLoggedIn) {
+    return NextResponse.redirect(new URL(ROUTES.HOME, req.nextUrl));
   }
 });
 
