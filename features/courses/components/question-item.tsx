@@ -2,12 +2,11 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Lesson, Attachment, Quiz } from "@prisma/client";
+import { Question, Answer } from "@prisma/client";
 import { GripVertical, Pencil, Trash } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { useState, useTransition } from "react";
-import { deleteLessonAction } from "../actions/lesson-actions";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -16,15 +15,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/ui/dialog";
-import { LessonForm } from "./lesson-form";
+import { QuestionForm } from "./question-form";
+import { deleteQuestionAction } from "../actions/quiz-actions";
 
-interface LessonItemProps {
-  lesson: Lesson & { attachments: Attachment[]; quizzes: Quiz[] };
+interface QuestionItemProps {
+  question: Question & { answers: Answer[] };
   courseId: string;
-  disabled?: boolean;
+  lessonId: string;
+  quizId: string;
 }
 
-export const LessonItem = ({ lesson, courseId, disabled }: LessonItemProps) => {
+export const QuestionItem = ({ question, courseId, lessonId, quizId }: QuestionItemProps) => {
   const [isDeleting, startDeleteTransition] = useTransition();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -35,7 +36,7 @@ export const LessonItem = ({ lesson, courseId, disabled }: LessonItemProps) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: lesson.id });
+  } = useSortable({ id: question.id });
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -46,8 +47,8 @@ export const LessonItem = ({ lesson, courseId, disabled }: LessonItemProps) => {
   const onDelete = () => {
     startDeleteTransition(async () => {
       try {
-        await deleteLessonAction(courseId, lesson.id);
-        toast.success("Lesson deleted");
+        await deleteQuestionAction(courseId, lessonId, question.id);
+        toast.success("Question deleted");
       } catch {
         toast.error("Something went wrong");
       }
@@ -58,7 +59,7 @@ export const LessonItem = ({ lesson, courseId, disabled }: LessonItemProps) => {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-x-2 bg-slate-100 border-slate-200 border text-slate-700 rounded-md mb-4 text-sm overflow-hidden"
+      className="flex items-center gap-x-2 bg-slate-100 border-slate-200 border text-slate-700 rounded-md text-sm overflow-hidden"
     >
       <div
         className="px-2 py-3 border-r border-slate-200 hover:bg-slate-200 transition cursor-grab"
@@ -67,42 +68,37 @@ export const LessonItem = ({ lesson, courseId, disabled }: LessonItemProps) => {
       >
         <GripVertical className="h-5 w-5" />
       </div>
-      <div className="flex-1 px-2 py-3 truncate">{lesson.title}</div>
+      <div className="flex-1 px-2 py-3 truncate">
+        {question.text === "New Question" ? <span className="italic text-slate-400">Empty Question</span> : question.text}
+      </div>
       <div className="ml-auto pr-2 flex items-center gap-x-2">
-        {lesson.isPublished ? (
-          <Badge variant="default" className="bg-sky-700">
-            Published
-          </Badge>
-        ) : (
-          <Badge variant="secondary">Draft</Badge>
-        )}
-
+        <Badge variant="outline">
+          {question.type === "MULTIPLE_CHOICE" ? "Multiple Choice" : "True/False"}
+        </Badge>
+        
         <Dialog open={isEditing} onOpenChange={setIsEditing} modal={false}>
           <DialogTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
               className="h-auto p-1"
-              disabled={disabled || isDeleting}
+              disabled={isDeleting}
             >
               <Pencil className="h-4 w-4" />
             </Button>
           </DialogTrigger>
-          <DialogContent
+          <DialogContent 
             className="max-w-3xl overflow-y-auto max-h-[90vh]"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onInteractOutside={(e) => e.preventDefault()}
           >
             <DialogHeader>
-              <DialogTitle>Edit Lesson</DialogTitle>
+              <DialogTitle>Edit Question</DialogTitle>
             </DialogHeader>
-            <LessonForm
+            <QuestionForm
               courseId={courseId}
-              initialData={{
-                ...lesson,
-                description: lesson.description || "",
-                videoUrl: lesson.videoUrl || "",
-              }}
+              lessonId={lessonId}
+              question={question}
               onSuccess={() => setIsEditing(false)}
             />
           </DialogContent>
@@ -113,7 +109,7 @@ export const LessonItem = ({ lesson, courseId, disabled }: LessonItemProps) => {
           variant="ghost"
           size="sm"
           className="h-auto p-1 text-destructive hover:text-destructive"
-          disabled={disabled || isDeleting}
+          disabled={isDeleting}
         >
           <Trash className="h-4 w-4" />
         </Button>
