@@ -29,6 +29,7 @@ export default async function EditCoursePage({
         },
         include: {
           attachments: true,
+          quizzes: true,
         },
       },
     },
@@ -38,7 +39,10 @@ export default async function EditCoursePage({
     redirect("/dashboard/teacher");
   }
 
-  if (course.teacherId !== session.user.id && session.user.role !== ROLE.ADMIN) {
+  if (
+    course.teacherId !== session.user.id &&
+    session.user.role !== ROLE.ADMIN
+  ) {
     redirect("/forbidden");
   }
 
@@ -57,7 +61,7 @@ export default async function EditCoursePage({
           <div className="flex items-center gap-x-2 mb-4">
             <h2 className="text-xl">Course Details</h2>
           </div>
-          <CourseForm 
+          <CourseForm
             initialData={{
               id: course.id,
               title: course.title,
@@ -65,7 +69,7 @@ export default async function EditCoursePage({
               category: course.category || "",
               thumbnail: course.thumbnail || "",
               isPublished: course.isPublished,
-            }} 
+            }}
           />
         </div>
         <div className="space-y-6">
@@ -74,10 +78,7 @@ export default async function EditCoursePage({
               <h2 className="text-xl">Course Lessons</h2>
               <AddLessonButton courseId={courseId} />
             </div>
-            <LessonList 
-              items={course.lessons} 
-              courseId={courseId} 
-            />
+            <LessonList items={course.lessons} courseId={courseId} />
           </div>
         </div>
       </div>

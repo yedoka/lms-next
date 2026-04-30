@@ -16,13 +16,13 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Lesson, Attachment } from "@prisma/client";
+import { Lesson, Attachment, Quiz } from "@prisma/client";
 import { LessonItem } from "./lesson-item";
 import { reorderLessonsAction } from "../actions/lesson-actions";
 import { toast } from "sonner";
 
 interface LessonListProps {
-  items: (Lesson & { attachments: Attachment[] })[];
+  items: (Lesson & { attachments: Attachment[]; quizzes: Quiz[] })[];
   courseId: string;
 }
 
@@ -43,7 +43,7 @@ export const LessonList = ({ items, courseId }: LessonListProps) => {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const onDragEnd = (event: DragEndEvent) => {
