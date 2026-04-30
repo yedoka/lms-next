@@ -29,7 +29,7 @@ export default function TeacherCoursesPage() {
         </CardHeader>
         <CardContent>
           <div className="flex h-[200px] items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
-            You haven't created any courses yet.
+            You haven&apos;t created any courses yet.
           </div>
         </CardContent>
       </Card>

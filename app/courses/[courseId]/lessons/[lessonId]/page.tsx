@@ -6,6 +6,7 @@ import { Button } from "@/shared/ui/button";
 import { ChevronLeft, ChevronRight, PlayCircle, CheckCircle } from "lucide-react";
 import { sanitizeHtml } from "@/shared/lib/sanitize";
 import { cn } from "@/shared/lib/utils";
+import { VideoPlayer } from "@/features/courses/components/video-player";
 
 export default async function LessonPage({
   params,
@@ -73,6 +74,30 @@ export default async function LessonPage({
   const prevLesson = lessons[currentLessonIndex - 1];
   const nextLesson = lessons[currentLessonIndex + 1];
 
+  const progress = await prisma.lessonProgress.findUnique({
+    where: {
+      userId_lessonId: {
+        userId,
+        lessonId,
+      },
+    },
+  });
+
+  const isCompleted = !!progress?.isCompleted;
+
+  // Check progress for all lessons in this course to show completion state in sidebar
+  const userProgress = await prisma.lessonProgress.findMany({
+    where: {
+      userId,
+      lessonId: {
+        in: lessons.map((l) => l.id),
+      },
+      isCompleted: true,
+    },
+  });
+
+  const completedLessonIds = new Set(userProgress.map((p) => p.lessonId));
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-col md:flex-row h-full">
@@ -82,21 +107,29 @@ export default async function LessonPage({
             <h2 className="font-semibold truncate">Course Content</h2>
           </div>
           <div className="flex flex-col w-full">
-            {lessons.map((l) => (
-              <Link
-                key={l.id}
-                href={`/courses/${courseId}/lessons/${l.id}`}
-                className={cn(
-                  "flex items-center gap-x-2 text-slate-500 text-sm font-[500] pl-6 transition-all hover:text-slate-600 hover:bg-slate-300/20",
-                  l.id === lessonId && "text-sky-700 bg-sky-200/20 hover:bg-sky-200/20 hover:text-sky-700"
-                )}
-              >
-                <div className="flex items-center gap-x-2 py-4">
-                  <PlayCircle size={22} className={cn("text-slate-500", l.id === lessonId && "text-sky-700")} />
-                  {l.title}
-                </div>
-              </Link>
-            ))}
+            {lessons.map((l) => {
+              const isLessonCompleted = completedLessonIds.has(l.id);
+              return (
+                <Link
+                  key={l.id}
+                  href={`/courses/${courseId}/lessons/${l.id}`}
+                  className={cn(
+                    "flex items-center gap-x-2 text-slate-500 text-sm font-[500] pl-6 transition-all hover:text-slate-600 hover:bg-slate-300/20",
+                    l.id === lessonId && "text-sky-700 bg-sky-200/20 hover:bg-sky-200/20 hover:text-sky-700",
+                    isLessonCompleted && "text-emerald-700 hover:text-emerald-700"
+                  )}
+                >
+                  <div className="flex items-center gap-x-2 py-4">
+                    {isLessonCompleted ? (
+                      <CheckCircle size={22} className="text-emerald-500" />
+                    ) : (
+                      <PlayCircle size={22} className={cn("text-slate-500", l.id === lessonId && "text-sky-700")} />
+                    )}
+                    {l.title}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
 
@@ -105,12 +138,7 @@ export default async function LessonPage({
           <div className="max-w-4xl mx-auto p-6">
             <div className="aspect-video bg-black rounded-lg overflow-hidden mb-8 relative">
               {lesson.videoUrl ? (
-                <video
-                  src={lesson.videoUrl}
-                  controls
-                  className="w-full h-full"
-                  poster={lesson.videoUrl.replace(/\.[^/.]+$/, ".jpg")} // Basic attempt to use thumbnail if available from cloudinary
-                />
+                <VideoPlayer url={lesson.videoUrl} lessonId={lessonId} isCompleted={isCompleted} />
               ) : (
                 <div className="flex items-center justify-center h-full text-white bg-slate-800">
                   No video available for this lesson.
