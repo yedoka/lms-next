@@ -49,3 +49,20 @@ export async function reorderLessonsAction(courseId: string, updates: { id: stri
   await lessonService.reorderLessons(courseId, updates);
   revalidatePath(`/dashboard/teacher/courses/${courseId}/edit`);
 }
+
+export async function createLessonAttachmentAction(courseId: string, lessonId: string, name: string, url: string, size: number) {
+  const session = await requireAuth();
+  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+
+  const attachment = await lessonService.addLessonAttachment(lessonId, name, url, size);
+  revalidatePath(`/dashboard/teacher/courses/${courseId}/edit`);
+  return attachment;
+}
+
+export async function deleteLessonAttachmentAction(courseId: string, attachmentId: string) {
+  const session = await requireAuth();
+  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+
+  await lessonService.deleteLessonAttachment(attachmentId);
+  revalidatePath(`/dashboard/teacher/courses/${courseId}/edit`);
+}

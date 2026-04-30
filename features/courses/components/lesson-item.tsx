@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Lesson } from "@prisma/client";
+import { Lesson, Attachment } from "@prisma/client";
 import { GripVertical, Pencil, Trash } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
@@ -19,7 +19,7 @@ import {
 import { LessonForm } from "./lesson-form";
 
 interface LessonItemProps {
-  lesson: Lesson;
+  lesson: Lesson & { attachments: Attachment[] };
   courseId: string;
   disabled?: boolean;
 }

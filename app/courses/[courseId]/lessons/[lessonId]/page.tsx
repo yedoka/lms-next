@@ -3,10 +3,36 @@ import prisma from "@/shared/db/prisma";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/shared/ui/button";
-import { ChevronLeft, ChevronRight, PlayCircle, CheckCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, PlayCircle, CheckCircle, FileText, Archive, File } from "lucide-react";
 import { sanitizeHtml } from "@/shared/lib/sanitize";
 import { cn } from "@/shared/lib/utils";
 import { VideoPlayer } from "@/features/courses/components/video-player";
+
+function formatBytes(bytes: number, decimals = 2) {
+  if (!+bytes) return '0 Bytes';
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+}
+
+function getFileIcon(filename: string) {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'pdf':
+    case 'doc':
+    case 'docx':
+    case 'txt':
+      return <FileText className="h-4 w-4 mr-2 flex-shrink-0" />;
+    case 'zip':
+    case 'rar':
+    case '7z':
+      return <Archive className="h-4 w-4 mr-2 flex-shrink-0" />;
+    default:
+      return <File className="h-4 w-4 mr-2 flex-shrink-0" />;
+  }
+}
 
 export default async function LessonPage({
   params,
@@ -175,19 +201,30 @@ export default async function LessonPage({
 
             {lesson.attachments.length > 0 && (
               <div className="p-4 border rounded-md bg-slate-50">
-                <h3 className="font-semibold mb-2">Attachments</h3>
-                <div className="space-y-2">
-                  {lesson.attachments.map((attachment) => (
-                    <a
-                      key={attachment.id}
-                      href={attachment.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center p-2 bg-sky-100 border-sky-200 border text-sky-700 rounded-md hover:underline"
-                    >
-                      <p className="line-clamp-1">{attachment.name}</p>
-                    </a>
-                  ))}
+                <h3 className="font-semibold mb-3">Course Materials</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {lesson.attachments.map((attachment) => {
+                    // Cloudinary requires fl_attachment flag to deliver raw files like PDFs/ZIPs securely
+                    const downloadUrl = attachment.url.replace('/upload/', '/upload/fl_attachment/');
+                    return (
+                      <a
+                        key={attachment.id}
+                        href={downloadUrl}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col p-3 bg-white border border-slate-200 rounded-md hover:bg-slate-100 transition-colors group"
+                      >
+                        <div className="flex items-center text-slate-700 group-hover:text-sky-700 transition-colors">
+                          {getFileIcon(attachment.name)}
+                          <p className="line-clamp-1 font-medium text-sm">{attachment.name}</p>
+                        </div>
+                        <span className="text-xs text-slate-500 mt-1 pl-6">
+                          {formatBytes(attachment.size)}
+                        </span>
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             )}
