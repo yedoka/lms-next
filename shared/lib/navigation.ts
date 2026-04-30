@@ -41,7 +41,7 @@ export const DASHBOARD_NAV: Record<UserRole, NavSection[]> = {
       title: "Learning",
       items: [
         {
-          title: "My Dashboard",
+          title: "Overview",
           href: ROUTES.DASHBOARD_STUDENT,
           icon: LayoutDashboard,
         },
@@ -58,7 +58,7 @@ export const DASHBOARD_NAV: Record<UserRole, NavSection[]> = {
       title: "Teaching",
       items: [
         {
-          title: "Teacher Dashboard",
+          title: "Overview",
           href: ROUTES.DASHBOARD_TEACHER,
           icon: LayoutDashboard,
         },
@@ -80,7 +80,7 @@ export const DASHBOARD_NAV: Record<UserRole, NavSection[]> = {
       title: "Administration",
       items: [
         {
-          title: "Admin Dashboard",
+          title: "Overview",
           href: ROUTES.DASHBOARD_ADMIN,
           icon: LayoutDashboard,
         },
