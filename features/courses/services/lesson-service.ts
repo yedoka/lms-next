@@ -5,6 +5,7 @@ export async function getLessons(courseId: string) {
   return prisma.lesson.findMany({
     where: { courseId },
     orderBy: { position: "asc" },
+    include: { attachments: true },
   });
 }
 
@@ -70,4 +71,21 @@ export async function reorderLessons(
       })
     )
   );
+}
+
+export async function addLessonAttachment(lessonId: string, name: string, url: string, size: number) {
+  return prisma.attachment.create({
+    data: {
+      lessonId,
+      name,
+      url,
+      size,
+    },
+  });
+}
+
+export async function deleteLessonAttachment(attachmentId: string) {
+  return prisma.attachment.delete({
+    where: { id: attachmentId },
+  });
 }

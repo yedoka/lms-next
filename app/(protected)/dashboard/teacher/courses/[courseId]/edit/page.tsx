@@ -27,6 +27,9 @@ export default async function EditCoursePage({
         orderBy: {
           position: "asc",
         },
+        include: {
+          attachments: true,
+        },
       },
     },
   });

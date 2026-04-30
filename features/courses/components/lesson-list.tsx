@@ -16,13 +16,13 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Lesson } from "@prisma/client";
+import { Lesson, Attachment } from "@prisma/client";
 import { LessonItem } from "./lesson-item";
 import { reorderLessonsAction } from "../actions/lesson-actions";
 import { toast } from "sonner";
 
 interface LessonListProps {
-  items: Lesson[];
+  items: (Lesson & { attachments: Attachment[] })[];
   courseId: string;
 }
 
