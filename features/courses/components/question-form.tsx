@@ -1,7 +1,7 @@
 "use client";
 
 import { Question, Answer } from "@prisma/client";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { questionSchema, QuestionFormData } from "../schemas/quiz";
@@ -9,7 +9,13 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Field, FieldLabel, FieldContent, FieldError } from "@/shared/ui/field";
 import { toast } from "sonner";
-import { updateQuestionAction, createAnswerAction, updateAnswerAction, deleteAnswerAction, setCorrectAnswerAction } from "../actions/quiz-actions";
+import {
+  updateQuestionAction,
+  createAnswerAction,
+  updateAnswerAction,
+  deleteAnswerAction,
+  setCorrectAnswerAction,
+} from "../actions/quiz-actions";
 import { PlusCircle, Trash, CheckCircle } from "lucide-react";
 
 interface QuestionFormProps {
@@ -19,10 +25,19 @@ interface QuestionFormProps {
   onSuccess?: () => void;
 }
 
-export const QuestionForm = ({ question, courseId, lessonId, onSuccess }: QuestionFormProps) => {
+export const QuestionForm = ({
+  question,
+  courseId,
+  lessonId,
+  onSuccess,
+}: QuestionFormProps) => {
   const [isPending, startTransition] = useTransition();
 
-  const { control, handleSubmit, formState: { errors } } = useForm<QuestionFormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<QuestionFormData>({
     resolver: zodResolver(questionSchema),
     defaultValues: {
       text: question.text,
@@ -76,7 +91,7 @@ export const QuestionForm = ({ question, courseId, lessonId, onSuccess }: Questi
   const handleSetCorrect = (answerId: string) => {
     startTransition(async () => {
       try {
-        await setCorrectAnswerAction(courseId, lessonId, question.id, answerId, question.type === "MULTIPLE_CHOICE");
+        await setCorrectAnswerAction(courseId, lessonId, question.id, answerId);
       } catch (error) {
         toast.error("Failed to set correct answer");
       }
@@ -94,7 +109,9 @@ export const QuestionForm = ({ question, courseId, lessonId, onSuccess }: Questi
               <FieldLabel>Question Text</FieldLabel>
               <FieldContent>
                 <Input disabled={isPending} {...field} />
-                {errors.text?.message && <FieldError>{errors.text.message}</FieldError>}
+                {errors.text?.message && (
+                  <FieldError>{errors.text.message}</FieldError>
+                )}
               </FieldContent>
             </Field>
           )}
@@ -106,14 +123,16 @@ export const QuestionForm = ({ question, courseId, lessonId, onSuccess }: Questi
             <Field data-invalid={!!errors.points}>
               <FieldLabel>Points</FieldLabel>
               <FieldContent>
-                <Input 
-                  type="number" 
-                  min="1" 
-                  disabled={isPending} 
-                  value={field.value} 
-                  onChange={e => field.onChange(parseInt(e.target.value))} 
+                <Input
+                  type="number"
+                  min="1"
+                  disabled={isPending}
+                  value={field.value}
+                  onChange={(e) => field.onChange(parseInt(e.target.value))}
                 />
-                {errors.points?.message && <FieldError>{errors.points.message}</FieldError>}
+                {errors.points?.message && (
+                  <FieldError>{errors.points.message}</FieldError>
+                )}
               </FieldContent>
             </Field>
           )}
@@ -127,16 +146,24 @@ export const QuestionForm = ({ question, courseId, lessonId, onSuccess }: Questi
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium leading-none">Answers</h3>
           {question.type === "MULTIPLE_CHOICE" && (
-            <Button size="sm" variant="outline" onClick={handleAddAnswer} disabled={isPending}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleAddAnswer}
+              disabled={isPending}
+            >
               <PlusCircle className="h-4 w-4 mr-2" />
               Add Option
             </Button>
           )}
         </div>
-        
+
         <div className="space-y-2">
           {question.answers.map((answer) => (
-            <div key={answer.id} className={`flex items-center gap-2 p-2 border rounded-md ${answer.isCorrect ? "border-green-500 bg-green-50" : "bg-slate-50"}`}>
+            <div
+              key={answer.id}
+              className={`flex items-center gap-2 p-2 border rounded-md ${answer.isCorrect ? "border-green-500 bg-green-50" : "bg-slate-50"}`}
+            >
               <Button
                 type="button"
                 variant="ghost"
@@ -147,34 +174,41 @@ export const QuestionForm = ({ question, courseId, lessonId, onSuccess }: Questi
               >
                 <CheckCircle className="h-5 w-5" />
               </Button>
-              
+
               {question.type === "MULTIPLE_CHOICE" ? (
-                <Input 
-                  className="flex-1 h-8 bg-white" 
+                <Input
+                  className="flex-1 h-8 bg-white"
                   defaultValue={answer.text}
-                  onBlur={(e) => handleUpdateAnswerText(answer.id, e.target.value)}
+                  onBlur={(e) =>
+                    handleUpdateAnswerText(answer.id, e.target.value)
+                  }
                   disabled={isPending}
                 />
               ) : (
-                <div className="flex-1 px-3 text-sm font-medium">{answer.text}</div>
+                <div className="flex-1 px-3 text-sm font-medium">
+                  {answer.text}
+                </div>
               )}
-              
-              {question.type === "MULTIPLE_CHOICE" && question.answers.length > 2 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto p-1 text-destructive hover:text-destructive"
-                  onClick={() => handleDeleteAnswer(answer.id)}
-                  disabled={isPending}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              )}
+
+              {question.type === "MULTIPLE_CHOICE" &&
+                question.answers.length > 2 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-1 text-destructive hover:text-destructive"
+                    onClick={() => handleDeleteAnswer(answer.id)}
+                    disabled={isPending}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                )}
             </div>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground">Click the checkmark circle to mark an answer as correct.</p>
+        <p className="text-xs text-muted-foreground">
+          Click the checkmark circle to mark an answer as correct.
+        </p>
       </div>
     </div>
   );
