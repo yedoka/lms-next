@@ -146,7 +146,8 @@ model Question {
   updatedAt DateTime @updatedAt
 
   // Relationships
-  answers Answer[]
+  answers        Answer[]
+  attemptAnswers AttemptAnswer[]
 }
 
 model Answer {
@@ -158,6 +159,8 @@ model Answer {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  attemptAnswers AttemptAnswer[]
 }
 
 model QuizAttempt {
@@ -167,8 +170,24 @@ model QuizAttempt {
   quizId      String
   quiz        Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
   score       Int       @default(0)
+  passed      Boolean   @default(false)
   startedAt   DateTime  @default(now())
   submittedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  answers AttemptAnswer[]
+}
+
+model AttemptAnswer {
+  id         String      @id @default(cuid())
+  attemptId  String
+  attempt    QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answerId   String
+  answer     Answer      @relation(fields: [answerId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

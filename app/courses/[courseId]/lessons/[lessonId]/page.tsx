@@ -79,6 +79,16 @@ export default async function LessonPage({
     },
     include: {
       attachments: true,
+      quizzes: {
+        where: { isPublished: true },
+        include: {
+          attempts: {
+            where: { userId },
+            orderBy: { score: "desc" },
+            take: 1
+          }
+        }
+      }
     },
   });
 
@@ -226,6 +236,41 @@ export default async function LessonPage({
                     );
                   })}
                 </div>
+              </div>
+            )}
+
+            {lesson.quizzes && lesson.quizzes.length > 0 && (
+              <div className="p-4 border rounded-md bg-slate-50 mt-8">
+                <h3 className="font-semibold mb-3">Lesson Quiz</h3>
+                {lesson.quizzes.map((quiz) => {
+                  const bestAttempt = quiz.attempts[0];
+                  return (
+                    <div key={quiz.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white border border-slate-200 rounded-md">
+                      <div>
+                        <p className="font-medium">{quiz.title}</p>
+                        {bestAttempt && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Best score: <span className={cn("font-medium", bestAttempt.passed ? "text-green-600" : "text-destructive")}>{bestAttempt.score}%</span>
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {bestAttempt && (
+                          <Button asChild variant="outline">
+                            <Link href={`/courses/${courseId}/lessons/${lessonId}/quiz/results/${bestAttempt.id}`}>
+                              View Results
+                            </Link>
+                          </Button>
+                        )}
+                        <Button asChild>
+                          <Link href={`/courses/${courseId}/lessons/${lessonId}/quiz`}>
+                            {bestAttempt ? "Retake Quiz" : "Take Quiz"}
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

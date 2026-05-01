@@ -29,9 +29,20 @@ export const reorderQuestionsSchema = z.object({
     z.object({
       id: z.string(),
       position: z.number().int(),
-    })
+    }),
   ),
 });
 
 export type ReorderQuestionsData = z.infer<typeof reorderQuestionsSchema>;
 
+export const submitQuizSchema = z.object({
+  quizId: z.string().min(1),
+  answers: z.array(
+    z.object({
+      questionId: z.string().min(1),
+      answerId: z.string().min(1),
+    }),
+  ),
+});
+
+export type SubmitQuizData = z.infer<typeof submitQuizSchema>;

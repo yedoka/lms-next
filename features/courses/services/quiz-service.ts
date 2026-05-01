@@ -154,3 +154,83 @@ export async function setCorrectAnswer(questionId: string, answerId: string) {
     }),
   ]);
 }
+
+export async function gradeQuizAttempt(
+  userId: string,
+  quizId: string,
+  submittedAnswers: { questionId: string; answerId: string }[],
+) {
+  const quiz = await prisma.quiz.findUnique({
+    where: { id: quizId },
+    include: {
+      questions: {
+        include: { answers: true },
+      },
+    },
+  });
+
+  if (!quiz) throw new Error("Quiz not found");
+
+  let score = 0;
+  const maxScore = quiz.questions.reduce((sum, q) => sum + q.points, 0);
+
+  const attemptAnswersData = [];
+
+  for (const submitted of submittedAnswers) {
+    const question = quiz.questions.find((q) => q.id === submitted.questionId);
+    if (!question) continue;
+
+    const selectedAnswer = question.answers.find(
+      (a) => a.id === submitted.answerId,
+    );
+    if (!selectedAnswer) continue;
+
+    if (selectedAnswer.isCorrect) {
+      score += question.points;
+    }
+
+    attemptAnswersData.push({
+      questionId: submitted.questionId,
+      answerId: submitted.answerId,
+    });
+  }
+
+  // Calculate percentage and check if passed
+  const scorePercentage =
+    maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+  const passed = scorePercentage >= quiz.passingScore;
+
+  // Create attempt in a transaction
+  return prisma.quizAttempt.create({
+    data: {
+      userId,
+      quizId,
+      score: scorePercentage, // Storing percentage as score, or should it be raw score? Plan says "Calculated score", let's store percentage to easily compare with passingScore
+      passed,
+      submittedAt: new Date(),
+      answers: {
+        create: attemptAnswersData,
+      },
+    },
+  });
+}
+
+export async function getQuizAttemptById(attemptId: string, userId: string) {
+  return prisma.quizAttempt.findFirst({
+    where: {
+      id: attemptId,
+      userId, // Ensure the user owns this attempt
+    },
+    include: {
+      quiz: true,
+      answers: {
+        include: {
+          question: {
+            include: { answers: true },
+          },
+          answer: true,
+        },
+      },
+    },
+  });
+}
