@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Clock } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
@@ -11,10 +11,14 @@ interface QuizTimerProps {
 
 export function QuizTimer({ timeLimitMinutes, onExpire }: QuizTimerProps) {
   const [timeLeft, setTimeLeft] = useState(timeLimitMinutes * 60);
+  const hasExpired = useRef(false);
 
   useEffect(() => {
     if (timeLeft <= 0) {
-      onExpire();
+      if (!hasExpired.current) {
+        hasExpired.current = true;
+        onExpire();
+      }
       return;
     }
 

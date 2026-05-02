@@ -2,6 +2,7 @@
 
 import { requireAuth } from "@/features/auth/utils/with-role";
 import { revalidatePath } from "next/cache";
+import prisma from "@/shared/db/prisma";
 import * as quizService from "../services/quiz-service";
 import {
   quizSchema,
@@ -192,6 +193,41 @@ export async function submitQuizAction(
   const parsed = submitQuizSchema.safeParse(data);
   if (!parsed.success) {
     throw new Error("Invalid quiz submission data");
+  }
+
+  // Verify quiz belongs to course/lesson and is published
+  const quiz = await prisma.quiz.findFirst({
+    where: {
+      id: parsed.data.quizId,
+      lessonId: lessonId,
+      isPublished: true,
+      lesson: {
+        courseId: courseId,
+      },
+    },
+  });
+
+  if (!quiz) {
+    throw new Error("Quiz not found or not published");
+  }
+
+  // Verify enrollment or role
+  const enrollment = await prisma.enrollment.findUnique({
+    where: {
+      userId_courseId: {
+        userId: session.user.id,
+        courseId,
+      },
+    },
+  });
+
+  const isTeacher = await prisma.course
+    .findUnique({ where: { id: courseId }, select: { teacherId: true } })
+    .then((c) => c?.teacherId === session.user.id);
+  const isAdmin = session.user.role === "ADMIN";
+
+  if (!enrollment && !isTeacher && !isAdmin) {
+    throw new Error("You are not authorized to submit this quiz");
   }
 
   const attempt = await quizService.gradeQuizAttempt(

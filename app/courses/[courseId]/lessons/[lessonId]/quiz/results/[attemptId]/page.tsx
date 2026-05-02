@@ -17,16 +17,34 @@ export default async function QuizResultsPage({
 
   const attempt = await getQuizAttemptById(attemptId, session.user.id);
 
-  if (!attempt) {
+  if (
+    !attempt ||
+    attempt.quiz.lessonId !== lessonId ||
+    attempt.quiz.lesson.courseId !== courseId
+  ) {
     return notFound();
   }
+
+  // Map to the exact prop shape for type safety and to minimize data passed to client
+  const mappedAttempt = {
+    score: attempt.score,
+    passed: attempt.passed,
+    quiz: {
+      passingScore: attempt.quiz.passingScore,
+      title: attempt.quiz.title,
+    },
+    answers: attempt.answers.map((a) => ({
+      question: { text: a.question.text },
+      answer: { text: a.answer.text, isCorrect: a.answer.isCorrect },
+    })),
+  };
 
   return (
     <div className="container mx-auto p-6">
       <QuizResults
         courseId={courseId}
         lessonId={lessonId}
-        attempt={attempt as any}
+        attempt={mappedAttempt}
       />
     </div>
   );

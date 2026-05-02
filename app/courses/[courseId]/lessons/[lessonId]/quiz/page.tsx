@@ -3,6 +3,18 @@ import prisma from "@/shared/db/prisma";
 import { notFound, redirect } from "next/navigation";
 import { QuizPlayer } from "@/features/courses/components/quiz-player";
 
+type QuizData = {
+  id: string;
+  title: string;
+  timeLimit: number | null;
+  questions: {
+    id: string;
+    text: string;
+    type: "MULTIPLE_CHOICE" | "BOOLEAN";
+    answers: { id: string; text: string }[];
+  }[];
+};
+
 export default async function StudentQuizPage({
   params,
 }: {
@@ -19,6 +31,9 @@ export default async function StudentQuizPage({
     where: {
       lessonId,
       isPublished: true,
+      lesson: {
+        courseId,
+      },
     },
     include: {
       questions: {
@@ -51,7 +66,11 @@ export default async function StudentQuizPage({
 
   return (
     <div className="container mx-auto p-6">
-      <QuizPlayer courseId={courseId} lessonId={lessonId} quiz={quiz as any} />
+      <QuizPlayer
+        courseId={courseId}
+        lessonId={lessonId}
+        quiz={quiz as QuizData}
+      />
     </div>
   );
 }

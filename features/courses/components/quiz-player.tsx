@@ -14,6 +14,7 @@ import { QuizTimer } from "./quiz-timer";
 import { submitQuizAction } from "../actions/quiz-actions";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
+import Link from "next/link";
 
 type QuizData = {
   id: string;
@@ -41,6 +42,28 @@ export function QuizPlayer({
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  if (!quiz.questions || quiz.questions.length === 0) {
+    return (
+      <div className="max-w-3xl mx-auto py-8">
+        <Card className="text-center py-12">
+          <CardHeader>
+            <CardTitle>No Questions Found</CardTitle>
+            <p className="text-muted-foreground mt-2">
+              This quiz doesn&apos;t have any questions yet.
+            </p>
+          </CardHeader>
+          <CardFooter className="flex justify-center">
+            <Button asChild>
+              <Link href={`/courses/${courseId}/lessons/${lessonId}`}>
+                Back to Lesson
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
   const currentQuestion = quiz.questions[currentIdx];
   const isLastQuestion = currentIdx === quiz.questions.length - 1;
   const currentSelectedAnswerId = answers[currentQuestion.id];
@@ -64,6 +87,7 @@ export function QuizPlayer({
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
     setIsSubmitting(true);
     try {
       const formattedAnswers = Object.entries(answers).map(
@@ -84,8 +108,10 @@ export function QuizPlayer({
       router.push(
         `/courses/${courseId}/lessons/${lessonId}/quiz/results/${result.attemptId}`,
       );
-    } catch (error: any) {
-      toast.error(error.message || "Failed to submit quiz");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to submit quiz";
+      toast.error(message);
       setIsSubmitting(false);
     }
   };

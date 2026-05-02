@@ -67,9 +67,13 @@ export async function getStudentDashboardData(userId: string) {
 
     // Fetch quiz attempts for this course's lessons
     const courseLessonIds = publishedLessons.map((l) => l.id);
-    const bestQuizScore = attemptRecords
-      .filter((a) => courseLessonIds.includes(a.quiz.lessonId))
-      .reduce((max, attempt) => Math.max(max, attempt.score), 0);
+    const courseAttempts = attemptRecords.filter((a) =>
+      courseLessonIds.includes(a.quiz.lessonId),
+    );
+    const bestQuizScore =
+      courseAttempts.length > 0
+        ? Math.max(...courseAttempts.map((a) => a.score))
+        : null;
 
     return {
       courseId: course.id,
@@ -81,7 +85,7 @@ export async function getStudentDashboardData(userId: string) {
       completedCount,
       progressPercentage,
       nextLessonId: nextLesson?.id || null, // If null, all completed or no lessons
-      bestQuizScore: bestQuizScore > 0 ? bestQuizScore : null,
+      bestQuizScore,
     };
   });
 }

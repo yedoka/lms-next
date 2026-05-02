@@ -1,9 +1,40 @@
 import prisma from "@/shared/db/prisma";
+import { Prisma } from "@prisma/client";
 import {
   QuizFormData,
   QuestionFormData,
   AnswerFormData,
 } from "../schemas/quiz";
+
+export type QuizAttemptWithDetails = Prisma.QuizAttemptGetPayload<{
+  include: {
+    quiz: {
+      include: {
+        lesson: {
+          select: {
+            id: true;
+            courseId: true;
+          };
+        };
+      };
+    };
+    answers: {
+      include: {
+        question: {
+          select: {
+            text: true;
+          };
+        };
+        answer: {
+          select: {
+            text: true;
+            isCorrect: true;
+          };
+        };
+      };
+    };
+  };
+}>;
 
 export async function getQuizByLessonId(lessonId: string) {
   return prisma.quiz.findFirst({
@@ -169,14 +200,21 @@ export async function gradeQuizAttempt(
     },
   });
 
-  if (!quiz) throw new Error("Quiz not found");
+  if (!quiz || !quiz.isPublished) {
+    throw new Error("Quiz not found or not published");
+  }
 
   let score = 0;
   const maxScore = quiz.questions.reduce((sum, q) => sum + q.points, 0);
 
+  // Deduplicate answers by questionId to prevent score inflation
+  const uniqueAnswers = Array.from(
+    new Map(submittedAnswers.map((a) => [a.questionId, a])).values(),
+  );
+
   const attemptAnswersData = [];
 
-  for (const submitted of submittedAnswers) {
+  for (const submitted of uniqueAnswers) {
     const question = quiz.questions.find((q) => q.id === submitted.questionId);
     if (!question) continue;
 
@@ -205,7 +243,7 @@ export async function gradeQuizAttempt(
     data: {
       userId,
       quizId,
-      score: scorePercentage, // Storing percentage as score, or should it be raw score? Plan says "Calculated score", let's store percentage to easily compare with passingScore
+      score: scorePercentage,
       passed,
       submittedAt: new Date(),
       answers: {
@@ -215,20 +253,34 @@ export async function gradeQuizAttempt(
   });
 }
 
-export async function getQuizAttemptById(attemptId: string, userId: string) {
+export async function getQuizAttemptById(
+  attemptId: string,
+  userId: string,
+): Promise<QuizAttemptWithDetails | null> {
   return prisma.quizAttempt.findFirst({
     where: {
       id: attemptId,
       userId, // Ensure the user owns this attempt
     },
     include: {
-      quiz: true,
+      quiz: {
+        include: {
+          lesson: {
+            select: {
+              id: true,
+              courseId: true,
+            },
+          },
+        },
+      },
       answers: {
         include: {
           question: {
-            include: { answers: true },
+            select: { text: true },
           },
-          answer: true,
+          answer: {
+            select: { text: true, isCorrect: true },
+          },
         },
       },
     },
