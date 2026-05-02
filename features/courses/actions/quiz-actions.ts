@@ -2,15 +2,16 @@
 
 import { requireAuth } from "@/features/auth/utils/with-role";
 import { revalidatePath } from "next/cache";
+import prisma from "@/shared/db/prisma";
 import * as quizService from "../services/quiz-service";
 import {
   quizSchema,
   QuizFormData,
-  questionSchema,
   QuestionFormData,
-  answerSchema,
   AnswerFormData,
   reorderQuestionsSchema,
+  submitQuizSchema,
+  SubmitQuizData,
 } from "../schemas/quiz";
 import { validateCourseOwnership } from "../utils/auth";
 
@@ -167,7 +168,6 @@ export async function setCorrectAnswerAction(
   lessonId: string,
   questionId: string,
   answerId: string,
-  isMultipleChoice: boolean,
 ) {
   const session = await requireAuth();
   await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
@@ -180,4 +180,64 @@ export async function setCorrectAnswerAction(
   // We'll add setCorrectAnswer to quizService and call it here.
   await quizService.setCorrectAnswer(questionId, answerId);
   revalidatePath(`/dashboard/teacher/courses/${courseId}/lessons/${lessonId}`);
+}
+
+export async function submitQuizAction(
+  courseId: string,
+  lessonId: string,
+  data: SubmitQuizData,
+) {
+  const session = await requireAuth();
+  if (!session.user.id) throw new Error("Unauthorized");
+
+  const parsed = submitQuizSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error("Invalid quiz submission data");
+  }
+
+  // Verify quiz belongs to course/lesson and is published
+  const quiz = await prisma.quiz.findFirst({
+    where: {
+      id: parsed.data.quizId,
+      lessonId: lessonId,
+      isPublished: true,
+      lesson: {
+        courseId: courseId,
+      },
+    },
+  });
+
+  if (!quiz) {
+    throw new Error("Quiz not found or not published");
+  }
+
+  // Verify enrollment or role
+  const enrollment = await prisma.enrollment.findUnique({
+    where: {
+      userId_courseId: {
+        userId: session.user.id,
+        courseId,
+      },
+    },
+  });
+
+  const isTeacher = await prisma.course
+    .findUnique({ where: { id: courseId }, select: { teacherId: true } })
+    .then((c) => c?.teacherId === session.user.id);
+  const isAdmin = session.user.role === "ADMIN";
+
+  if (!enrollment && !isTeacher && !isAdmin) {
+    throw new Error("You are not authorized to submit this quiz");
+  }
+
+  const attempt = await quizService.gradeQuizAttempt(
+    session.user.id,
+    parsed.data.quizId,
+    parsed.data.answers,
+  );
+
+  revalidatePath(`/dashboard`);
+  revalidatePath(`/courses/${courseId}/lessons/${lessonId}`);
+
+  return { success: true, attemptId: attempt.id };
 }

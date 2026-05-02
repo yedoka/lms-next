@@ -17,6 +17,7 @@ export interface EnrolledCourseCardProps {
   completedCount: number;
   progressPercentage: number;
   nextLessonId: string | null;
+  bestQuizScore: number | null;
 }
 
 export function EnrolledCourseCard({
@@ -29,6 +30,7 @@ export function EnrolledCourseCard({
   completedCount,
   progressPercentage,
   nextLessonId,
+  bestQuizScore,
 }: EnrolledCourseCardProps) {
   const isCompleted = progressPercentage === 100;
 
@@ -46,6 +48,14 @@ export function EnrolledCourseCard({
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-secondary/50">
             <span className="text-muted-foreground">No image</span>
+          </div>
+        )}
+        {bestQuizScore !== null && (
+          <div className="absolute top-2 right-2">
+            <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm border-none shadow-sm">
+              <CheckCircle2 className="mr-1 h-3 w-3 text-emerald-600" />
+              Quiz: {bestQuizScore}%
+            </Badge>
           </div>
         )}
       </div>

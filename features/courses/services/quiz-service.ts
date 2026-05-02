@@ -1,9 +1,40 @@
 import prisma from "@/shared/db/prisma";
+import { Prisma } from "@prisma/client";
 import {
   QuizFormData,
   QuestionFormData,
   AnswerFormData,
 } from "../schemas/quiz";
+
+export type QuizAttemptWithDetails = Prisma.QuizAttemptGetPayload<{
+  include: {
+    quiz: {
+      include: {
+        lesson: {
+          select: {
+            id: true;
+            courseId: true;
+          };
+        };
+      };
+    };
+    answers: {
+      include: {
+        question: {
+          select: {
+            text: true;
+          };
+        };
+        answer: {
+          select: {
+            text: true;
+            isCorrect: true;
+          };
+        };
+      };
+    };
+  };
+}>;
 
 export async function getQuizByLessonId(lessonId: string) {
   return prisma.quiz.findFirst({
@@ -153,4 +184,105 @@ export async function setCorrectAnswer(questionId: string, answerId: string) {
       data: { isCorrect: true },
     }),
   ]);
+}
+
+export async function gradeQuizAttempt(
+  userId: string,
+  quizId: string,
+  submittedAnswers: { questionId: string; answerId: string }[],
+) {
+  const quiz = await prisma.quiz.findUnique({
+    where: { id: quizId },
+    include: {
+      questions: {
+        include: { answers: true },
+      },
+    },
+  });
+
+  if (!quiz || !quiz.isPublished) {
+    throw new Error("Quiz not found or not published");
+  }
+
+  let score = 0;
+  const maxScore = quiz.questions.reduce((sum, q) => sum + q.points, 0);
+
+  // Deduplicate answers by questionId to prevent score inflation
+  const uniqueAnswers = Array.from(
+    new Map(submittedAnswers.map((a) => [a.questionId, a])).values(),
+  );
+
+  const attemptAnswersData = [];
+
+  for (const submitted of uniqueAnswers) {
+    const question = quiz.questions.find((q) => q.id === submitted.questionId);
+    if (!question) continue;
+
+    const selectedAnswer = question.answers.find(
+      (a) => a.id === submitted.answerId,
+    );
+    if (!selectedAnswer) continue;
+
+    if (selectedAnswer.isCorrect) {
+      score += question.points;
+    }
+
+    attemptAnswersData.push({
+      questionId: submitted.questionId,
+      answerId: submitted.answerId,
+    });
+  }
+
+  // Calculate percentage and check if passed
+  const scorePercentage =
+    maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+  const passed = scorePercentage >= quiz.passingScore;
+
+  // Create attempt in a transaction
+  return prisma.quizAttempt.create({
+    data: {
+      userId,
+      quizId,
+      score: scorePercentage,
+      passed,
+      submittedAt: new Date(),
+      answers: {
+        create: attemptAnswersData,
+      },
+    },
+  });
+}
+
+export async function getQuizAttemptById(
+  attemptId: string,
+  userId: string,
+): Promise<QuizAttemptWithDetails | null> {
+  return prisma.quizAttempt.findFirst({
+    where: {
+      id: attemptId,
+      userId, // Ensure the user owns this attempt
+    },
+    include: {
+      quiz: {
+        include: {
+          lesson: {
+            select: {
+              id: true,
+              courseId: true,
+            },
+          },
+        },
+      },
+      answers: {
+        include: {
+          question: {
+            select: { text: true },
+          },
+          answer: {
+            select: { text: true, isCorrect: true },
+          },
+        },
+      },
+    },
+  });
 }

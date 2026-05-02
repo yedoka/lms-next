@@ -24,7 +24,9 @@ export async function getStudentDashboardData(userId: string) {
     return [];
   }
 
-  const lessonIds = enrollments.flatMap((e) => e.course.lessons.map((l) => l.id));
+  const lessonIds = enrollments.flatMap((e) =>
+    e.course.lessons.map((l) => l.id),
+  );
 
   const progressRecords = await prisma.lessonProgress.findMany({
     where: {
@@ -36,19 +38,42 @@ export async function getStudentDashboardData(userId: string) {
 
   const progressMap = new Set(progressRecords.map((p) => p.lessonId));
 
+  const attemptRecords = await prisma.quizAttempt.findMany({
+    where: { userId },
+    include: {
+      quiz: {
+        select: { lessonId: true },
+      },
+    },
+  });
+
   return enrollments.map((enrollment) => {
     const course = enrollment.course;
     const publishedLessons = course.lessons;
     const totalLessons = publishedLessons.length;
 
-    const completedLessons = publishedLessons.filter((l) => progressMap.has(l.id));
+    const completedLessons = publishedLessons.filter((l) =>
+      progressMap.has(l.id),
+    );
     const completedCount = completedLessons.length;
 
     const progressPercentage =
-      totalLessons === 0 ? 0 : Math.round((completedCount / totalLessons) * 100);
+      totalLessons === 0
+        ? 0
+        : Math.round((completedCount / totalLessons) * 100);
 
     // Find first incomplete lesson
     const nextLesson = publishedLessons.find((l) => !progressMap.has(l.id));
+
+    // Fetch quiz attempts for this course's lessons
+    const courseLessonIds = publishedLessons.map((l) => l.id);
+    const courseAttempts = attemptRecords.filter((a) =>
+      courseLessonIds.includes(a.quiz.lessonId),
+    );
+    const bestQuizScore =
+      courseAttempts.length > 0
+        ? Math.max(...courseAttempts.map((a) => a.score))
+        : null;
 
     return {
       courseId: course.id,
@@ -60,6 +85,7 @@ export async function getStudentDashboardData(userId: string) {
       completedCount,
       progressPercentage,
       nextLessonId: nextLesson?.id || null, // If null, all completed or no lessons
+      bestQuizScore,
     };
   });
 }
