@@ -1,7 +1,14 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/ui/table";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
-import { Pencil } from "lucide-react";
+import { Pencil, GraduationCap } from "lucide-react";
 import Link from "next/link";
 import { DeleteCourseButton } from "@/features/courses/components/delete-course-button";
 import { Course } from "@prisma/client";
@@ -47,12 +54,22 @@ export function CourseTable({ courses }: CourseTableProps) {
             </TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
+                <Link
+                  href={`/dashboard/teacher/courses/${course.id}/gradebook`}
+                >
+                  <Button variant="ghost" size="icon" title="View Gradebook">
+                    <GraduationCap className="w-4 h-4" />
+                  </Button>
+                </Link>
                 <Link href={`/dashboard/teacher/courses/${course.id}/edit`}>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" title="Edit Course">
                     <Pencil className="w-4 h-4" />
                   </Button>
                 </Link>
-                <DeleteCourseButton courseId={course.id} courseTitle={course.title} />
+                <DeleteCourseButton
+                  courseId={course.id}
+                  courseTitle={course.title}
+                />
               </div>
             </TableCell>
           </TableRow>

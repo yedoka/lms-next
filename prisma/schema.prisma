@@ -177,7 +177,8 @@ model QuizAttempt {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  answers AttemptAnswer[]
+  answers  AttemptAnswer[]
+  override QuizOverride?
 }
 
 model AttemptAnswer {
@@ -193,6 +194,18 @@ model AttemptAnswer {
   updatedAt DateTime @updatedAt
 
   @@unique([attemptId, questionId])
+}
+
+model QuizOverride {
+  id            String      @id @default(cuid())
+  quizAttemptId String      @unique
+  attempt       QuizAttempt @relation(fields: [quizAttemptId], references: [id], onDelete: Cascade)
+  originalScore Int
+  newScore      Int
+  reason        String?     @db.Text
+  createdBy     String // Admin or Teacher ID
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model Notification {
