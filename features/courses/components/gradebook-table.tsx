@@ -102,6 +102,7 @@ export function GradebookTable({
                           variant="ghost"
                           size="icon-sm"
                           className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label={`Override score for ${entry.student.name || entry.student.email} on ${quiz.quizTitle}`}
                           onClick={() =>
                             setOverrideData({
                               attemptId: quiz.bestAttemptId,

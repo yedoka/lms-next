@@ -38,15 +38,22 @@ export function ScoreOverrideDialog({
   onSuccess,
 }: ScoreOverrideDialogProps) {
   const [isPending, startTransition] = useTransition();
-  const [newScore, setNewScore] = useState<string>(
-    currentScore !== null ? currentScore.toString() : "",
-  );
+  const [newScore, setNewScore] = useState<string>("");
   const [reason, setReason] = useState("");
+
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setNewScore(currentScore !== null ? currentScore.toString() : "");
+      setReason("");
+    } else {
+      onClose();
+    }
+  };
 
   const handleOverride = () => {
     if (!attemptId) return;
 
-    const score = parseInt(newScore);
+    const score = parseInt(newScore, 10);
     if (isNaN(score) || score < 0 || score > 100) {
       toast.error("Please enter a valid score between 0 and 100");
       return;
@@ -70,7 +77,7 @@ export function ScoreOverrideDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Override Quiz Score</DialogTitle>

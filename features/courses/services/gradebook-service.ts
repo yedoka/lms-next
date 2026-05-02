@@ -41,6 +41,7 @@ export async function getCourseGradebook(courseId: string) {
     select: {
       id: true,
       title: true,
+      passingScore: true,
     },
   });
 
@@ -56,33 +57,46 @@ export async function getCourseGradebook(courseId: string) {
     include: {
       override: true,
     },
-    orderBy: {
-      score: "desc",
-    },
   });
+
+  // Group attempts by student and quiz for O(1) lookup
+  const attemptsMap = new Map<string, typeof allAttempts>();
+  for (const attempt of allAttempts) {
+    const key = `${attempt.userId}-${attempt.quizId}`;
+    if (!attemptsMap.has(key)) {
+      attemptsMap.set(key, []);
+    }
+    attemptsMap.get(key)!.push(attempt);
+  }
 
   // 4. Transform into GradebookEntry[]
   const gradebook: GradebookEntry[] = enrollments.map((enrollment) => {
     const student = enrollment.user;
     const studentQuizzes = quizzes.map((quiz) => {
-      // Find the best attempt for this student and this quiz
-      // Since they are ordered by score desc, the first one we find is the best
-      const attempts = allAttempts.filter(
-        (a) => a.userId === student.id && a.quizId === quiz.id,
+      const attempts = attemptsMap.get(`${student.id}-${quiz.id}`) || [];
+
+      // Calculate effective score for each attempt to find the best one
+      const attemptsWithEffectiveScore = attempts.map((a) => ({
+        ...a,
+        effectiveScore: a.override ? a.override.newScore : a.score,
+      }));
+
+      // Sort by effective score desc
+      attemptsWithEffectiveScore.sort(
+        (a, b) => b.effectiveScore - a.effectiveScore,
       );
 
-      const bestAttempt = attempts[0] || null;
+      const bestAttempt = attemptsWithEffectiveScore[0] || null;
 
       return {
         quizId: quiz.id,
         quizTitle: quiz.title,
-        bestScore: bestAttempt
-          ? bestAttempt.override
-            ? bestAttempt.override.newScore
-            : bestAttempt.score
-          : null,
+        bestScore: bestAttempt ? bestAttempt.effectiveScore : null,
         bestAttemptId: bestAttempt?.id || null,
-        passed: bestAttempt?.passed || null,
+        // Recompute passed status based on effective score
+        passed: bestAttempt
+          ? bestAttempt.effectiveScore >= quiz.passingScore
+          : null,
         isOverridden: !!bestAttempt?.override,
       };
     });
@@ -136,8 +150,13 @@ export async function getQuizAttemptsForGradebook(courseId: string) {
 
 export async function applyScoreOverride(
   attemptId: string,
-  data: { newScore: number; reason: string; teacherId: string },
+  data: { newScore: number; reason: string | null; teacherId: string },
 ) {
+  // Validate score bounds
+  if (data.newScore < 0 || data.newScore > 100) {
+    throw new Error("Score must be between 0 and 100");
+  }
+
   const attempt = await prisma.quizAttempt.findUnique({
     where: { id: attemptId },
   });
@@ -150,15 +169,15 @@ export async function applyScoreOverride(
     where: { quizAttemptId: attemptId },
     update: {
       newScore: data.newScore,
-      reason: data.reason,
-      createdBy: data.teacherId,
+      reason: data.reason || null,
     },
     create: {
       quizAttemptId: attemptId,
       originalScore: attempt.score,
       newScore: data.newScore,
-      reason: data.reason,
+      reason: data.reason || null,
       createdBy: data.teacherId,
     },
   });
 }
+ 

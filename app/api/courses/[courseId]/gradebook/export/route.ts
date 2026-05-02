@@ -3,6 +3,15 @@ import { getCourseGradebook } from "@/features/courses/services/gradebook-servic
 import { validateCourseOwnership } from "@/features/courses/utils/auth";
 import { NextResponse } from "next/server";
 
+function escapeCSV(val: string | number | null): string {
+  if (val === null) return "";
+  const str = val.toString();
+  // Prevent CSV injection by sanitizing leading characters like =, +, -, @
+  const sanitized = str.replace(/^[=+\-@]/, "'$&");
+  // Escape quotes and wrap in quotes
+  return `"${sanitized.replace(/"/g, '""')}"`;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ courseId: string }> },
@@ -30,10 +39,10 @@ export async function GET(
           q.bestScore !== null ? `${q.bestScore}%` : "-",
         ),
       ];
-      return studentData.join(",");
+      return studentData.map(escapeCSV).join(",");
     });
 
-    const csvContent = [headers.join(","), ...rows].join("\n");
+    const csvContent = [headers.map(escapeCSV).join(","), ...rows].join("\n");
 
     return new NextResponse(csvContent, {
       headers: {
@@ -44,8 +53,9 @@ export async function GET(
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Internal Server Error";
+    const isUnauthorized = message.toLowerCase().includes("unauthorized");
     return new NextResponse(message, {
-      status: message === "Unauthorized" ? 403 : 500,
+      status: isUnauthorized ? 403 : 500,
     });
   }
 }
