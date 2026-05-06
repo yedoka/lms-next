@@ -26,14 +26,7 @@ export interface NavSection {
   items: NavItem[];
 }
 
-export const MAIN_NAV: NavItem[] = [
-  {
-    title: "All Courses",
-    href: ROUTES.COURSES,
-    icon: Library,
-    description: "Browse our catalog of courses",
-  },
-];
+export const MAIN_NAV: NavItem[] = [];
 
 export const DASHBOARD_NAV: Record<UserRole, NavSection[]> = {
   [ROLE.STUDENT]: [
@@ -49,6 +42,12 @@ export const DASHBOARD_NAV: Record<UserRole, NavSection[]> = {
           title: "My Courses",
           href: ROUTES.DASHBOARD_STUDENT_COURSES,
           icon: BookOpen,
+        },
+        {
+          title: "All Courses",
+          href: ROUTES.COURSES,
+          icon: Library,
+          description: "Browse our catalog of courses",
         },
       ],
     },

@@ -77,7 +77,7 @@ export const LessonItem = ({ lesson, courseId, disabled }: LessonItemProps) => {
           <Badge variant="secondary">Draft</Badge>
         )}
 
-        <Dialog open={isEditing} onOpenChange={setIsEditing} modal={false}>
+        <Dialog open={isEditing} onOpenChange={setIsEditing}>
           <DialogTrigger asChild>
             <Button
               variant="ghost"

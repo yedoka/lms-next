@@ -20,7 +20,7 @@ export const AddLessonButton = ({ courseId }: AddLessonButtonProps) => {
   const [open, setOpen] = useState(false);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen} modal={false}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <PlusCircle className="h-4 w-4 mr-2" />

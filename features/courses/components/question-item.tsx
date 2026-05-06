@@ -76,7 +76,7 @@ export const QuestionItem = ({ question, courseId, lessonId, quizId }: QuestionI
           {question.type === "MULTIPLE_CHOICE" ? "Multiple Choice" : "True/False"}
         </Badge>
         
-        <Dialog open={isEditing} onOpenChange={setIsEditing} modal={false}>
+        <Dialog open={isEditing} onOpenChange={setIsEditing}>
           <DialogTrigger asChild>
             <Button
               variant="ghost"

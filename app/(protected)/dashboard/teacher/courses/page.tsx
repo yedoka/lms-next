@@ -3,8 +3,15 @@ import { Button } from "@/shared/ui/button";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { ROUTES } from "@/features/auth/utils/routes";
+import { withRole } from "@/features/auth/utils/with-role";
+import { ROLE } from "@/features/auth/utils/roles";
+import { getTeacherCourses } from "@/features/courses/services/service";
+import { CourseTable } from "@/features/courses/components/course-table";
 
-export default function TeacherCoursesPage() {
+export default async function TeacherCoursesPage() {
+  const session = await withRole([ROLE.TEACHER, ROLE.ADMIN]);
+  const courses = await getTeacherCourses(session.user.id);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -25,12 +32,10 @@ export default function TeacherCoursesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Your Courses</CardTitle>
-          <CardDescription>You have created 0 courses.</CardDescription>
+          <CardDescription>You have created {courses.length} course{courses.length === 1 ? '' : 's'}.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex h-[200px] items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
-            You haven&apos;t created any courses yet.
-          </div>
+          <CourseTable courses={courses} />
         </CardContent>
       </Card>
     </div>

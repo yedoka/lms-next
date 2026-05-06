@@ -33,6 +33,10 @@ export function AppNavigation({
   const dashboardSections = userRole ? DASHBOARD_NAV[userRole] : [];
   const allDashboardItems = dashboardSections.flatMap((s) => s.items);
 
+  const filteredMainNav = MAIN_NAV.filter(
+    (item) => !item.roles || !userRole || item.roles.includes(userRole)
+  );
+
   const isActive = (href: string, contextItems: { href: string }[] = []) => {
     if (pathname === href) return true;
     if (href === "/" && pathname !== "/") return false;
@@ -158,28 +162,30 @@ export function AppNavigation({
           </Link>
 
           {/* Main Nav Links (Desktop) */}
-          <nav className="hidden items-center gap-1 lg:flex ml-4">
-            {MAIN_NAV.map((item) => {
-              const active = isActive(item.href, MAIN_NAV);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "rounded-md px-3 py-2 text-sm font-medium transition-colors relative",
-                    active
-                      ? "text-primary"
-                      : "text-muted-foreground hover:text-primary",
-                  )}
-                >
-                  {item.title}
-                  {active && (
-                    <span className="absolute inset-x-3 -bottom-[17px] h-0.5 bg-primary rounded-full" />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
+          {filteredMainNav.length > 0 && (
+            <nav className="hidden items-center gap-1 lg:flex ml-4">
+              {filteredMainNav.map((item) => {
+                const active = isActive(item.href, MAIN_NAV);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "rounded-md px-3 py-2 text-sm font-medium transition-colors relative",
+                      active
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-primary",
+                    )}
+                  >
+                    {item.title}
+                    {active && (
+                      <span className="absolute inset-x-3 -bottom-[17px] h-0.5 bg-primary rounded-full" />
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
+          )}
         </div>
 
         {/* User area */}
@@ -213,28 +219,30 @@ export function AppNavigation({
 
             <nav className="space-y-8">
               {/* Main Nav in Mobile */}
-              <div className="space-y-3">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 px-2">
-                  General
-                </h3>
-                <div className="space-y-1">
-                  {MAIN_NAV.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-all",
-                        isActive(item.href, MAIN_NAV)
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                      )}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.title}</span>
-                    </Link>
-                  ))}
+              {filteredMainNav.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 px-2">
+                    General
+                  </h3>
+                  <div className="space-y-1">
+                    {filteredMainNav.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-all",
+                          isActive(item.href, MAIN_NAV)
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                        )}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        <span>{item.title}</span>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Dashboard Nav in Mobile */}
               {isProtected &&

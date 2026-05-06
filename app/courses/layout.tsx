@@ -6,11 +6,14 @@ import Link from "next/link";
 import { buttonVariants } from "@/shared/ui/button";
 import { ROUTES } from "@/features/auth/utils/routes";
 
+import { cn } from "@/shared/lib/utils";
+
 async function PublicHeader() {
   const session = await auth();
 
   return (
     <AppNavigation 
+      isProtected={!!session?.user}
       userRole={session?.user?.role} 
       userArea={
         session?.user ? (
@@ -40,11 +43,13 @@ async function PublicHeader() {
   );
 }
 
-export default function CoursesLayout({
+export default async function CoursesLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
     <div className="min-h-screen bg-background">
       <Suspense
@@ -60,9 +65,11 @@ export default function CoursesLayout({
         <PublicHeader />
       </Suspense>
 
-      <main>
-        {children}
-      </main>
+      <div className={cn("flex flex-col", session?.user && "lg:pl-64")}>
+        <main className="flex-1 p-4 lg:p-8">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
