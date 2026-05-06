@@ -95,9 +95,15 @@ async function CourseContent({ courseId }: { courseId: string }) {
             )}
             
             {enrollment ? (
-              <Link href={`/courses/${courseId}/lessons/${firstLessonId}`}>
-                <Button className="w-full mb-2">Continue to Course</Button>
-              </Link>
+              firstLessonId ? (
+                <Link href={`/courses/${courseId}/lessons/${firstLessonId}`}>
+                  <Button className="w-full mb-2">Continue to Course</Button>
+                </Link>
+              ) : (
+                <Button className="w-full mb-2" disabled>
+                  No lessons available
+                </Button>
+              )
             ) : (
               <EnrollButton courseId={courseId} />
             )}
