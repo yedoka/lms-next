@@ -68,7 +68,7 @@ export function EnrolledCourseCard({
             </Badge>
           )}
           {isCompleted && (
-            <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+            <Badge variant="secondary" className="bg-emerald-500/14 text-emerald-700 border-transparent hover:bg-emerald-500/20">
               <CheckCircle2 className="mr-1 h-3 w-3" />
               Completed
             </Badge>

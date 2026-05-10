@@ -59,7 +59,7 @@ export function AppNavigation({
     <>
       {/* Desktop Sidebar (Only for protected dashboard routes) */}
       {isProtected && userRole && (
-        <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 border-r border-border bg-card lg:block">
+        <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 border-r border-sidebar-border bg-sidebar lg:block">
           <div className="flex h-full flex-col">
             <div className="flex h-16 items-center border-b border-border px-6">
               <Link
@@ -199,7 +199,7 @@ export function AppNavigation({
             className="fixed inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300"
             onClick={() => setIsMobileMenuOpen(false)}
           />
-          <div className="fixed inset-y-0 left-0 w-[280px] border-r border-border bg-card p-6 shadow-2xl animate-in slide-in-from-left duration-300 ease-in-out">
+          <div className="fixed inset-y-0 left-0 w-[280px] border-r border-sidebar-border bg-sidebar p-6 shadow-2xl animate-in slide-in-from-left duration-300 ease-in-out">
             <div className="flex items-center justify-between mb-8">
               <Link
                 href="/"

@@ -37,9 +37,9 @@ export function ContentSkeleton() {
   return (
     <main className="flex-1 overflow-y-auto h-[calc(100vh-64px)]">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
-        <div className="aspect-video bg-slate-200 rounded-lg animate-pulse" />
-        <div className="h-8 bg-slate-200 rounded w-1/3 animate-pulse" />
-        <div className="h-32 bg-slate-200 rounded animate-pulse" />
+        <div className="aspect-video bg-muted rounded-xl animate-pulse" />
+        <div className="h-8 bg-muted rounded-lg w-1/3 animate-pulse" />
+        <div className="h-32 bg-muted rounded-lg animate-pulse" />
       </div>
     </main>
   );
@@ -107,7 +107,7 @@ export async function LessonContent({
   return (
     <main className="flex-1 overflow-y-auto h-[calc(100vh-64px)]">
       <div className="max-w-4xl mx-auto p-6">
-        <div className="aspect-video bg-black rounded-lg overflow-hidden mb-8 relative">
+        <div className="aspect-video bg-black rounded-xl overflow-hidden mb-8 relative border border-border">
           {lesson.videoUrl ? (
             <VideoPlayer url={lesson.videoUrl} lessonId={lessonId} isCompleted={isCompleted} />
           ) : (
@@ -145,7 +145,7 @@ export async function LessonContent({
         />
 
         {lesson.attachments.length > 0 && (
-          <div className="p-4 border rounded-md bg-slate-50">
+          <div className="p-4 border border-border rounded-xl bg-muted/40">
             <h3 className="font-semibold mb-3">Course Materials</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {lesson.attachments.map((attachment) => {
@@ -157,13 +157,13 @@ export async function LessonContent({
                     download
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex flex-col p-3 bg-white border border-slate-200 rounded-md hover:bg-slate-100 transition-colors group"
+                    className="flex flex-col p-3 bg-card border border-border rounded-xl hover:bg-accent transition-colors group"
                   >
-                    <div className="flex items-center text-slate-700 group-hover:text-sky-700 transition-colors">
+                    <div className="flex items-center text-foreground group-hover:text-primary transition-colors">
                       {getFileIcon(attachment.name)}
                       <p className="line-clamp-1 font-medium text-sm">{attachment.name}</p>
                     </div>
-                    <span className="text-xs text-slate-500 mt-1 pl-6">
+                    <span className="text-xs text-muted-foreground mt-1 pl-6">
                       {formatBytes(attachment.size)}
                     </span>
                   </a>
@@ -174,12 +174,12 @@ export async function LessonContent({
         )}
 
         {lesson.quizzes && lesson.quizzes.length > 0 && (
-          <div className="p-4 border rounded-md bg-slate-50 mt-8">
+          <div className="p-4 border border-border rounded-xl bg-muted/40 mt-8">
             <h3 className="font-semibold mb-3">Lesson Quiz</h3>
             {lesson.quizzes.map((quiz) => {
               const bestAttempt = quiz.attempts[0];
               return (
-                <div key={quiz.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white border border-slate-200 rounded-md">
+                <div key={quiz.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-card border border-border rounded-xl">
                   <div>
                     <p className="font-medium">{quiz.title}</p>
                     {bestAttempt && (

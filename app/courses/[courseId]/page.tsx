@@ -66,7 +66,7 @@ async function CourseContent({ courseId }: { courseId: string }) {
               <p className="text-muted-foreground">No lessons available yet.</p>
             ) : (
               course.lessons.map((lesson) => (
-                <div key={lesson.id} className="p-4 border rounded-md flex items-center justify-between">
+                <div key={lesson.id} className="p-4 border border-border rounded-xl flex items-center justify-between">
                   <span className="font-medium">{lesson.title}</span>
                   {enrollment && (
                     <Link href={`/courses/${courseId}/lessons/${lesson.id}`}>
@@ -80,16 +80,16 @@ async function CourseContent({ courseId }: { courseId: string }) {
         </div>
 
         <div className="w-full md:w-1/3">
-          <div className="bg-slate-50 p-6 rounded-lg border sticky top-10">
+          <div className="bg-card rounded-2xl ring-1 ring-foreground/10 p-6 sticky top-10 flex flex-col gap-3">
             {course.thumbnail ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={course.thumbnail}
                 alt={course.title}
-                className="w-full rounded-md mb-6 object-cover aspect-video"
+                className="w-full rounded-xl mb-4 object-cover aspect-video"
               />
             ) : (
-              <div className="w-full aspect-video rounded-md bg-slate-200 mb-6 flex items-center justify-center text-muted-foreground">
+              <div className="w-full aspect-video rounded-xl bg-muted mb-4 flex items-center justify-center text-muted-foreground">
                 No Image
               </div>
             )}
@@ -136,25 +136,25 @@ function CourseDetailsSkeleton() {
     <div className="container mx-auto py-10 px-4 max-w-4xl">
       <div className="flex flex-col md:flex-row gap-8">
         <div className="w-full md:w-2/3">
-          <div className="h-9 w-3/4 bg-slate-200 rounded animate-pulse mb-4" />
-          <div className="h-5 w-1/2 bg-slate-200 rounded animate-pulse mb-6" />
+          <div className="h-9 w-3/4 bg-muted rounded-lg animate-pulse mb-4" />
+          <div className="h-5 w-1/2 bg-muted rounded animate-pulse mb-6" />
           <div className="space-y-3 mb-8">
-            <div className="h-4 bg-slate-200 rounded animate-pulse" />
-            <div className="h-4 bg-slate-200 rounded animate-pulse" />
-            <div className="h-4 w-2/3 bg-slate-200 rounded animate-pulse" />
+            <div className="h-4 bg-muted rounded animate-pulse" />
+            <div className="h-4 bg-muted rounded animate-pulse" />
+            <div className="h-4 w-2/3 bg-muted rounded animate-pulse" />
           </div>
-          <div className="h-8 w-48 bg-slate-200 rounded animate-pulse mb-4" />
+          <div className="h-8 w-48 bg-muted rounded animate-pulse mb-4" />
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-14 bg-slate-200 rounded animate-pulse" />
+              <div key={i} className="h-14 bg-muted rounded-xl animate-pulse" />
             ))}
           </div>
         </div>
         <div className="w-full md:w-1/3">
-          <div className="bg-slate-50 p-6 rounded-lg border">
-            <div className="w-full aspect-video bg-slate-200 rounded-md mb-6 animate-pulse" />
-            <div className="h-10 bg-slate-200 rounded animate-pulse mb-2" />
-            <div className="h-4 w-3/4 mx-auto bg-slate-200 rounded animate-pulse" />
+          <div className="bg-card rounded-2xl ring-1 ring-foreground/10 p-6">
+            <div className="w-full aspect-video bg-muted rounded-xl mb-4 animate-pulse" />
+            <div className="h-10 bg-muted rounded-4xl animate-pulse mb-2" />
+            <div className="h-4 w-3/4 mx-auto bg-muted rounded animate-pulse" />
           </div>
         </div>
       </div>

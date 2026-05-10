@@ -5,6 +5,7 @@ import { withRole } from "@/features/auth/utils/with-role";
 import { ROLE } from "@/features/auth/utils/roles";
 import { BookOpen, GraduationCap, Clock } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/shared/ui/button";
 import { ROUTES } from "@/features/auth/utils/routes";
 import { EnrolledCourseCard } from "@/features/courses/components/enrolled-course-card";
 
@@ -98,12 +99,9 @@ export default async function StudentDashboardPage() {
               You haven&apos;t enrolled in any courses. Browse the catalog to
               start learning.
             </p>
-            <Link
-              href={ROUTES.COURSES}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-            >
-              Browse Catalog
-            </Link>
+            <Button asChild>
+              <Link href={ROUTES.COURSES}>Browse Catalog</Link>
+            </Button>
           </Card>
         )}
       </div>
