@@ -74,6 +74,7 @@ export const autoSignInAfterSignup = async (
     const response = await signIn("credentials", {
       email,
       password,
+      rememberMe: "true",
       redirect: false,
     });
 
