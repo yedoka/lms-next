@@ -24,7 +24,7 @@ export default async function RootLayout({
     >
       <body suppressHydrationWarning>
         <AppRouterCacheProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
             <MuiThemeProvider>
               {children}
               <Toaster />

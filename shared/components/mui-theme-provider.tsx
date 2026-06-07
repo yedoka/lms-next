@@ -10,7 +10,7 @@ export function MuiThemeProvider({
   children: React.ReactNode;
 }) {
   return (
-    <ThemeProvider theme={theme} defaultMode="system">
+    <ThemeProvider theme={theme} defaultMode="light">
       <CssBaseline />
       {children}
     </ThemeProvider>
