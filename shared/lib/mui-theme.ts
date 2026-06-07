@@ -2,6 +2,12 @@ import { createTheme } from "@mui/material/styles";
 import React from "react";
 import NextLink, { LinkProps as NextLinkProps } from "next/link";
 import type {} from "@mui/material/themeCssVarsAugmentation";
+import { Inter } from "next/font/google";
+
+export const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+});
 
 const LinkBehavior = React.forwardRef<
   HTMLAnchorElement,
@@ -138,8 +144,7 @@ export const theme = createTheme({
 
   // ── Typography ────────────────────────────────────────────────────────────
   typography: {
-    fontFamily:
-      "var(--font-sans, Inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    fontFamily: inter.style.fontFamily,
     fontSize: 14,
     htmlFontSize: 16,
     h1: { fontSize: "2rem", fontWeight: 700, lineHeight: 1.2, letterSpacing: "-0.02em" },

@@ -3,7 +3,6 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { courseSchema, CourseFormData } from "@/features/courses/schemas/schema";
-import { Editor } from "@/shared/components/editor";
 import { ImageUpload } from "@/shared/components/image-upload";
 import { createCourse, updateCourse } from "@/features/courses/actions/server-actions";
 import { toast } from "sonner";
@@ -34,10 +33,9 @@ const CATEGORIES = [
 ];
 
 export const CourseForm = ({ initialData }: CourseFormProps) => {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const { control, handleSubmit, formState: { errors } } = useForm<CourseFormData>({
+  const { register, control, handleSubmit, formState: { errors } } = useForm<CourseFormData>({
     resolver: zodResolver(courseSchema),
     defaultValues: initialData || {
       title: "",
@@ -75,64 +73,48 @@ export const CourseForm = ({ initialData }: CourseFormProps) => {
 
   return (
     <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={3}>
-      <Controller
-        control={control}
-        name="title"
-        render={({ field }) => (
-          <TextField
-            {...field}
-            label="Course Title"
-            disabled={isPending}
-            placeholder="e.g. 'Advanced Next.js'"
-            fullWidth
-            size="small"
-            error={!!errors.title}
-            helperText={errors.title?.message}
-          />
-        )}
+      <TextField
+        {...register("title")}
+        label="Course Title"
+        disabled={isPending}
+        placeholder="e.g. 'Advanced Next.js'"
+        fullWidth
+        size="medium"
+        error={!!errors.title}
+        helperText={errors.title?.message}
       />
 
-      <Controller
-        control={control}
-        name="category"
-        render={({ field }) => (
-          <TextField
-            select
-            label="Category"
-            disabled={isPending}
-            fullWidth
-            size="small"
-            value={field.value || ""}
-            onChange={field.onChange}
-            error={!!errors.category}
-            helperText={errors.category?.message}
-          >
-            <MenuItem value="">
-              <em>Select a category</em>
-            </MenuItem>
-            {CATEGORIES.map((category) => (
-              <MenuItem key={category} value={category}>
-                {category}
-              </MenuItem>
-            ))}
-          </TextField>
-        )}
-      />
+      <TextField
+        select
+        label="Category"
+        disabled={isPending}
+        fullWidth
+        size="small"
+        {...register("category")}
+        error={!!errors.category}
+        helperText={errors.category?.message}
+      >
+        <MenuItem value="">
+          <em>Select a category</em>
+        </MenuItem>
+        {CATEGORIES.map((category) => (
+          <MenuItem key={category} value={category}>
+            {category}
+          </MenuItem>
+        ))}
+      </TextField>
 
-      <Controller
-        control={control}
-        name="description"
-        render={({ field }) => (
-          <FormControl error={!!errors.description} fullWidth>
-            <FormLabel sx={{ mb: 1, typography: "body2", fontWeight: 500, color: "text.primary" }}>
-              Course Description
-            </FormLabel>
-            <Editor value={field.value || ""} onChange={field.onChange} />
-            {errors.description?.message && (
-              <FormHelperText>{errors.description.message}</FormHelperText>
-            )}
-          </FormControl>
-        )}
+      <TextField
+        {...register("description")}
+        label="Course Description"
+        multiline
+        minRows={6}
+        disabled={isPending}
+        placeholder="Provide a detailed description of the course..."
+        fullWidth
+        size="medium"
+        error={!!errors.description}
+        helperText={errors.description?.message}
       />
 
       <Controller

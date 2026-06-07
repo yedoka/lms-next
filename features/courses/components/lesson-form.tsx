@@ -3,7 +3,6 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { lessonSchema, LessonFormData } from "@/features/courses/schemas/lesson";
-import { Editor } from "@/shared/components/editor";
 import { VideoUpload } from "@/shared/components/video-upload";
 import {
   createLessonAction,
@@ -38,7 +37,7 @@ interface LessonFormProps {
 export const LessonForm = ({ courseId, initialData, onSuccess }: LessonFormProps) => {
   const [isPending, startTransition] = useTransition();
 
-  const { control, handleSubmit, formState: { errors } } = useForm<LessonFormData>({
+  const { register, control, handleSubmit, formState: { errors } } = useForm<LessonFormData>({
     resolver: zodResolver(lessonSchema),
     defaultValues: initialData || {
       title: "",
@@ -131,37 +130,28 @@ export const LessonForm = ({ courseId, initialData, onSuccess }: LessonFormProps
       </Typography>
 
       <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={3}>
-        <Controller
-          control={control}
-          name="title"
-          render={({ field }) => (
-            <TextField
-              {...field}
-              label="Lesson Title"
-              disabled={isPending}
-              placeholder="e.g. 'Introduction to the course'"
-              fullWidth
-              size="small"
-              error={!!errors.title}
-              helperText={errors.title?.message}
-            />
-          )}
+        <TextField
+          {...register("title")}
+          label="Lesson Title"
+          disabled={isPending}
+          placeholder="e.g. 'Introduction to the course'"
+          fullWidth
+          size="medium"
+          error={!!errors.title}
+          helperText={errors.title?.message}
         />
 
-        <Controller
-          control={control}
-          name="description"
-          render={({ field }) => (
-            <FormControl error={!!errors.description} fullWidth>
-              <FormLabel sx={{ mb: 1, typography: "body2", fontWeight: 500, color: "text.primary" }}>
-                Lesson Description
-              </FormLabel>
-              <Editor value={field.value || ""} onChange={field.onChange} />
-              {errors.description?.message && (
-                <FormHelperText>{errors.description.message}</FormHelperText>
-              )}
-            </FormControl>
-          )}
+        <TextField
+          {...register("description")}
+          label="Lesson Description"
+          multiline
+          minRows={6}
+          disabled={isPending}
+          placeholder="Provide a detailed description of the lesson..."
+          fullWidth
+          size="medium"
+          error={!!errors.description}
+          helperText={errors.description?.message}
         />
 
         <Controller
