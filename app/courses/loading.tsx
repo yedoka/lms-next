@@ -1,22 +1,39 @@
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Skeleton from "@mui/material/Skeleton";
+import { PageContainer } from "@/shared/components/ui";
+
 export default function Loading() {
   return (
-    <div className="container mx-auto py-10 px-4">
-      <div className="h-9 w-64 bg-slate-200 rounded animate-pulse mb-8" />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <PageContainer>
+      <Skeleton width={240} height={40} sx={{ mb: 4 }} />
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2,1fr)", md: "repeat(3,1fr)" },
+          gap: 3,
+        }}
+      >
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="rounded-lg border overflow-hidden">
-            <div className="aspect-video bg-slate-200 animate-pulse" />
-            <div className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="h-5 w-24 bg-slate-200 rounded animate-pulse" />
-                <div className="h-4 w-16 bg-slate-200 rounded animate-pulse" />
-              </div>
-              <div className="h-6 w-3/4 bg-slate-200 rounded animate-pulse" />
-              <div className="h-4 w-1/2 bg-slate-200 rounded animate-pulse" />
-            </div>
-          </div>
+          <Card key={i}>
+            <Box sx={{ position: "relative", paddingTop: "56.25%" }}>
+              <Skeleton
+                variant="rectangular"
+                sx={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+              />
+            </Box>
+            <CardContent>
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                <Skeleton width="40%" height={24} />
+                <Skeleton width="25%" height={20} />
+              </Box>
+              <Skeleton width="75%" height={24} sx={{ mb: 0.5 }} />
+              <Skeleton width="50%" height={20} />
+            </CardContent>
+          </Card>
         ))}
-      </div>
-    </div>
+      </Box>
+    </PageContainer>
   );
 }

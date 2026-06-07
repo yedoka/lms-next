@@ -1,11 +1,18 @@
 "use client";
 
-import { Button } from "@/shared/ui/button";
+import { useState } from "react";
+import Button from "@mui/material/Button";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Divider from "@mui/material/Divider";
+import { ChevronDown } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { ROLE_LABELS } from "@/features/auth/utils/rbac";
 import { ROUTES } from "@/features/auth/utils/routes";
-import { ChevronDown } from "lucide-react";
 import type { UserRole } from "@prisma/client";
-import { signOut } from "next-auth/react";
 
 type ProfileDropdownProps = {
   name?: string | null;
@@ -14,38 +21,99 @@ type ProfileDropdownProps = {
 };
 
 export function ProfileDropdown({ name, email, role }: ProfileDropdownProps) {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
   const displayName = name?.trim() || "User";
   const initial = displayName[0].toUpperCase();
 
+  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleSignOut = () => {
+    handleClose();
+    signOut({ callbackUrl: ROUTES.AUTH_LOGIN });
+  };
+
   return (
-    <details className="relative">
-      <summary className="list-none cursor-pointer">
-        <div className="flex items-center gap-2.5 rounded-full px-3 py-1.5 hover:bg-accent transition-colors">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium select-none">
-            {initial}
-          </div>
-          <div className="hidden sm:block text-left">
-            <p className="text-sm font-medium leading-tight">{displayName}</p>
-            <p className="text-xs text-muted-foreground capitalize">{ROLE_LABELS[role]}</p>
-          </div>
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-        </div>
-      </summary>
-
-      <div className="absolute right-0 z-20 mt-2 w-64 rounded-xl border border-border bg-card p-3 shadow-lg shadow-black/5 ring-1 ring-foreground/5">
-        <div className="px-1 pb-2 border-b border-border">
-          <p className="text-sm font-semibold">{displayName}</p>
-          {email && <p className="text-xs text-muted-foreground mt-0.5">{email}</p>}
-        </div>
-
-        <Button
-          className="mt-2 w-full"
-          variant="outline"
-          onClick={() => signOut({ callbackUrl: ROUTES.AUTH_LOGIN })}
+    <>
+      <Button
+        onClick={handleOpen}
+        endIcon={<ChevronDown size={16} />}
+        sx={{
+          textTransform: "none",
+          color: "text.primary",
+          gap: 1,
+          px: 1.5,
+          py: 0.75,
+          borderRadius: 2,
+          "&:hover": { bgcolor: "action.hover" },
+        }}
+      >
+        <Avatar
+          sx={{
+            width: 32,
+            height: 32,
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
+            fontSize: 14,
+            fontWeight: 600,
+          }}
         >
-          Sign out
-        </Button>
-      </div>
-    </details>
+          {initial}
+        </Avatar>
+        <Box sx={{ display: { xs: "none", sm: "block" }, textAlign: "left" }}>
+          <Typography variant="body2" fontWeight={500} lineHeight={1.2}>
+            {displayName}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ textTransform: "capitalize" }}>
+            {ROLE_LABELS[role]}
+          </Typography>
+        </Box>
+      </Button>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        slotProps={{
+          paper: {
+            sx: {
+              width: 256,
+              mt: 0.5,
+              borderRadius: 2,
+              border: 1,
+              borderColor: "divider",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+            },
+          },
+        }}
+      >
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography variant="body2" fontWeight={600}>
+            {displayName}
+          </Typography>
+          {email && (
+            <Typography variant="caption" color="text.secondary">
+              {email}
+            </Typography>
+          )}
+        </Box>
+        <Divider />
+        <MenuItem
+          onClick={handleSignOut}
+          sx={{ mt: 0.5, mx: 1, mb: 0.5, borderRadius: 1 }}
+        >
+          <Typography variant="body2">Sign out</Typography>
+        </MenuItem>
+      </Menu>
+    </>
   );
 }

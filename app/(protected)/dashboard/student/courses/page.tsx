@@ -1,9 +1,15 @@
 import { auth } from "@/auth";
 import { getStudentCourses } from "@/features/courses/services/service";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Badge } from "@/shared/ui/badge";
 import Link from "next/link";
 import { ROUTES } from "@/features/auth/utils/routes";
+import { BookOpen } from "lucide-react";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Chip from "@mui/material/Chip";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import { PageContainer, PageHeader, EmptyState } from "@/shared/components/ui";
 
 export default async function StudentCoursesPage() {
   const session = await auth();
@@ -15,70 +21,125 @@ export default async function StudentCoursesPage() {
   const courses = await getStudentCourses(session.user.id);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">My Courses</h1>
-        <p className="text-muted-foreground">
-          Manage and continue your learning progress.
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="My Courses"
+        description="Manage and continue your learning progress."
+      />
 
       {courses.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Enrolled Courses</CardTitle>
-            <CardDescription>You are currently enrolled in 0 courses.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex h-[200px] items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
-              <div className="text-center">
-                <p>No courses found.</p>
-                <Link 
-                  href={ROUTES.COURSES} 
-                  className="text-primary hover:underline mt-2 inline-block"
-                >
-                  Browse the catalog to get started
-                </Link>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<BookOpen />}
+          title="No courses found"
+          description="You are currently enrolled in 0 courses."
+          action={
+            <Button variant="contained" href={ROUTES.COURSES}>
+              Browse the catalog to get started
+            </Button>
+          }
+        />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              md: "repeat(2, 1fr)",
+              lg: "repeat(3, 1fr)",
+            },
+            gap: 3,
+          }}
+        >
           {courses.map((course) => (
-            <Link key={course.id} href={ROUTES.COURSE_DETAILS(course.id)}>
-              <Card className="h-full hover:shadow-lg transition flex flex-col overflow-hidden">
-                <div className="aspect-video relative bg-slate-100 overflow-hidden">
+            <Link
+              key={course.id}
+              href={ROUTES.COURSE_DETAILS(course.id)}
+              style={{ textDecoration: "none" }}
+            >
+              <Card
+                sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  overflow: "hidden",
+                  "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.08)" },
+                }}
+              >
+                <Box
+                  sx={{
+                    aspectRatio: "16/9",
+                    position: "relative",
+                    bgcolor: "secondary.main",
+                    overflow: "hidden",
+                  }}
+                >
                   {course.thumbnail ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={course.thumbnail}
                       alt={course.title}
-                      className="object-cover w-full h-full"
+                      style={{
+                        objectFit: "cover",
+                        width: "100%",
+                        height: "100%",
+                      }}
                     />
                   ) : (
-                    <div className="flex items-center justify-center w-full h-full text-muted-foreground">
-                      No Image
-                    </div>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary">
+                        No Image
+                      </Typography>
+                    </Box>
                   )}
-                </div>
-                <CardHeader className="flex-none p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant="secondary">{course.category || "Uncategorized"}</Badge>
-                    <span className="text-xs text-muted-foreground">{course._count.lessons} Lessons</span>
-                  </div>
-                  <CardTitle className="text-lg line-clamp-2">{course.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="mt-auto p-4 pt-0">
-                  <p className="text-sm text-muted-foreground">
+                </Box>
+                <CardContent sx={{ flex: "none", p: 2 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      mb: 1,
+                    }}
+                  >
+                    <Chip
+                      label={course.category || "Uncategorized"}
+                      size="small"
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                      {course._count.lessons} Lessons
+                    </Typography>
+                  </Box>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      mb: 0.5,
+                    }}
+                  >
+                    {course.title}
+                  </Typography>
+                </CardContent>
+                <CardContent sx={{ mt: "auto", p: 2, pt: 0 }}>
+                  <Typography variant="caption" color="text.secondary">
                     By {course.teacher?.name || "Unknown Teacher"}
-                  </p>
+                  </Typography>
                 </CardContent>
               </Card>
             </Link>
           ))}
-        </div>
+        </Box>
       )}
-    </div>
+    </PageContainer>
   );
 }

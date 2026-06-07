@@ -1,20 +1,17 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Button } from "@/shared/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/shared/ui/dialog";
 import { Trash } from "lucide-react";
 import { deleteCourse } from "@/features/courses/actions/server-actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
 
 interface DeleteCourseButtonProps {
   courseId: string;
@@ -47,37 +44,44 @@ export const DeleteCourseButton = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Trash className="w-4 h-4 text-destructive" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete Course</DialogTitle>
-          <DialogDescription>
+    <>
+      <IconButton
+        onClick={() => setOpen(true)}
+        aria-label="Delete course"
+        sx={{ color: "error.main" }}
+        size="small"
+      >
+        <Trash size={16} />
+      </IconButton>
+      <Dialog open={open} onClose={() => !isPending && setOpen(false)}>
+        <DialogTitle>Delete Course</DialogTitle>
+        <DialogContent>
+          <DialogContentText variant="body2" color="text.secondary">
             Are you sure you want to delete &quot;{courseTitle}&quot;? This
             action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
           <Button
-            variant="outline"
+            variant="outlined"
             onClick={() => setOpen(false)}
             disabled={isPending}
+            size="small"
           >
             Cancel
           </Button>
           <Button
-            variant="destructive"
+            variant="contained"
+            color="error"
             onClick={onDelete}
             disabled={isPending}
+            size="small"
           >
             {isPending ? "Deleting..." : "Delete"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
+

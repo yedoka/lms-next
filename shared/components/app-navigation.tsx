@@ -2,12 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/shared/lib/utils";
 import { ROUTES } from "@/features/auth/utils/routes";
 import { MAIN_NAV, DASHBOARD_NAV } from "@/shared/lib/navigation";
 import { UserRole } from "@prisma/client";
-import { ChevronRight, Menu, X, GraduationCap, Settings } from "lucide-react";
-import { useState } from "react";
+import { GraduationCap, Settings, Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import Drawer from "@mui/material/Drawer";
+import List from "@mui/material/List";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import Divider from "@mui/material/Divider";
+
+const SIDEBAR_WIDTH = 256;
 
 interface AppNavigationProps {
   userRole?: UserRole;
@@ -21,13 +33,17 @@ export function AppNavigation({
   userArea,
 }: AppNavigationProps) {
   const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [prevPathname, setPrevPathname] = useState(pathname);
+  const [mounted, setMounted] = useState(false);
 
-  // Close mobile menu on route change by adjusting state during render
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   if (pathname !== prevPathname) {
     setPrevPathname(pathname);
-    setIsMobileMenuOpen(false);
+    setMobileOpen(false);
   }
 
   const dashboardSections = userRole ? DASHBOARD_NAV[userRole] : [];
@@ -40,263 +56,245 @@ export function AppNavigation({
   const isActive = (href: string, contextItems: { href: string }[] = []) => {
     if (pathname === href) return true;
     if (href === "/" && pathname !== "/") return false;
-
-    // Check for prefix match
     const isPrefix = pathname.startsWith(href + "/");
     if (!isPrefix) return false;
-
-    // If we have context items, ensure no other item is a better match
-    // A better match is one that is also a prefix but is longer than the current href
     return !contextItems.some(
       (item) =>
         item.href !== href &&
         (pathname === item.href || pathname.startsWith(item.href + "/")) &&
-        item.href.startsWith(href), // Only care if the other item is "deeper" or a sibling that also matches
+        item.href.startsWith(href)
     );
   };
 
-  return (
-    <>
-      {/* Desktop Sidebar (Only for protected dashboard routes) */}
-      {isProtected && userRole && (
-        <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 border-r border-sidebar-border bg-sidebar lg:block">
-          <div className="flex h-full flex-col">
-            <div className="flex h-16 items-center border-b border-border px-6">
-              <Link
-                href="/"
-                className="flex items-center gap-2 font-bold text-primary hover:opacity-80 transition-opacity"
-              >
-                <GraduationCap className="h-6 w-6 text-primary" />
-                <span className="text-lg tracking-tight">LMS Platform</span>
-              </Link>
-            </div>
-
-            <nav className="flex-1 overflow-y-auto p-4 space-y-6">
-              {dashboardSections.map((section, idx) => (
-                <div key={idx} className="space-y-2">
-                  {section.title && (
-                    <h3 className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
-                      {section.title}
-                    </h3>
-                  )}
-                  <div className="space-y-1">
-                    {section.items.map((item) => {
-                      const active = isActive(item.href, allDashboardItems);
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          className={cn(
-                            "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 group",
-                            active
-                              ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
-                              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                          )}
-                          aria-current={active ? "page" : undefined}
-                        >
-                          <item.icon
-                            className={cn(
-                              "h-4 w-4 transition-colors",
-                              active
-                                ? "text-primary-foreground"
-                                : "text-muted-foreground group-hover:text-accent-foreground",
-                            )}
-                          />
-                          <span>{item.title}</span>
-                          {active && (
-                            <ChevronRight className="ml-auto h-4 w-4 animate-in slide-in-from-left-1" />
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </nav>
-
-            <div className="mt-auto border-t border-border p-4">
-              <Link
-                href={ROUTES.DASHBOARD_SETTINGS}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all group",
-                  isActive(ROUTES.DASHBOARD_SETTINGS, allDashboardItems)
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                )}
-              >
-                <Settings className="h-4 w-4" />
-                <span>Settings</span>
-              </Link>
-            </div>
-          </div>
-        </aside>
-      )}
-
-      {/* Mobile Header */}
-      <header
-        className={cn(
-          "sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur-md lg:px-6 transition-all",
-          isProtected && "lg:pl-64", // Adjust header when sidebar is present (pl-64 matches sidebar width)
-        )}
+  // ---------------------------------------------------------------------------
+  // Sidebar drawer content (shared between permanent + temporary)
+  // ---------------------------------------------------------------------------
+  const sidebarContent = (
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      {/* Logo */}
+      <Box
+        sx={{
+          height: 64,
+          display: "flex",
+          alignItems: "center",
+          px: 3,
+          borderBottom: 1,
+          borderColor: "divider",
+        }}
       >
-        <div className="flex items-center gap-4">
-          {isProtected && (
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground lg:hidden transition-colors"
-            >
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Open sidebar</span>
-            </button>
-          )}
+        <Box
+          component={Link}
+          href="/"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            fontWeight: 700,
+            color: "primary.main",
+            textDecoration: "none",
+            "&:hover": { opacity: 0.8 },
+          }}
+        >
+          <GraduationCap size={24} />
+          <Typography variant="subtitle1" fontWeight={700} color="primary">
+            LMS Platform
+          </Typography>
+        </Box>
+      </Box>
 
-          <Link
-            href="/"
-            className={cn(
-              "flex items-center gap-2 font-bold text-primary",
-              isProtected && "lg:hidden",
+      {/* Nav sections */}
+      <Box sx={{ flex: 1, overflowY: "auto", p: 1 }}>
+        {dashboardSections.map((section, idx) => (
+          <Box key={idx} sx={{ mb: 2 }}>
+            {section.title && (
+              <Typography
+                variant="caption"
+                sx={{
+                  px: 1.5,
+                  py: 0.5,
+                  display: "block",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  color: "text.secondary",
+                  fontSize: 11,
+                }}
+              >
+                {section.title}
+              </Typography>
             )}
-          >
-            <GraduationCap className="h-6 w-6" />
-            <span className="text-lg">LMS</span>
-          </Link>
-
-          {/* Main Nav Links (Desktop) */}
-          {filteredMainNav.length > 0 && (
-            <nav className="hidden items-center gap-1 lg:flex ml-4">
-              {filteredMainNav.map((item) => {
-                const active = isActive(item.href, MAIN_NAV);
+            <List disablePadding>
+              {section.items.map((item) => {
+                const active = isActive(item.href, allDashboardItems);
                 return (
-                  <Link
+                   <ListItemButton
                     key={item.href}
                     href={item.href}
-                    className={cn(
-                      "rounded-md px-3 py-2 text-sm font-medium transition-colors relative",
-                      active
-                        ? "text-primary"
-                        : "text-muted-foreground hover:text-primary",
-                    )}
+                    selected={active}
+                    sx={{ borderRadius: 2, mb: 0.25 }}
+                    aria-current={active ? "page" : undefined}
                   >
-                    {item.title}
-                    {active && (
-                      <span className="absolute inset-x-3 -bottom-[17px] h-0.5 bg-primary rounded-full" />
-                    )}
-                  </Link>
+                    <ListItemIcon sx={{ minWidth: 36, color: active ? "inherit" : "text.secondary" }}>
+                      <item.icon size={18} />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={item.title}
+                      primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}
+                    />
+                  </ListItemButton>
                 );
               })}
-            </nav>
-          )}
-        </div>
+            </List>
+          </Box>
+        ))}
+      </Box>
 
-        {/* User area */}
-        <div className="flex items-center gap-4">{userArea}</div>
-      </header>
-
-      {/* Mobile Sidebar Overlay */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300"
-            onClick={() => setIsMobileMenuOpen(false)}
+      {/* Settings footer */}
+      <Box sx={{ borderTop: 1, borderColor: "divider", p: 1 }}>
+        <ListItemButton
+          href={ROUTES.DASHBOARD_SETTINGS}
+          selected={isActive(ROUTES.DASHBOARD_SETTINGS, allDashboardItems)}
+          sx={{ borderRadius: 2 }}
+        >
+          <ListItemIcon sx={{ minWidth: 36, color: "text.secondary" }}>
+            <Settings size={18} />
+          </ListItemIcon>
+          <ListItemText
+            primary="Settings"
+            primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}
           />
-          <div className="fixed inset-y-0 left-0 w-[280px] border-r border-sidebar-border bg-sidebar p-6 shadow-2xl animate-in slide-in-from-left duration-300 ease-in-out">
-            <div className="flex items-center justify-between mb-8">
-              <Link
-                href="/"
-                className="flex items-center gap-2 font-bold text-primary"
-              >
-                <GraduationCap className="h-8 w-8" />
-                <span className="text-xl">LMS Platform</span>
-              </Link>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                <X className="h-6 w-6" />
-                <span className="sr-only">Close sidebar</span>
-              </button>
-            </div>
+        </ListItemButton>
+      </Box>
+    </Box>
+  );
 
-            <nav className="space-y-8">
-              {/* Main Nav in Mobile */}
-              {filteredMainNav.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 px-2">
-                    General
-                  </h3>
-                  <div className="space-y-1">
-                    {filteredMainNav.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={cn(
-                          "flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-all",
-                          isActive(item.href, MAIN_NAV)
-                            ? "bg-primary text-primary-foreground"
-                            : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                        )}
-                      >
-                        <item.icon className="h-5 w-5" />
-                        <span>{item.title}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Dashboard Nav in Mobile */}
-              {isProtected &&
-                userRole &&
-                dashboardSections.map((section, idx) => (
-                  <div key={idx} className="space-y-3">
-                    {section.title && (
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 px-2">
-                        {section.title}
-                      </h3>
-                    )}
-                    <div className="space-y-1">
-                      {section.items.map((item) => {
-                        const active = isActive(item.href, allDashboardItems);
-                        return (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            className={cn(
-                              "flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-all",
-                              active
-                                ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                                : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                            )}
-                          >
-                            <item.icon className="h-5 w-5" />
-                            <span>{item.title}</span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-
-              {isProtected && (
-                <div className="pt-4 border-t border-border">
-                  <Link
-                    href={ROUTES.DASHBOARD_SETTINGS}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-all",
-                      isActive(ROUTES.DASHBOARD_SETTINGS, allDashboardItems)
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent",
-                    )}
-                  >
-                    <Settings className="h-5 w-5" />
-                    <span>Settings</span>
-                  </Link>
-                </div>
-              )}
-            </nav>
-          </div>
-        </div>
+  return (
+    <>
+      {/* Desktop permanent sidebar */}
+      {isProtected && userRole && (
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: "none", lg: "block" },
+            "& .MuiDrawer-paper": {
+              width: SIDEBAR_WIDTH,
+              boxSizing: "border-box",
+              border: "none",
+              borderRight: 1,
+              borderColor: "divider",
+            },
+          }}
+          open
+        >
+          {sidebarContent}
+        </Drawer>
       )}
+
+      {/* Mobile temporary drawer */}
+      {mounted && isProtected && userRole && (
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          sx={{
+            display: { xs: "block", lg: "none" },
+            "& .MuiDrawer-paper": { width: SIDEBAR_WIDTH, boxSizing: "border-box" },
+          }}
+          ModalProps={{ keepMounted: true }}
+        >
+          {sidebarContent}
+        </Drawer>
+      )}
+
+      {/* AppBar / Header */}
+      <AppBar
+        position="sticky"
+        elevation={0}
+        sx={{
+          bgcolor: "background.paper",
+          borderBottom: 1,
+          borderColor: "divider",
+          color: "text.primary",
+          zIndex: (theme) => theme.zIndex.drawer - 1,
+          ...(isProtected && {
+            width: { lg: `calc(100% - ${SIDEBAR_WIDTH}px)` },
+            ml: { lg: `${SIDEBAR_WIDTH}px` },
+          }),
+        }}
+      >
+        <Toolbar sx={{ gap: 2, minHeight: "64px !important" }}>
+          {/* Mobile menu button */}
+          {isProtected && (
+            <IconButton
+              onClick={() => setMobileOpen(true)}
+              sx={{ display: { lg: "none" } }}
+              aria-label="Open sidebar"
+            >
+              <Menu size={24} />
+            </IconButton>
+          )}
+
+          {/* Logo (visible in header when sidebar is hidden on mobile, or on non-protected pages) */}
+          <Box
+            component={Link}
+            href="/"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              fontWeight: 700,
+              color: "primary.main",
+              textDecoration: "none",
+              ...(isProtected && { display: { lg: "none" } }),
+            }}
+          >
+            <GraduationCap size={24} />
+            <Typography variant="subtitle1" fontWeight={700} color="primary" sx={{ display: { lg: "none" } }}>
+              LMS
+            </Typography>
+          </Box>
+
+          {/* Desktop main nav links (for non-protected pages) */}
+          {filteredMainNav.length > 0 && (
+            <Box
+              component="nav"
+              sx={{ display: { xs: "none", lg: "flex" }, gap: 0.5, ml: 2 }}
+            >
+              {filteredMainNav.map((item) => {
+                const active = isActive(item.href, MAIN_NAV as { href: string }[]);
+                return (
+                  <Box
+                    key={item.href}
+                    component={Link}
+                    href={item.href}
+                    sx={{
+                      px: 1.5,
+                      py: 1,
+                      borderRadius: 1,
+                      fontSize: 14,
+                      fontWeight: 500,
+                      textDecoration: "none",
+                      color: active ? "primary.main" : "text.secondary",
+                      "&:hover": { color: "primary.main" },
+                      position: "relative",
+                    }}
+                  >
+                    {item.title}
+                  </Box>
+                );
+              })}
+            </Box>
+          )}
+
+          {/* Spacer */}
+          <Box sx={{ flex: 1 }} />
+
+          {/* User area */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {userArea}
+          </Box>
+        </Toolbar>
+      </AppBar>
     </>
   );
 }

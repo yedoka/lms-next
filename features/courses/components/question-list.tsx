@@ -18,6 +18,9 @@ import {
 } from "@dnd-kit/sortable";
 import { Question, Answer } from "@prisma/client";
 import { QuestionItem } from "./question-item";
+import Stack from "@mui/material/Stack";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 
 interface QuestionListProps {
   items: (Question & { answers: Answer[] })[];
@@ -80,7 +83,7 @@ export const QuestionList = ({
       onDragEnd={onDragEnd}
     >
       <SortableContext items={questions} strategy={verticalListSortingStrategy}>
-        <div className="space-y-4">
+        <Stack spacing={2}>
           {questions.map((question) => (
             <QuestionItem
               key={question.id}
@@ -91,11 +94,22 @@ export const QuestionList = ({
             />
           ))}
           {questions.length === 0 && (
-            <div className="text-center text-muted-foreground py-10 border border-dashed rounded-md">
-              No questions yet. Add one to get started.
-            </div>
+            <Box
+              sx={{
+                textAlign: "center",
+                color: "text.secondary",
+                py: 5,
+                border: "1px dashed",
+                borderColor: "divider",
+                borderRadius: 2,
+              }}
+            >
+              <Typography variant="body2">
+                No questions yet. Add one to get started.
+              </Typography>
+            </Box>
           )}
-        </div>
+        </Stack>
       </SortableContext>
     </DndContext>
   );

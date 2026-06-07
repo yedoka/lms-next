@@ -1,7 +1,7 @@
 "use client";
 
 import { FilePlus } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import Button from "@mui/material/Button";
 import { CLOUDINARY_CONFIG } from "@/shared/lib/config";
 import { toast } from "sonner";
 
@@ -15,12 +15,9 @@ export const FileUpload = ({ onUpload, disabled }: FileUploadProps) => {
 
   if (!cloudName) {
     return (
-      <div className="mt-2 text-sm text-muted-foreground border border-dashed rounded-md p-4 text-center">
-        <p>File upload unavailable.</p>
-        <p className="text-xs">
-          Set <code>NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME</code> in your .env file.
-        </p>
-      </div>
+      <Button variant="outlined" disabled sx={{ mt: 1 }}>
+        File upload unavailable — set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+      </Button>
     );
   }
 
@@ -62,12 +59,12 @@ export const FileUpload = ({ onUpload, disabled }: FileUploadProps) => {
         return (
           <Button
             type="button"
-            variant="outline"
+            variant="outlined"
             onClick={() => open()}
             disabled={disabled}
-            className="mt-2"
+            startIcon={<FilePlus size={16} />}
+            sx={{ mt: 1 }}
           >
-            <FilePlus className="h-4 w-4 mr-2" />
             Add an Attachment
           </Button>
         );

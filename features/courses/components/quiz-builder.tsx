@@ -5,10 +5,6 @@ import { useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { quizSchema, QuizFormData } from "../schemas/quiz";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Switch } from "@/shared/ui/switch";
-import { Field, FieldLabel, FieldContent, FieldError } from "@/shared/ui/field";
 import { toast } from "sonner";
 import {
   updateQuizAction,
@@ -18,6 +14,14 @@ import {
 import { ArrowLeft, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { QuestionList } from "./question-list";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Switch from "@mui/material/Switch";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 
 interface QuizBuilderProps {
   quiz: Quiz & { questions: (Question & { answers: Answer[] })[] };
@@ -26,9 +30,7 @@ interface QuizBuilderProps {
 }
 
 export const QuizBuilder = ({ quiz, courseId, lessonId }: QuizBuilderProps) => {
-  const [activeTab, setActiveTab] = useState<"settings" | "questions">(
-    "settings",
-  );
+  const [activeTab, setActiveTab] = useState<"settings" | "questions">("settings");
   const [isPending, startTransition] = useTransition();
 
   const {
@@ -80,55 +82,55 @@ export const QuizBuilder = ({ quiz, courseId, lessonId }: QuizBuilderProps) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-x-2">
-          <Button variant="ghost" asChild>
-            <Link href={`/dashboard/teacher/courses/${courseId}/edit`}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to course
-            </Link>
-          </Button>
-        </div>
-      </div>
+    <Stack spacing={3}>
+      <Box>
+        <Button
+          component={Link}
+          href={`/dashboard/teacher/courses/${courseId}/edit`}
+          variant="text"
+          size="small"
+          startIcon={<ArrowLeft size={16} />}
+          sx={{ color: "text.secondary", p: 0.5 }}
+        >
+          Back to course setup
+        </Button>
+      </Box>
 
-      <div className="flex flex-col gap-y-2">
-        <h1 className="text-2xl font-medium">Quiz Builder</h1>
-        <span className="text-sm text-slate-700">
+      <Box>
+        <Typography variant="h5" component="h1" fontWeight={700} sx={{ mb: 0.5 }}>
+          Quiz Builder
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
           Manage settings and questions for: {quiz.title}
-        </span>
-      </div>
+        </Typography>
+      </Box>
 
-      <div className="flex gap-x-2 border-b">
-        <Button
-          variant={activeTab === "settings" ? "default" : "ghost"}
-          onClick={() => setActiveTab("settings")}
+      <Box>
+        <Tabs
+          value={activeTab}
+          onChange={(e, val) => setActiveTab(val)}
+          sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}
         >
-          Settings
-        </Button>
-        <Button
-          variant={activeTab === "questions" ? "default" : "ghost"}
-          onClick={() => setActiveTab("questions")}
-        >
-          Questions ({quiz.questions.length})
-        </Button>
-      </div>
+          <Tab label="Settings" value="settings" />
+          <Tab label={`Questions (${quiz.questions.length})`} value="questions" />
+        </Tabs>
+      </Box>
 
       {activeTab === "settings" && (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
+        <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={3} sx={{ maxWidth: 600 }}>
           <Controller
             control={control}
             name="title"
             render={({ field }) => (
-              <Field data-invalid={!!errors.title}>
-                <FieldLabel>Quiz Title</FieldLabel>
-                <FieldContent>
-                  <Input disabled={isPending} {...field} />
-                  {errors.title?.message && (
-                    <FieldError>{errors.title.message}</FieldError>
-                  )}
-                </FieldContent>
-              </Field>
+              <TextField
+                {...field}
+                label="Quiz Title"
+                disabled={isPending}
+                fullWidth
+                size="small"
+                error={!!errors.title}
+                helperText={errors.title?.message}
+              />
             )}
           />
 
@@ -136,27 +138,20 @@ export const QuizBuilder = ({ quiz, courseId, lessonId }: QuizBuilderProps) => {
             control={control}
             name="timeLimit"
             render={({ field }) => (
-              <Field data-invalid={!!errors.timeLimit}>
-                <FieldLabel>Time Limit (minutes)</FieldLabel>
-                <div className="text-sm text-muted-foreground mb-2">
-                  Leave blank for no limit.
-                </div>
-                <FieldContent>
-                  <Input
-                    type="number"
-                    disabled={isPending}
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value ? parseInt(e.target.value) : null,
-                      )
-                    }
-                  />
-                  {errors.timeLimit?.message && (
-                    <FieldError>{errors.timeLimit.message}</FieldError>
-                  )}
-                </FieldContent>
-              </Field>
+              <TextField
+                label="Time Limit (minutes)"
+                type="number"
+                placeholder="No limit"
+                disabled={isPending}
+                fullWidth
+                size="small"
+                value={field.value ?? ""}
+                onChange={(e) =>
+                  field.onChange(e.target.value ? parseInt(e.target.value) : null)
+                }
+                error={!!errors.timeLimit}
+                helperText={errors.timeLimit?.message ?? "Leave blank for no limit."}
+              />
             )}
           />
 
@@ -164,22 +159,18 @@ export const QuizBuilder = ({ quiz, courseId, lessonId }: QuizBuilderProps) => {
             control={control}
             name="passingScore"
             render={({ field }) => (
-              <Field data-invalid={!!errors.passingScore}>
-                <FieldLabel>Passing Score (%)</FieldLabel>
-                <FieldContent>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    disabled={isPending}
-                    value={field.value}
-                    onChange={(e) => field.onChange(parseInt(e.target.value))}
-                  />
-                  {errors.passingScore?.message && (
-                    <FieldError>{errors.passingScore.message}</FieldError>
-                  )}
-                </FieldContent>
-              </Field>
+              <TextField
+                label="Passing Score (%)"
+                type="number"
+                slotProps={{ htmlInput: { min: 0, max: 100 } }}
+                disabled={isPending}
+                fullWidth
+                size="small"
+                value={field.value}
+                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                error={!!errors.passingScore}
+                helperText={errors.passingScore?.message}
+              />
             )}
           />
 
@@ -187,58 +178,70 @@ export const QuizBuilder = ({ quiz, courseId, lessonId }: QuizBuilderProps) => {
             control={control}
             name="isPublished"
             render={({ field }) => (
-              <Field>
-                <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FieldLabel>Publish Quiz</FieldLabel>
-                    <div className="text-sm text-muted-foreground">
-                      Make this quiz visible to students (requires lesson to be
-                      published too).
-                    </div>
-                  </div>
-                  <FieldContent className="flex-initial">
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={isPending}
-                    />
-                  </FieldContent>
-                </div>
-              </Field>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  p: 2,
+                  border: 1,
+                  borderColor: "divider",
+                  borderRadius: 2,
+                }}
+              >
+                <Box>
+                  <Typography variant="body2" fontWeight={600}>
+                    Publish Quiz
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Make this quiz visible to students (requires lesson to be published too).
+                  </Typography>
+                </Box>
+                <Switch
+                  checked={field.value}
+                  onChange={(e) => field.onChange(e.target.checked)}
+                  disabled={isPending}
+                  color="info"
+                />
+              </Box>
             )}
           />
 
-          <Button disabled={isPending} type="submit">
-            Save settings
-          </Button>
-        </form>
+          <Box>
+            <Button disabled={isPending} type="submit" variant="contained">
+              Save settings
+            </Button>
+          </Box>
+        </Stack>
       )}
 
       {activeTab === "questions" && (
-        <div className="space-y-6 max-w-3xl">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-medium">Questions</h2>
-            <div className="flex items-center gap-x-2">
+        <Stack spacing={3} sx={{ maxWidth: 800 }}>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <Typography variant="h6" fontWeight={600}>
+              Questions
+            </Typography>
+            <Stack direction="row" spacing={1}>
               <Button
-                size="sm"
-                variant="outline"
+                size="small"
+                variant="outlined"
                 onClick={() => handleAddQuestion("MULTIPLE_CHOICE")}
                 disabled={isPending}
+                startIcon={<PlusCircle size={16} />}
               >
-                <PlusCircle className="h-4 w-4 mr-2" />
                 Multiple Choice
               </Button>
               <Button
-                size="sm"
-                variant="outline"
+                size="small"
+                variant="outlined"
                 onClick={() => handleAddQuestion("BOOLEAN")}
                 disabled={isPending}
+                startIcon={<PlusCircle size={16} />}
               >
-                <PlusCircle className="h-4 w-4 mr-2" />
                 True/False
               </Button>
-            </div>
-          </div>
+            </Stack>
+          </Box>
 
           <QuestionList
             items={quiz.questions}
@@ -247,8 +250,9 @@ export const QuizBuilder = ({ quiz, courseId, lessonId }: QuizBuilderProps) => {
             quizId={quiz.id}
             onReorder={handleReorder}
           />
-        </div>
+        </Stack>
       )}
-    </div>
+    </Stack>
   );
 };
+

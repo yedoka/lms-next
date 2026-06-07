@@ -20,6 +20,9 @@ import { Lesson, Attachment, Quiz } from "@prisma/client";
 import { LessonItem } from "./lesson-item";
 import { reorderLessonsAction } from "../actions/lesson-actions";
 import { toast } from "sonner";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 
 interface LessonListProps {
   items: (Lesson & { attachments: Attachment[]; quizzes: Quiz[] })[];
@@ -82,7 +85,7 @@ export const LessonList = ({ items, courseId }: LessonListProps) => {
       onDragEnd={onDragEnd}
     >
       <SortableContext items={lessons} strategy={verticalListSortingStrategy}>
-        <div className="space-y-4">
+        <Stack spacing={1.5}>
           {lessons.map((lesson) => (
             <LessonItem
               key={lesson.id}
@@ -92,12 +95,26 @@ export const LessonList = ({ items, courseId }: LessonListProps) => {
             />
           ))}
           {lessons.length === 0 && (
-            <div className="text-center text-muted-foreground py-10 border border-dashed rounded-md">
-              No lessons yet.
-            </div>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                py: 6,
+                border: "1px dashed",
+                borderColor: "divider",
+                borderRadius: 2,
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                No lessons yet.
+              </Typography>
+            </Box>
           )}
-        </div>
+        </Stack>
       </SortableContext>
     </DndContext>
   );
 };
+

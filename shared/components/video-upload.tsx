@@ -1,7 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Video, Trash, Loader2 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
 import { CLOUDINARY_CONFIG } from "@/shared/lib/config";
 
 interface VideoUploadProps {
@@ -11,10 +14,10 @@ interface VideoUploadProps {
 }
 
 export const VideoUpload = ({ value, onChange, onRemove }: VideoUploadProps) => {
-  const [isMounted, setIsMounted] = (require("react")).useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
-  (require("react")).useEffect(() => {
+  useEffect(() => {
     setIsMounted(true);
   }, []);
 
@@ -22,35 +25,43 @@ export const VideoUpload = ({ value, onChange, onRemove }: VideoUploadProps) => 
 
   if (value) {
     return (
-      <div className="relative aspect-video mt-2 rounded-md overflow-hidden bg-slate-100 flex items-center justify-center">
-        <video
-          src={value}
-          controls
-          className="object-cover w-full h-full"
-        />
-        <div className="absolute top-2 right-2">
-          <Button
-            type="button"
+      <Box
+        sx={{
+          position: "relative",
+          aspectRatio: "16/9",
+          mt: 1,
+          borderRadius: 2,
+          overflow: "hidden",
+          bgcolor: "grey.100",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <video src={value} controls style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+        <Box sx={{ position: "absolute", top: 8, right: 8 }}>
+          <IconButton
+            size="small"
             onClick={onRemove}
-            variant="destructive"
-            size="sm"
-            className="h-auto p-2"
+            sx={{
+              bgcolor: "error.main",
+              color: "error.contrastText",
+              "&:hover": { bgcolor: "error.dark" },
+              p: 0.75,
+            }}
           >
-            <Trash className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+            <Trash size={16} />
+          </IconButton>
+        </Box>
+      </Box>
     );
   }
 
   if (!cloudName) {
     return (
-      <div className="mt-2 text-sm text-muted-foreground border border-dashed rounded-md p-4 text-center">
-        <p>Video upload unavailable.</p>
-        <p className="text-xs">
-          Set <code>NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME</code> in your .env file.
-        </p>
-      </div>
+      <Button variant="outlined" disabled sx={{ mt: 1 }}>
+        Video upload unavailable — set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+      </Button>
     );
   }
 
@@ -73,16 +84,12 @@ export const VideoUpload = ({ value, onChange, onRemove }: VideoUploadProps) => 
         return (
           <Button
             type="button"
-            variant="outline"
+            variant="outlined"
             onClick={() => open()}
-            className="mt-2"
+            startIcon={isLoading ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <Video size={16} />}
             disabled={isLoading}
+            sx={{ mt: 1 }}
           >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Video className="h-4 w-4 mr-2" />
-            )}
             Upload a Video
           </Button>
         );

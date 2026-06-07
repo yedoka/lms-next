@@ -1,11 +1,17 @@
 import { Suspense } from "react";
 import prisma from "@/shared/db/prisma";
 import { notFound } from "next/navigation";
-import { Button } from "@/shared/ui/button";
 import { sanitizeHtml } from "@/shared/lib/sanitize";
 import { auth } from "@/auth";
 import { EnrollButton } from "@/features/courses/components/enroll-button";
-import Link from "next/link";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
+import Skeleton from "@mui/material/Skeleton";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import { PageContainer } from "@/shared/components/ui";
 
 async function CourseContent({ courseId }: { courseId: string }) {
   const session = await auth();
@@ -33,7 +39,7 @@ async function CourseContent({ courseId }: { courseId: string }) {
     return notFound();
   }
 
-  const enrollment = userId 
+  const enrollment = userId
     ? await prisma.enrollment.findUnique({
         where: {
           userId_courseId: {
@@ -47,73 +53,136 @@ async function CourseContent({ courseId }: { courseId: string }) {
   const firstLessonId = course.lessons[0]?.id;
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-4xl">
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="w-full md:w-2/3">
-          <h1 className="text-3xl font-bold mb-4">{course.title}</h1>
-          <div className="mb-6 text-muted-foreground text-sm">
-            Created by {course.teacher?.name || "Unknown"} • {course.category || "Uncategorized"}
-          </div>
-          
-          <div 
-            className="prose max-w-none mb-8" 
-            dangerouslySetInnerHTML={{ __html: sanitizeHtml(course.description || "No description provided.") }} 
-          />
-          
-          <h2 className="text-2xl font-bold mb-4">Course Content</h2>
-          <div className="space-y-2">
-            {course.lessons.length === 0 ? (
-              <p className="text-muted-foreground">No lessons available yet.</p>
-            ) : (
-              course.lessons.map((lesson) => (
-                <div key={lesson.id} className="p-4 border border-border rounded-xl flex items-center justify-between">
-                  <span className="font-medium">{lesson.title}</span>
-                  {enrollment && (
-                    <Link href={`/courses/${courseId}/lessons/${lesson.id}`}>
-                      <Button variant="ghost" size="sm">View</Button>
-                    </Link>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+    <PageContainer maxWidth="md">
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4 }}>
+        {/* Main content column */}
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="h2" component="h1" sx={{ mb: 1.5 }}>
+            {course.title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Created by {course.teacher?.name || "Unknown"} &bull;{" "}
+            {course.category || "Uncategorized"}
+          </Typography>
 
-        <div className="w-full md:w-1/3">
-          <div className="bg-card rounded-2xl ring-1 ring-foreground/10 p-6 sticky top-10 flex flex-col gap-3">
-            {course.thumbnail ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={course.thumbnail}
-                alt={course.title}
-                className="w-full rounded-xl mb-4 object-cover aspect-video"
-              />
-            ) : (
-              <div className="w-full aspect-video rounded-xl bg-muted mb-4 flex items-center justify-center text-muted-foreground">
-                No Image
-              </div>
-            )}
-            
-            {enrollment ? (
-              firstLessonId ? (
-                <Link href={`/courses/${courseId}/lessons/${firstLessonId}`}>
-                  <Button className="w-full mb-2">Continue to Course</Button>
-                </Link>
+          <Box
+            className="tiptap-content"
+            dangerouslySetInnerHTML={{
+              __html: sanitizeHtml(course.description || "No description provided."),
+            }}
+            sx={{ mb: 4 }}
+          />
+
+          <Typography variant="h3" component="h2" sx={{ mb: 2 }}>
+            Course Content
+          </Typography>
+
+          {course.lessons.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No lessons available yet.
+            </Typography>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              {course.lessons.map((lesson) => (
+                <Box
+                  key={lesson.id}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    p: 2,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 2,
+                  }}
+                >
+                  <Typography variant="body2" fontWeight={500}>
+                    {lesson.title}
+                  </Typography>
+                  {enrollment && (
+                    <Button
+                      href={`/courses/${courseId}/lessons/${lesson.id}`}
+                      variant="text"
+                      size="small"
+                    >
+                      View
+                    </Button>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
+
+        {/* Sidebar */}
+        <Box sx={{ width: { xs: "100%", md: 300 }, flexShrink: 0 }}>
+          <Card sx={{ position: "sticky", top: 80 }}>
+            <Box
+              sx={{
+                position: "relative",
+                paddingTop: "56.25%",
+                bgcolor: "action.hover",
+                overflow: "hidden",
+                borderRadius: "10px 10px 0 0",
+              }}
+            >
+              {course.thumbnail ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={course.thumbnail}
+                  alt={course.title}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
               ) : (
-                <Button className="w-full mb-2" disabled>
-                  No lessons available
-                </Button>
-              )
-            ) : (
-              <EnrollButton courseId={courseId} />
-            )}
-            <p className="text-xs text-center text-muted-foreground mt-2">
-              {enrollment ? "You are enrolled in this course" : "Full access to all lessons"}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "text.disabled",
+                  }}
+                >
+                  <Typography variant="body2">No Image</Typography>
+                </Box>
+              )}
+            </Box>
+            <Divider />
+            <CardContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {enrollment ? (
+                firstLessonId ? (
+                  <Button
+                    href={`/courses/${courseId}/lessons/${firstLessonId}`}
+                    variant="contained"
+                    fullWidth
+                  >
+                    Continue to Course
+                  </Button>
+                ) : (
+                  <Button variant="contained" fullWidth disabled>
+                    No lessons available
+                  </Button>
+                )
+              ) : (
+                <EnrollButton courseId={courseId} />
+              )}
+              <Typography variant="caption" color="text.secondary" textAlign="center">
+                {enrollment
+                  ? "You are enrolled in this course"
+                  : "Full access to all lessons"}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
+    </PageContainer>
   );
 }
 
@@ -133,31 +202,33 @@ export default async function CourseDetailsPage({
 
 function CourseDetailsSkeleton() {
   return (
-    <div className="container mx-auto py-10 px-4 max-w-4xl">
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="w-full md:w-2/3">
-          <div className="h-9 w-3/4 bg-muted rounded-lg animate-pulse mb-4" />
-          <div className="h-5 w-1/2 bg-muted rounded animate-pulse mb-6" />
-          <div className="space-y-3 mb-8">
-            <div className="h-4 bg-muted rounded animate-pulse" />
-            <div className="h-4 bg-muted rounded animate-pulse" />
-            <div className="h-4 w-2/3 bg-muted rounded animate-pulse" />
-          </div>
-          <div className="h-8 w-48 bg-muted rounded animate-pulse mb-4" />
-          <div className="space-y-2">
+    <PageContainer maxWidth="md">
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4 }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Skeleton width="75%" height={40} sx={{ mb: 1.5 }} />
+          <Skeleton width="50%" height={22} sx={{ mb: 3 }} />
+          <Box sx={{ mb: 4 }}>
+            <Skeleton height={18} sx={{ mb: 1 }} />
+            <Skeleton height={18} sx={{ mb: 1 }} />
+            <Skeleton width="66%" height={18} />
+          </Box>
+          <Skeleton width={200} height={32} sx={{ mb: 2 }} />
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-14 bg-muted rounded-xl animate-pulse" />
+              <Skeleton key={i} height={56} sx={{ borderRadius: 2 }} />
             ))}
-          </div>
-        </div>
-        <div className="w-full md:w-1/3">
-          <div className="bg-card rounded-2xl ring-1 ring-foreground/10 p-6">
-            <div className="w-full aspect-video bg-muted rounded-xl mb-4 animate-pulse" />
-            <div className="h-10 bg-muted rounded-4xl animate-pulse mb-2" />
-            <div className="h-4 w-3/4 mx-auto bg-muted rounded animate-pulse" />
-          </div>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Box>
+        <Box sx={{ width: { xs: "100%", md: 300 }, flexShrink: 0 }}>
+          <Card>
+            <Skeleton variant="rectangular" sx={{ paddingTop: "56.25%" }} />
+            <CardContent sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <Skeleton height={42} sx={{ borderRadius: 2 }} />
+              <Skeleton width="66%" height={18} sx={{ mx: "auto" }} />
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
+    </PageContainer>
   );
 }

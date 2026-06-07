@@ -3,21 +3,31 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { lessonSchema, LessonFormData } from "@/features/courses/schemas/lesson";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Switch } from "@/shared/ui/switch";
 import { Editor } from "@/shared/components/editor";
 import { VideoUpload } from "@/shared/components/video-upload";
-import { Field, FieldLabel, FieldContent, FieldError } from "@/shared/ui/field";
-import { createLessonAction, updateLessonAction, createLessonAttachmentAction, deleteLessonAttachmentAction } from "@/features/courses/actions/lesson-actions";
+import {
+  createLessonAction,
+  updateLessonAction,
+  createLessonAttachmentAction,
+  deleteLessonAttachmentAction,
+} from "@/features/courses/actions/lesson-actions";
 import { createQuizAction, deleteQuizAction } from "@/features/courses/actions/quiz-actions";
 import { toast } from "sonner";
 import { useTransition } from "react";
-import { DialogDescription } from "@/shared/ui/dialog";
 import { Attachment, Quiz } from "@prisma/client";
 import { FileUpload } from "@/shared/components/file-upload";
-import { FileText, Loader2, X, BrainCircuit } from "lucide-react";
+import { FileText, X, BrainCircuit } from "lucide-react";
 import Link from "next/link";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Switch from "@mui/material/Switch";
+import FormControl from "@mui/material/FormControl";
+import FormLabel from "@mui/material/FormLabel";
+import FormHelperText from "@mui/material/FormHelperText";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
 
 interface LessonFormProps {
   courseId: string;
@@ -61,7 +71,7 @@ export const LessonForm = ({ courseId, initialData, onSuccess }: LessonFormProps
 
   const handleUploadAttachment = (result: { url: string; name: string; size: number }) => {
     if (!initialData?.id) return;
-    
+
     startTransition(async () => {
       try {
         await createLessonAttachmentAction(courseId, initialData.id, result.name, result.url, result.size);
@@ -85,7 +95,7 @@ export const LessonForm = ({ courseId, initialData, onSuccess }: LessonFormProps
 
   const handleCreateQuiz = () => {
     if (!initialData?.id) return;
-    
+
     startTransition(async () => {
       try {
         await createQuizAction(courseId, initialData.id, {
@@ -115,22 +125,26 @@ export const LessonForm = ({ courseId, initialData, onSuccess }: LessonFormProps
   };
 
   return (
-    <div className="space-y-6">
-      <DialogDescription>
+    <Stack spacing={3}>
+      <Typography variant="body2" color="text.secondary">
         {initialData ? "Update lesson details and video." : "Add a new lesson to your course."}
-      </DialogDescription>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      </Typography>
+
+      <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={3}>
         <Controller
           control={control}
           name="title"
           render={({ field }) => (
-            <Field data-invalid={!!errors.title}>
-              <FieldLabel>Lesson Title</FieldLabel>
-              <FieldContent>
-                <Input disabled={isPending} placeholder="e.g. 'Introduction to the course'" {...field} />
-                {errors.title?.message && <FieldError>{errors.title.message}</FieldError>}
-              </FieldContent>
-            </Field>
+            <TextField
+              {...field}
+              label="Lesson Title"
+              disabled={isPending}
+              placeholder="e.g. 'Introduction to the course'"
+              fullWidth
+              size="small"
+              error={!!errors.title}
+              helperText={errors.title?.message}
+            />
           )}
         />
 
@@ -138,13 +152,15 @@ export const LessonForm = ({ courseId, initialData, onSuccess }: LessonFormProps
           control={control}
           name="description"
           render={({ field }) => (
-            <Field data-invalid={!!errors.description}>
-              <FieldLabel>Lesson Description</FieldLabel>
-              <FieldContent>
-                <Editor value={field.value || ""} onChange={field.onChange} />
-                {errors.description?.message && <FieldError>{errors.description.message}</FieldError>}
-              </FieldContent>
-            </Field>
+            <FormControl error={!!errors.description} fullWidth>
+              <FormLabel sx={{ mb: 1, typography: "body2", fontWeight: 500, color: "text.primary" }}>
+                Lesson Description
+              </FormLabel>
+              <Editor value={field.value || ""} onChange={field.onChange} />
+              {errors.description?.message && (
+                <FormHelperText>{errors.description.message}</FormHelperText>
+              )}
+            </FormControl>
           )}
         />
 
@@ -152,17 +168,19 @@ export const LessonForm = ({ courseId, initialData, onSuccess }: LessonFormProps
           control={control}
           name="videoUrl"
           render={({ field }) => (
-            <Field data-invalid={!!errors.videoUrl}>
-              <FieldLabel>Lesson Video</FieldLabel>
-              <FieldContent>
-                <VideoUpload
-                  value={field.value || ""}
-                  onChange={field.onChange}
-                  onRemove={() => field.onChange("")}
-                />
-                {errors.videoUrl?.message && <FieldError>{errors.videoUrl.message}</FieldError>}
-              </FieldContent>
-            </Field>
+            <FormControl error={!!errors.videoUrl} fullWidth>
+              <FormLabel sx={{ mb: 1, typography: "body2", fontWeight: 500, color: "text.primary" }}>
+                Lesson Video
+              </FormLabel>
+              <VideoUpload
+                value={field.value || ""}
+                onChange={field.onChange}
+                onRemove={() => field.onChange("")}
+              />
+              {errors.videoUrl?.message && (
+                <FormHelperText>{errors.videoUrl.message}</FormHelperText>
+              )}
+            </FormControl>
           )}
         />
 
@@ -170,120 +188,168 @@ export const LessonForm = ({ courseId, initialData, onSuccess }: LessonFormProps
           control={control}
           name="isPublished"
           render={({ field }) => (
-            <Field>
-              <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FieldLabel>Publish Lesson</FieldLabel>
-                  <div className="text-sm text-muted-foreground">
-                    Make this lesson visible to students.
-                  </div>
-                </div>
-                <FieldContent className="flex-initial">
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={isPending}
-                  />
-                </FieldContent>
-              </div>
-            </Field>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                p: 2,
+                border: 1,
+                borderColor: "divider",
+                borderRadius: 2,
+              }}
+            >
+              <Box>
+                <Typography variant="body2" fontWeight={600}>
+                  Publish Lesson
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Make this lesson visible to students.
+                </Typography>
+              </Box>
+              <Switch
+                checked={field.value}
+                onChange={(e) => field.onChange(e.target.checked)}
+                disabled={isPending}
+                color="info"
+              />
+            </Box>
           )}
         />
 
-        <div className="flex items-center gap-x-2">
-          <Button disabled={isPending} type="submit">
+        <Box>
+          <Button disabled={isPending} type="submit" variant="contained">
             {initialData ? "Save changes" : "Create lesson"}
           </Button>
-        </div>
-      </form>
+        </Box>
+      </Stack>
 
       {initialData?.id && (
-        <div className="space-y-4 pt-6 border-t">
-          <div>
-            <h3 className="text-sm font-medium leading-none mb-1">Course Attachments</h3>
-            <p className="text-sm text-muted-foreground">Add files for your students to download.</p>
-          </div>
-          
-          <div className="space-y-2">
+        <Box sx={{ pt: 3, borderTop: 1, borderColor: "divider" }}>
+          <Typography variant="subtitle2" fontWeight={600}>
+            Course Attachments
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
+            Add files for your students to download.
+          </Typography>
+
+          <Stack spacing={1} sx={{ mb: 2 }}>
             {initialData.attachments && initialData.attachments.length > 0 ? (
               initialData.attachments.map((attachment) => (
-                <div key={attachment.id} className="flex items-center justify-between p-3 bg-slate-50 border rounded-md">
-                  <div className="flex items-center gap-2 overflow-hidden">
-                    <FileText className="h-4 w-4 text-sky-700 flex-shrink-0" />
-                    <p className="text-sm text-slate-700 truncate">{attachment.name}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-auto p-1 flex-shrink-0 ml-2"
+                <Box
+                  key={attachment.id}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    p: 1.5,
+                    bgcolor: "secondary.main",
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 2,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, overflow: "hidden", minWidth: 0 }}>
+                    <FileText size={16} style={{ color: "var(--mui-palette-info-main)", flexShrink: 0 }} />
+                    <Typography variant="body2" noWrap sx={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {attachment.name}
+                    </Typography>
+                  </Box>
+                  <IconButton
+                    size="small"
                     onClick={() => handleDeleteAttachment(attachment.id)}
                     disabled={isPending}
+                    sx={{ ml: 1 }}
                   >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
+                    <X size={16} />
+                  </IconButton>
+                </Box>
               ))
             ) : (
-              <p className="text-sm text-slate-500 italic">No attachments yet.</p>
+              <Typography variant="body2" color="text.secondary" sx={{ fontStyle: "italic" }}>
+                No attachments yet.
+              </Typography>
             )}
-          </div>
+          </Stack>
 
           <FileUpload onUpload={handleUploadAttachment} disabled={isPending} />
-        </div>
+        </Box>
       )}
 
       {initialData?.id && (
-        <div className="space-y-4 pt-6 border-t">
-          <div>
-            <h3 className="text-sm font-medium leading-none mb-1">Lesson Quiz</h3>
-            <p className="text-sm text-muted-foreground">Assess student understanding with a quiz.</p>
-          </div>
-          
+        <Box sx={{ pt: 3, borderTop: 1, borderColor: "divider" }}>
+          <Typography variant="subtitle2" fontWeight={600}>
+            Lesson Quiz
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
+            Assess student understanding with a quiz.
+          </Typography>
+
           {initialData.quizzes && initialData.quizzes.length > 0 ? (
-            <div className="flex items-center justify-between p-3 bg-slate-50 border rounded-md">
-              <div className="flex flex-col gap-1 overflow-hidden">
-                <div className="flex items-center gap-2">
-                  <BrainCircuit className="h-4 w-4 text-sky-700 flex-shrink-0" />
-                  <p className="text-sm font-medium text-slate-700 truncate">{initialData.quizzes[0].title}</p>
-                </div>
-                <p className="text-xs text-slate-500">
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                p: 1.5,
+                bgcolor: "secondary.main",
+                border: 1,
+                borderColor: "divider",
+                borderRadius: 2,
+              }}
+            >
+              <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <BrainCircuit size={16} style={{ color: "var(--mui-palette-info-main)" }} />
+                  <Typography variant="body2" fontWeight={600} noWrap sx={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {initialData.quizzes[0].title}
+                  </Typography>
+                </Box>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
                   {initialData.quizzes[0].isPublished ? "Published" : "Draft"} • {initialData.quizzes[0].passingScore}% to pass
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/dashboard/teacher/courses/${courseId}/lessons/${initialData.id}/quiz`}>
-                    Edit
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/dashboard/teacher/courses/${courseId}/lessons/${initialData.id}/quiz/preview`}>
-                    Preview
-                  </Link>
+                </Typography>
+              </Box>
+              <Stack direction="row" spacing={1} sx={{ ml: 1 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  component={Link}
+                  href={`/dashboard/teacher/courses/${courseId}/lessons/${initialData.id}/quiz`}
+                >
+                  Edit
                 </Button>
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto p-1 flex-shrink-0 text-destructive hover:text-destructive"
+                  variant="outlined"
+                  size="small"
+                  component={Link}
+                  href={`/dashboard/teacher/courses/${courseId}/lessons/${initialData.id}/quiz/preview`}
+                >
+                  Preview
+                </Button>
+                <IconButton
+                  size="small"
                   onClick={() => handleDeleteQuiz(initialData.quizzes![0].id)}
                   disabled={isPending}
+                  sx={{ color: "error.main" }}
                 >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+                  <X size={16} />
+                </IconButton>
+              </Stack>
+            </Box>
           ) : (
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outlined"
+              size="small"
               onClick={handleCreateQuiz}
               disabled={isPending}
             >
               Create Quiz
             </Button>
           )}
-        </div>
+        </Box>
       )}
-    </div>
+    </Stack>
   );
 };
+

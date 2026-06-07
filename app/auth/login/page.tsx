@@ -1,11 +1,22 @@
-import { LoginForm } from "@/features/auth/components/login-form"
+import Box from "@mui/material/Box";
+import { LoginForm } from "@/features/auth/components/login-form";
 
 export default function Page() {
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-secondary">
-      <div className="w-full max-w-sm">
+    <Box
+      sx={{
+        display: "flex",
+        minHeight: "100svh",
+        width: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+        p: { xs: 3, md: 5 },
+        bgcolor: "background.default",
+      }}
+    >
+      <Box sx={{ width: "100%", maxWidth: 400 }}>
         <LoginForm />
-      </div>
-    </div>
-  )
+      </Box>
+    </Box>
+  );
 }

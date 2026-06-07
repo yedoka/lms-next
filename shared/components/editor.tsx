@@ -2,6 +2,7 @@
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Paper from "@mui/material/Paper";
 
 interface EditorProps {
   onChange: (value: string) => void;
@@ -18,14 +19,14 @@ export const Editor = ({ onChange, value }: EditorProps) => {
     },
     editorProps: {
       attributes: {
-        class: "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[150px]",
+        class: "tiptap-content",
       },
     },
   });
 
   return (
-    <div className="bg-white border rounded-md p-2">
+    <Paper variant="outlined" sx={{ p: 1.5, minHeight: 160, borderRadius: 2 }}>
       <EditorContent editor={editor} />
-    </div>
+    </Paper>
   );
 };

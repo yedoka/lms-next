@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { CourseSidebar, SidebarSkeleton } from "@/features/courses/components/course-sidebar";
 import { LessonContent, ContentSkeleton } from "@/features/courses/components/lesson-content";
+import Box from "@mui/material/Box";
 
 export default async function LessonPage({
   params,
@@ -45,18 +46,16 @@ export default async function LessonPage({
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex flex-col md:flex-row h-full">
-        {/* Sidebar с Suspense */}
-        <Suspense fallback={<SidebarSkeleton />}>
-          <CourseSidebar courseId={courseId} lessonId={lessonId} userId={userId} />
-        </Suspense>
+    <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, height: "100%" }}>
+      {/* Sidebar */}
+      <Suspense fallback={<SidebarSkeleton />}>
+        <CourseSidebar courseId={courseId} lessonId={lessonId} userId={userId} />
+      </Suspense>
 
-        {/* Main Content с Suspense */}
-        <Suspense fallback={<ContentSkeleton />}>
-          <LessonContent courseId={courseId} lessonId={lessonId} userId={userId} />
-        </Suspense>
-      </div>
-    </div>
+      {/* Main Content */}
+      <Suspense fallback={<ContentSkeleton />}>
+        <LessonContent courseId={courseId} lessonId={lessonId} userId={userId} />
+      </Suspense>
+    </Box>
   );
 }

@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import prisma from "@/shared/db/prisma";
 import { notFound, redirect } from "next/navigation";
 import { QuizPlayer } from "@/features/courses/components/quiz-player";
+import { PageContainer } from "@/shared/components/ui";
 
 type QuizData = {
   id: string;
@@ -65,12 +66,12 @@ export default async function StudentQuizPage({
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <PageContainer maxWidth="md">
       <QuizPlayer
         courseId={courseId}
         lessonId={lessonId}
         quiz={quiz as QuizData}
       />
-    </div>
+    </PageContainer>
   );
 }

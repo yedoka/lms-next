@@ -1,20 +1,18 @@
 "use client";
 
-import { Button } from "@/shared/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/ui/card";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/shared/ui/field";
-import { Input } from "@/shared/ui/input";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import FormControl from "@mui/material/FormControl";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormHelperText from "@mui/material/FormHelperText";
+import FormLabel from "@mui/material/FormLabel";
+import Radio from "@mui/material/Radio";
+import RadioGroup from "@mui/material/RadioGroup";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
@@ -31,7 +29,7 @@ import {
 
 type SignupInput = z.infer<typeof SignupSchema>;
 
-export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
+export function SignupForm() {
   const router = useRouter();
 
   const {
@@ -75,99 +73,114 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   };
 
   return (
-    <Card {...props}>
-      <CardHeader>
-        <CardTitle>Create an account</CardTitle>
-        <CardDescription>
+    <Card>
+      <CardContent sx={{ p: 3 }}>
+        <Typography variant="h5" fontWeight={700} sx={{ mb: 0.5 }}>
+          Create an account
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Enter your information below to create your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="name">Full Name</FieldLabel>
-              <Input {...register("name")} />
-              {errors.name && (
-                <FieldDescription className="text-destructive">
-                  {errors.name.message}
-                </FieldDescription>
-              )}
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
-              <Input {...register("email")} />
-              {errors.email && (
-                <FieldDescription className="text-destructive">
-                  {errors.email.message}
-                </FieldDescription>
-              )}
-            </Field>
-            <Field>
-              <FieldLabel>I am signing up as</FieldLabel>
-              <div className="flex items-center gap-6">
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="radio" value={ROLE.STUDENT} {...register("role")} />
-                  Student
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="radio" value={ROLE.TEACHER} {...register("role")} />
-                  Teacher
-                </label>
-              </div>
-              {errors.role && (
-                <FieldDescription className="text-destructive">
-                  {errors.role.message}
-                </FieldDescription>
-              )}
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="password">Password</FieldLabel>
-              <Input {...register("password")} type="password" />
-              {errors.password ? (
-                <FieldDescription className="text-destructive">
-                  {errors.password.message}
-                </FieldDescription>
-              ) : (
-                <FieldDescription>
-                  Must be at least 8 characters and include one number.
-                </FieldDescription>
-              )}
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="passwordConfirmation">
-                Confirm Password
-              </FieldLabel>
-              <Input
-                {...register("passwordConfirmation")}
-                type="password"
-                required
+        </Typography>
+
+        <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={2}>
+          <TextField
+            label="Full Name"
+            size="small"
+            fullWidth
+            {...register("name")}
+            error={!!errors.name}
+            helperText={errors.name?.message}
+          />
+
+          <TextField
+            label="Email"
+            type="email"
+            size="small"
+            fullWidth
+            {...register("email")}
+            error={!!errors.email}
+            helperText={errors.email?.message}
+          />
+
+          <FormControl error={!!errors.role}>
+            <FormLabel sx={{ typography: "body2", fontWeight: 500, mb: 0.5 }}>
+              I am signing up as
+            </FormLabel>
+            <RadioGroup row>
+              <FormControlLabel
+                value={ROLE.STUDENT}
+                control={<Radio size="small" {...register("role")} />}
+                label={<Typography variant="body2">Student</Typography>}
               />
-              {errors.passwordConfirmation ? (
-                <FieldDescription className="text-destructive">
-                  {errors.passwordConfirmation.message}
-                </FieldDescription>
-              ) : (
-                <FieldDescription>
-                  Please confirm your password.
-                </FieldDescription>
-              )}
-            </Field>
-            <FieldGroup>
-              <Field>
-                <Button type="submit" disabled={isSubmitting}>
-                  Create Account
-                </Button>
-                <Button variant="outline" type="button" disabled={isSubmitting}>
-                  Sign up with Google
-                </Button>
-                <FieldDescription className="px-6 text-center">
-                  Already have an account? <Link href={ROUTES.AUTH_LOGIN}>Login</Link>
-                </FieldDescription>
-              </Field>
-            </FieldGroup>
-          </FieldGroup>
-        </form>
+              <FormControlLabel
+                value={ROLE.TEACHER}
+                control={<Radio size="small" {...register("role")} />}
+                label={<Typography variant="body2">Teacher</Typography>}
+              />
+            </RadioGroup>
+            {errors.role && (
+              <FormHelperText>{errors.role.message}</FormHelperText>
+            )}
+          </FormControl>
+
+          <TextField
+            label="Password"
+            type="password"
+            size="small"
+            fullWidth
+            {...register("password")}
+            error={!!errors.password}
+            helperText={
+              errors.password?.message ??
+              "Must be at least 8 characters and include one number."
+            }
+          />
+
+          <TextField
+            label="Confirm Password"
+            type="password"
+            size="small"
+            fullWidth
+            {...register("passwordConfirmation")}
+            error={!!errors.passwordConfirmation}
+            helperText={
+              errors.passwordConfirmation?.message ?? "Please confirm your password."
+            }
+          />
+
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={isSubmitting}
+            >
+              Create Account
+            </Button>
+
+            <Button
+              variant="outlined"
+              fullWidth
+              disabled={isSubmitting}
+              type="button"
+            >
+              Sign up with Google
+            </Button>
+
+            <Typography variant="body2" color="text.secondary" align="center">
+              Already have an account?{" "}
+              <Typography
+                component={Link}
+                href={ROUTES.AUTH_LOGIN}
+                variant="body2"
+                color="info.main"
+                sx={{ textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+              >
+                Login
+              </Typography>
+            </Typography>
+          </Box>
+        </Stack>
       </CardContent>
     </Card>
   );

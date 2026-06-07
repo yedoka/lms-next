@@ -70,7 +70,7 @@ lms-next/
 ## 🛠️ Getting Started
 
 ### Prerequisites
-- Node.js 20+ or [Bun](https://bun.sh/)
+- Node.js 20+ (Yarn package manager)
 - PostgreSQL database
 - Cloudinary account
 
@@ -84,9 +84,7 @@ lms-next/
 
 2. **Install dependencies:**
    ```bash
-   bun install
-   # or
-   npm install
+   yarn install
    ```
 
 3. **Set up environment variables:**
@@ -108,25 +106,25 @@ lms-next/
 4. **Database Setup:**
    Run the setup script to migrate the database and generate the Prisma client:
    ```bash
-   bun run db:setup
+   yarn db:setup
    ```
 
 5. **Start the development server:**
    ```bash
-   bun run dev
+   yarn dev
    ```
    The application will be available at [http://localhost:3000](http://localhost:3000).
 
 ## 📜 Available Scripts
 
-- `bun run dev` - Starts the development server.
-- `bun run build` - Builds the app for production (generates Prisma client first).
-- `bun run start` - Runs the built application.
-- `bun run lint` - Lints the codebase using ESLint.
-- `bun run db:generate` - Generates Prisma client.
-- `bun run db:push` - Pushes schema changes to the database.
-- `bun run db:studio` - Opens Prisma Studio to view database records.
-- `bun run db:setup` - Runs migrations, generates client, and seeds the database.
+- `yarn dev` - Starts the development server.
+- `yarn build` - Builds the app for production (generates Prisma client first).
+- `yarn start` - Runs the built application.
+- `yarn lint` - Lints the codebase using ESLint.
+- `yarn db:generate` - Generates Prisma client.
+- `yarn db:push` - Pushes schema changes to the database.
+- `yarn db:studio` - Opens Prisma Studio to view database records.
+- `yarn db:setup` - Runs migrations, generates client, and seeds the database.
 
 ## 🎨 UI/UX Guidelines
 The application follows a minimalist, "Notion-like" aesthetic:

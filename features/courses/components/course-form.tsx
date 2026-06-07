@@ -3,17 +3,22 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { courseSchema, CourseFormData } from "@/features/courses/schemas/schema";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Switch } from "@/shared/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { Editor } from "@/shared/components/editor";
 import { ImageUpload } from "@/shared/components/image-upload";
-import { Field, FieldLabel, FieldContent, FieldError } from "@/shared/ui/field";
 import { createCourse, updateCourse } from "@/features/courses/actions/server-actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
+import Switch from "@mui/material/Switch";
+import FormControl from "@mui/material/FormControl";
+import FormLabel from "@mui/material/FormLabel";
+import FormHelperText from "@mui/material/FormHelperText";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 
 interface CourseFormProps {
   initialData?: CourseFormData & { id?: string };
@@ -58,7 +63,7 @@ export const CourseForm = ({ initialData }: CourseFormProps) => {
         if (error instanceof Error && error.message === "NEXT_REDIRECT") {
           throw error;
         }
-        
+
         if (error instanceof Error) {
           toast.error(error.message);
         } else {
@@ -69,18 +74,21 @@ export const CourseForm = ({ initialData }: CourseFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={3}>
       <Controller
         control={control}
         name="title"
         render={({ field }) => (
-          <Field data-invalid={!!errors.title}>
-            <FieldLabel>Course Title</FieldLabel>
-            <FieldContent>
-              <Input disabled={isPending} placeholder="e.g. 'Advanced Next.js'" {...field} />
-              {errors.title?.message && <FieldError>{errors.title.message}</FieldError>}
-            </FieldContent>
-          </Field>
+          <TextField
+            {...field}
+            label="Course Title"
+            disabled={isPending}
+            placeholder="e.g. 'Advanced Next.js'"
+            fullWidth
+            size="small"
+            error={!!errors.title}
+            helperText={errors.title?.message}
+          />
         )}
       />
 
@@ -88,24 +96,26 @@ export const CourseForm = ({ initialData }: CourseFormProps) => {
         control={control}
         name="category"
         render={({ field }) => (
-          <Field data-invalid={!!errors.category}>
-            <FieldLabel>Category</FieldLabel>
-            <FieldContent>
-              <Select disabled={isPending} onValueChange={field.onChange} value={field.value || ""}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.category?.message && <FieldError>{errors.category.message}</FieldError>}
-            </FieldContent>
-          </Field>
+          <TextField
+            select
+            label="Category"
+            disabled={isPending}
+            fullWidth
+            size="small"
+            value={field.value || ""}
+            onChange={field.onChange}
+            error={!!errors.category}
+            helperText={errors.category?.message}
+          >
+            <MenuItem value="">
+              <em>Select a category</em>
+            </MenuItem>
+            {CATEGORIES.map((category) => (
+              <MenuItem key={category} value={category}>
+                {category}
+              </MenuItem>
+            ))}
+          </TextField>
         )}
       />
 
@@ -113,13 +123,15 @@ export const CourseForm = ({ initialData }: CourseFormProps) => {
         control={control}
         name="description"
         render={({ field }) => (
-          <Field data-invalid={!!errors.description}>
-            <FieldLabel>Course Description</FieldLabel>
-            <FieldContent>
-              <Editor value={field.value || ""} onChange={field.onChange} />
-              {errors.description?.message && <FieldError>{errors.description.message}</FieldError>}
-            </FieldContent>
-          </Field>
+          <FormControl error={!!errors.description} fullWidth>
+            <FormLabel sx={{ mb: 1, typography: "body2", fontWeight: 500, color: "text.primary" }}>
+              Course Description
+            </FormLabel>
+            <Editor value={field.value || ""} onChange={field.onChange} />
+            {errors.description?.message && (
+              <FormHelperText>{errors.description.message}</FormHelperText>
+            )}
+          </FormControl>
         )}
       />
 
@@ -127,17 +139,19 @@ export const CourseForm = ({ initialData }: CourseFormProps) => {
         control={control}
         name="thumbnail"
         render={({ field }) => (
-          <Field data-invalid={!!errors.thumbnail}>
-            <FieldLabel>Course Thumbnail</FieldLabel>
-            <FieldContent>
-              <ImageUpload
-                value={field.value || ""}
-                onChange={field.onChange}
-                onRemove={() => field.onChange("")}
-              />
-              {errors.thumbnail?.message && <FieldError>{errors.thumbnail.message}</FieldError>}
-            </FieldContent>
-          </Field>
+          <FormControl error={!!errors.thumbnail} fullWidth>
+            <FormLabel sx={{ mb: 1, typography: "body2", fontWeight: 500, color: "text.primary" }}>
+              Course Thumbnail
+            </FormLabel>
+            <ImageUpload
+              value={field.value || ""}
+              onChange={field.onChange}
+              onRemove={() => field.onChange("")}
+            />
+            {errors.thumbnail?.message && (
+              <FormHelperText>{errors.thumbnail.message}</FormHelperText>
+            )}
+          </FormControl>
         )}
       />
 
@@ -145,31 +159,41 @@ export const CourseForm = ({ initialData }: CourseFormProps) => {
         control={control}
         name="isPublished"
         render={({ field }) => (
-          <Field>
-            <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FieldLabel>Publish Course</FieldLabel>
-                <div className="text-sm text-muted-foreground">
-                  Make this course visible to students.
-                </div>
-              </div>
-              <FieldContent className="flex-initial">
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  disabled={isPending}
-                />
-              </FieldContent>
-            </div>
-          </Field>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              p: 2,
+              border: 1,
+              borderColor: "divider",
+              borderRadius: 2,
+            }}
+          >
+            <Box>
+              <Typography variant="body2" fontWeight={600}>
+                Publish Course
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Make this course visible to students.
+              </Typography>
+            </Box>
+            <Switch
+              checked={field.value}
+              onChange={(e) => field.onChange(e.target.checked)}
+              disabled={isPending}
+              color="info"
+            />
+          </Box>
         )}
       />
 
-      <div className="flex items-center gap-x-2">
-        <Button disabled={isPending} type="submit">
+      <Box>
+        <Button disabled={isPending} type="submit" variant="contained">
           {initialData ? "Save changes" : "Create course"}
         </Button>
-      </div>
-    </form>
+      </Box>
+    </Stack>
   );
 };
+

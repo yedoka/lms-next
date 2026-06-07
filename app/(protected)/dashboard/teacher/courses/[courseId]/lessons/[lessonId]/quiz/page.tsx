@@ -3,6 +3,7 @@ import { ROLE } from "@/features/auth/utils/roles";
 import prisma from "@/shared/db/prisma";
 import { redirect } from "next/navigation";
 import { QuizBuilder } from "@/features/courses/components/quiz-builder";
+import { PageContainer } from "@/shared/components/ui";
 
 export default async function QuizPage({
   params,
@@ -48,8 +49,8 @@ export default async function QuizPage({
   }
 
   return (
-    <div className="p-6">
+    <PageContainer>
       <QuizBuilder quiz={quiz} courseId={courseId} lessonId={lessonId} />
-    </div>
+    </PageContainer>
   );
 }

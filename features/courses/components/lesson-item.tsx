@@ -4,19 +4,17 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Lesson, Attachment, Quiz } from "@prisma/client";
 import { GripVertical, Pencil, Trash } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
 import { useState, useTransition } from "react";
 import { deleteLessonAction } from "../actions/lesson-actions";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/shared/ui/dialog";
 import { LessonForm } from "./lesson-form";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
 
 interface LessonItemProps {
   lesson: Lesson & { attachments: Attachment[]; quizzes: Quiz[] };
@@ -55,69 +53,97 @@ export const LessonItem = ({ lesson, courseId, disabled }: LessonItemProps) => {
   };
 
   return (
-    <div
+    <Box
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-x-2 bg-slate-100 border-slate-200 border text-slate-700 rounded-md mb-4 text-sm overflow-hidden"
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1.5,
+        bgcolor: "background.paper",
+        border: 1,
+        borderColor: "divider",
+        borderRadius: 2,
+        overflow: "hidden",
+      }}
     >
-      <div
-        className="px-2 py-3 border-r border-slate-200 hover:bg-slate-200 transition cursor-grab"
+      <Box
         {...attributes}
         {...listeners}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          px: 1.5,
+          py: 2,
+          borderRight: 1,
+          borderColor: "divider",
+          cursor: "grab",
+          bgcolor: "action.hover",
+          "&:hover": { bgcolor: "action.selected" },
+          transition: "background-color 0.15s",
+        }}
       >
-        <GripVertical className="h-5 w-5" />
-      </div>
-      <div className="flex-1 px-2 py-3 truncate">{lesson.title}</div>
-      <div className="ml-auto pr-2 flex items-center gap-x-2">
-        {lesson.isPublished ? (
-          <Badge variant="default" className="bg-sky-700">
-            Published
-          </Badge>
-        ) : (
-          <Badge variant="secondary">Draft</Badge>
-        )}
+        <GripVertical size={18} />
+      </Box>
+      <Typography variant="body2" fontWeight={500} noWrap sx={{ flex: 1, px: 0.5 }}>
+        {lesson.title}
+      </Typography>
+      <Box sx={{ ml: "auto", pr: 2, display: "flex", alignItems: "center", gap: 1 }}>
+        <Chip
+          label={lesson.isPublished ? "Published" : "Draft"}
+          size="small"
+          sx={{
+            fontWeight: 600,
+            height: 20,
+            fontSize: 11,
+            ...(lesson.isPublished
+              ? { bgcolor: "rgba(35,131,226,0.1)", color: "info.main" }
+              : { bgcolor: "secondary.main", color: "text.primary" }),
+            border: "none",
+          }}
+        />
 
-        <Dialog open={isEditing} onOpenChange={setIsEditing}>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-auto p-1"
-              disabled={disabled || isDeleting}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent
-            className="max-w-3xl overflow-y-auto max-h-[90vh]"
-            onOpenAutoFocus={(e) => e.preventDefault()}
-            onInteractOutside={(e) => e.preventDefault()}
-          >
-            <DialogHeader>
-              <DialogTitle>Edit Lesson</DialogTitle>
-            </DialogHeader>
-            <LessonForm
-              courseId={courseId}
-              initialData={{
-                ...lesson,
-                description: lesson.description || "",
-                videoUrl: lesson.videoUrl || "",
-              }}
-              onSuccess={() => setIsEditing(false)}
-            />
-          </DialogContent>
-        </Dialog>
-
-        <Button
-          onClick={onDelete}
-          variant="ghost"
-          size="sm"
-          className="h-auto p-1 text-destructive hover:text-destructive"
+        <IconButton
+          size="small"
           disabled={disabled || isDeleting}
+          onClick={() => setIsEditing(true)}
+          title="Edit Lesson"
         >
-          <Trash className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+          <Pencil size={15} />
+        </IconButton>
+
+        <IconButton
+          size="small"
+          disabled={disabled || isDeleting}
+          onClick={onDelete}
+          title="Delete Lesson"
+          sx={{ color: "error.main" }}
+        >
+          <Trash size={15} />
+        </IconButton>
+      </Box>
+
+      <Dialog
+        open={isEditing}
+        onClose={() => !isDeleting && setIsEditing(false)}
+        maxWidth="md"
+        fullWidth
+        disableRestoreFocus
+      >
+        <DialogTitle>Edit Lesson</DialogTitle>
+        <DialogContent dividers sx={{ p: 3 }}>
+          <LessonForm
+            courseId={courseId}
+            initialData={{
+              ...lesson,
+              description: lesson.description || "",
+              videoUrl: lesson.videoUrl || "",
+            }}
+            onSuccess={() => setIsEditing(false)}
+          />
+        </DialogContent>
+      </Dialog>
+    </Box>
   );
 };
+

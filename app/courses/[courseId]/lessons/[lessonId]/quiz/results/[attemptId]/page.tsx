@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { notFound, redirect } from "next/navigation";
 import { getQuizAttemptById } from "@/features/courses/services/quiz-service";
 import { QuizResults } from "@/features/courses/components/quiz-results";
+import { PageContainer } from "@/shared/components/ui";
 
 export default async function QuizResultsPage({
   params,
@@ -40,12 +41,12 @@ export default async function QuizResultsPage({
   };
 
   return (
-    <div className="container mx-auto p-6">
+    <PageContainer maxWidth="md">
       <QuizResults
         courseId={courseId}
         lessonId={lessonId}
         attempt={mappedAttempt}
       />
-    </div>
+    </PageContainer>
   );
 }

@@ -1,14 +1,9 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Input } from "@/shared/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/ui/select";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
+import Box from "@mui/material/Box";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/shared/lib/hooks";
 
@@ -37,7 +32,7 @@ export const CourseFilters = ({ categories }: CourseFiltersProps) => {
     } else {
       params.delete("title");
     }
-    
+
     router.push(`${pathname}?${params.toString()}`);
   }, [debouncedTitle, pathname, router]);
 
@@ -52,29 +47,28 @@ export const CourseFilters = ({ categories }: CourseFiltersProps) => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-      <Input
+    <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2 }}>
+      <TextField
+        size="small"
         placeholder="Search courses..."
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="md:w-[300px]"
+        sx={{ minWidth: 200 }}
       />
-      <Select
-        defaultValue={searchParams.get("category") || "all"}
-        onValueChange={onCategoryChange}
+      <TextField
+        select
+        size="small"
+        value={searchParams.get("category") || "all"}
+        onChange={(e) => onCategoryChange(e.target.value)}
+        sx={{ minWidth: 180 }}
       >
-        <SelectTrigger className="md:w-[200px]">
-          <SelectValue placeholder="All Categories" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Categories</SelectItem>
-          {categories.map((category) => (
-            <SelectItem key={category} value={category}>
-              {category}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+        <MenuItem value="all">All Categories</MenuItem>
+        {categories.map((category) => (
+          <MenuItem key={category} value={category}>
+            {category}
+          </MenuItem>
+        ))}
+      </TextField>
+    </Box>
   );
 };

@@ -47,7 +47,7 @@ export function VideoPlayer({ url, lessonId, isCompleted = false }: VideoPlayerP
       ref={videoRef}
       src={url}
       controls
-      className="w-full h-full"
+      style={{ width: "100%", height: "100%", display: "block", objectFit: "contain" }}
       onTimeUpdate={handleTimeUpdate}
       poster={url.replace(/\.[^/.]+$/, ".jpg")}
     />

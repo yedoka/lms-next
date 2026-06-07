@@ -3,6 +3,7 @@ import { ROLE } from "@/features/auth/utils/roles";
 import prisma from "@/shared/db/prisma";
 import { redirect } from "next/navigation";
 import { QuizPreview } from "@/features/courses/components/quiz-preview";
+import { PageContainer } from "@/shared/components/ui";
 
 export default async function QuizPreviewPage({
   params,
@@ -47,8 +48,8 @@ export default async function QuizPreviewPage({
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <PageContainer maxWidth="md">
       <QuizPreview quiz={quiz} courseId={courseId} />
-    </div>
+    </PageContainer>
   );
 }

@@ -1,26 +1,45 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
+import { PageContainer, PageHeader } from "@/shared/components/ui";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 
 export default function AdminUsersPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-        <p className="text-muted-foreground">
-          View and manage all users in the system.
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="User Management"
+        description="View and manage all users in the system."
+      />
 
       <Card>
-        <CardHeader>
-          <CardTitle>Users</CardTitle>
-          <CardDescription>A list of all users and their roles.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex h-[200px] items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
-            User list is currently unavailable.
-          </div>
+        <CardContent sx={{ p: 3 }}>
+          <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 0.5 }}>
+            Users
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
+            A list of all users and their roles.
+          </Typography>
+
+          <Box
+            sx={{
+              display: "flex",
+              height: 200,
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 2,
+              border: "1px dashed",
+              borderColor: "divider",
+              bgcolor: "action.hover",
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              User list is currently unavailable.
+            </Typography>
+          </Box>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
+

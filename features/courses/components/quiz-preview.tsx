@@ -1,11 +1,17 @@
 "use client";
 
 import { Quiz, Question, Answer } from "@prisma/client";
-import { Button } from "@/shared/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Chip from "@mui/material/Chip";
+import Stack from "@mui/material/Stack";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
 
 interface QuizPreviewProps {
   quiz: Quiz & { questions: (Question & { answers: Answer[] })[] };
@@ -52,123 +58,207 @@ export const QuizPreview = ({ quiz, courseId }: QuizPreviewProps) => {
 
   if (!question && !isSubmitted) {
     return (
-      <div className="text-center py-20">
-        <h2 className="text-2xl font-semibold">No questions in this quiz.</h2>
-        <Button variant="outline" className="mt-4" asChild>
-          <Link href={`/dashboard/teacher/courses/${courseId}/edit`}>Back to Course</Link>
+      <Box sx={{ textAlign: "center", py: 10 }}>
+        <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
+          No questions in this quiz.
+        </Typography>
+        <Button
+          component={Link}
+          href={`/dashboard/teacher/courses/${courseId}/edit`}
+          variant="outlined"
+        >
+          Back to Course
         </Button>
-      </div>
+      </Box>
     );
   }
 
   const { score, totalPoints, percentage } = isSubmitted ? calculateScore() : { score: 0, totalPoints: 0, percentage: 0 };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" asChild>
-          <Link href={`/dashboard/teacher/courses/${courseId}/edit`}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Exit Preview
-          </Link>
+    <Stack spacing={3}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Button
+          component={Link}
+          href={`/dashboard/teacher/courses/${courseId}/edit`}
+          variant="text"
+          size="small"
+          startIcon={<ArrowLeft size={16} />}
+          sx={{ color: "text.secondary", p: 0.5 }}
+        >
+          Exit Preview
         </Button>
-      </div>
+      </Box>
 
-      <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
-        <div className="bg-sky-700 text-white p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-2xl font-bold">{quiz.title}</h1>
-            <span className="bg-white/20 px-3 py-1 rounded-full text-sm font-medium">Preview Mode</span>
-          </div>
-          <div className="text-sky-100 flex gap-4 text-sm">
-            {quiz.timeLimit ? <span>Time Limit: {quiz.timeLimit}m</span> : null}
-            <span>Passing Score: {quiz.passingScore}%</span>
-            <span>{quiz.questions.length} Questions</span>
-          </div>
-        </div>
+      <Card sx={{ border: 1, borderColor: "divider", borderRadius: 2, overflow: "hidden" }}>
+        <Box sx={{ bgcolor: "action.hover", p: 3, borderBottom: 1, borderColor: "divider" }}>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5, flexWrap: "wrap", gap: 1 }}>
+            <Typography variant="h5" component="h1" fontWeight={700}>
+              {quiz.title}
+            </Typography>
+            <Chip label="Preview Mode" size="small" color="info" variant="outlined" sx={{ fontWeight: 600 }} />
+          </Box>
+          <Stack direction="row" spacing={2} sx={{ color: "text.secondary" }}>
+            {quiz.timeLimit ? <Typography variant="body2">Time Limit: {quiz.timeLimit}m</Typography> : null}
+            <Typography variant="body2">Passing Score: {quiz.passingScore}%</Typography>
+            <Typography variant="body2">{quiz.questions.length} Questions</Typography>
+          </Stack>
+        </Box>
 
-        <div className="p-6">
+        <CardContent sx={{ p: 3 }}>
           {!isSubmitted ? (
-            <div className="space-y-8">
-              <div>
-                <p className="text-sm font-medium text-slate-500 mb-2">
+            <Stack spacing={4}>
+              <Box>
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
                   Question {currentQuestionIndex + 1} of {quiz.questions.length} ({question.points} pts)
-                </p>
-                <h2 className="text-xl font-semibold text-slate-800">{question.text}</h2>
-              </div>
+                </Typography>
+                <Typography variant="h6" fontWeight={600} sx={{ lineHeight: 1.4 }}>
+                  {question.text}
+                </Typography>
+              </Box>
 
-              <div className="space-y-3">
+              <Stack spacing={2}>
                 {question.answers.map(answer => {
                   const isSelected = selectedAnswers[question.id] === answer.id;
                   return (
-                    <div 
+                    <Button
                       key={answer.id}
                       onClick={() => handleSelectAnswer(answer.id)}
-                      className={`p-4 border rounded-md cursor-pointer transition-all duration-200 flex items-center gap-3
-                        ${isSelected ? 'border-sky-500 bg-sky-50' : 'border-slate-200 hover:border-sky-300 hover:bg-slate-50'}
-                      `}
+                      variant="outlined"
+                      fullWidth
+                      sx={{
+                        justifyContent: "flex-start",
+                        textAlign: "left",
+                        p: 2,
+                        borderRadius: 2,
+                        textTransform: "none",
+                        borderColor: isSelected ? "info.main" : "divider",
+                        bgcolor: isSelected ? "rgba(2, 136, 209, 0.08)" : "background.paper",
+                        color: isSelected ? "info.main" : "text.primary",
+                        fontWeight: isSelected ? 600 : 400,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        "&:hover": {
+                          bgcolor: isSelected ? "rgba(2, 136, 209, 0.12)" : "action.hover",
+                          borderColor: isSelected ? "info.main" : "text.secondary",
+                        },
+                      }}
                     >
-                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center
-                        ${isSelected ? 'border-sky-600 bg-sky-600' : 'border-slate-300'}
-                      `}>
-                        {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
-                      </div>
-                      <span className={`${isSelected ? 'text-sky-900 font-medium' : 'text-slate-700'}`}>
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: "50%",
+                          border: 1,
+                          borderColor: isSelected ? "info.main" : "text.disabled",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          mr: 1,
+                        }}
+                      >
+                        {isSelected && (
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: "50%",
+                              bgcolor: "info.main",
+                            }}
+                          />
+                        )}
+                      </Box>
+                      <Typography variant="body2" component="span" sx={{ flex: 1 }}>
                         {answer.text}
-                      </span>
-                    </div>
+                      </Typography>
+                    </Button>
                   );
                 })}
-              </div>
+              </Stack>
 
-              <div className="flex justify-end pt-4 border-t">
-                <Button onClick={handleNext} disabled={!selectedAnswers[question.id]}>
+              <Box sx={{ display: "flex", justifyContent: "flex-end", pt: 2, borderTop: 1, borderColor: "divider" }}>
+                <Button
+                  variant="contained"
+                  onClick={handleNext}
+                  disabled={!selectedAnswers[question.id]}
+                >
                   {currentQuestionIndex < quiz.questions.length - 1 ? 'Next Question' : 'Submit Quiz'}
                 </Button>
-              </div>
-            </div>
+              </Box>
+            </Stack>
           ) : (
-            <div className="space-y-8 text-center py-10">
-              <h2 className="text-3xl font-bold">Quiz Results</h2>
+            <Box sx={{ textAlign: "center", py: 4 }}>
+              <Typography variant="h4" fontWeight={700} sx={{ mb: 3 }}>
+                Quiz Results
+              </Typography>
               
-              <div className="flex flex-col items-center justify-center space-y-2">
-                <div className={`text-5xl font-bold ${percentage >= quiz.passingScore ? 'text-green-600' : 'text-red-600'}`}>
+              <Stack spacing={2} alignItems="center" sx={{ mb: 4 }}>
+                <Typography
+                  variant="h2"
+                  fontWeight={800}
+                  sx={{
+                    color: percentage >= quiz.passingScore ? "success.main" : "error.main"
+                  }}
+                >
                   {percentage}%
-                </div>
-                <p className="text-lg text-slate-600">
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
                   You scored {score} out of {totalPoints} points.
-                </p>
+                </Typography>
+                
                 {percentage >= quiz.passingScore ? (
-                  <p className="text-green-600 font-medium flex items-center gap-2 mt-4">
-                    <span className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">✓</span>
-                    Passed
-                  </p>
+                  <Chip
+                    label="Passed"
+                    sx={{
+                      fontWeight: 600,
+                      px: 1,
+                      py: 0.5,
+                      borderRadius: 1.5,
+                      bgcolor: "rgba(68,131,97,0.1)",
+                      color: "success.main",
+                      border: "none",
+                    }}
+                  />
                 ) : (
-                  <p className="text-red-600 font-medium flex items-center gap-2 mt-4">
-                    <span className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">✗</span>
-                    Failed
-                  </p>
+                  <Chip
+                    label="Failed"
+                    sx={{
+                      fontWeight: 600,
+                      px: 1,
+                      py: 0.5,
+                      borderRadius: 1.5,
+                      bgcolor: "rgba(211,47,47,0.1)",
+                      color: "error.main",
+                      border: "none",
+                    }}
+                  />
                 )}
-              </div>
+              </Stack>
 
-              <div className="pt-8 flex justify-center gap-4 border-t">
-                <Button variant="outline" onClick={() => {
-                  setIsSubmitted(false);
-                  setCurrentQuestionIndex(0);
-                  setSelectedAnswers({});
-                }}>
+              <Stack direction="row" spacing={2} justifyContent="center" sx={{ pt: 3, borderTop: 1, borderColor: "divider" }}>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    setIsSubmitted(false);
+                    setCurrentQuestionIndex(0);
+                    setSelectedAnswers({});
+                  }}
+                >
                   Retake Preview
                 </Button>
-                <Button asChild>
-                  <Link href={`/dashboard/teacher/courses/${courseId}/lessons/${quiz.lessonId}/quiz`}>
-                    Edit Quiz
-                  </Link>
+                <Button
+                  component={Link}
+                  href={`/dashboard/teacher/courses/${courseId}/lessons/${quiz.lessonId}/quiz`}
+                  variant="contained"
+                >
+                  Edit Quiz
                 </Button>
-              </div>
-            </div>
+              </Stack>
+            </Box>
           )}
-        </div>
-      </div>
-    </div>
+        </CardContent>
+      </Card>
+    </Stack>
   );
 };

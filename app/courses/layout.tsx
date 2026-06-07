@@ -2,19 +2,18 @@ import { auth } from "@/auth";
 import { ProfileDropdown } from "@/features/auth/components/profile-dropdown";
 import { AppNavigation } from "@/shared/components/app-navigation";
 import { Suspense } from "react";
-import Link from "next/link";
-import { buttonVariants } from "@/shared/ui/button";
 import { ROUTES } from "@/features/auth/utils/routes";
-
-import { cn } from "@/shared/lib/utils";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Skeleton from "@mui/material/Skeleton";
 
 async function PublicHeader() {
   const session = await auth();
 
   return (
-    <AppNavigation 
+    <AppNavigation
       isProtected={!!session?.user}
-      userRole={session?.user?.role} 
+      userRole={session?.user?.role}
       userArea={
         session?.user ? (
           <ProfileDropdown
@@ -23,20 +22,14 @@ async function PublicHeader() {
             role={session.user.role}
           />
         ) : (
-          <div className="flex items-center gap-2">
-            <Link 
-              href={ROUTES.AUTH_LOGIN} 
-              className={buttonVariants({ variant: "ghost", size: "sm" })}
-            >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button href={ROUTES.AUTH_LOGIN} variant="text">
               Log in
-            </Link>
-            <Link 
-              href={ROUTES.AUTH_SIGNUP} 
-              className={buttonVariants({ size: "sm" })}
-            >
+            </Button>
+            <Button href={ROUTES.AUTH_SIGNUP} variant="contained" size="small">
               Sign up
-            </Link>
-          </div>
+            </Button>
+          </Box>
         )
       }
     />
@@ -51,25 +44,45 @@ export default async function CoursesLayout({
   const session = await auth();
 
   return (
-    <div className="min-h-screen bg-background">
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <Suspense
         fallback={
-          <header className="sticky top-0 z-30 flex h-16 items-center border-b border-border bg-background/95 px-4 backdrop-blur lg:px-6">
-            <div className="mx-auto flex w-full items-center justify-between gap-4">
-              <div className="h-6 w-32 bg-muted animate-pulse rounded" />
-              <div className="h-8 w-8 bg-muted animate-pulse rounded-full" />
-            </div>
-          </header>
+          <Box
+            component="header"
+            sx={{
+              position: "sticky",
+              top: 0,
+              zIndex: 30,
+              display: "flex",
+              alignItems: "center",
+              height: 64,
+              borderBottom: 1,
+              borderColor: "divider",
+              bgcolor: "background.paper",
+              px: { xs: 2, lg: 3 },
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", gap: 2 }}>
+              <Skeleton variant="text" width={128} height={24} />
+              <Skeleton variant="circular" width={32} height={32} />
+            </Box>
+          </Box>
         }
       >
         <PublicHeader />
       </Suspense>
 
-      <div className={cn("flex flex-col", session?.user && "lg:pl-64")}>
-        <main className="flex-1 p-4 lg:p-8">
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          ...(session?.user && { pl: { lg: "256px" } }),
+        }}
+      >
+        <Box component="main" sx={{ flex: 1, p: { xs: 2, md: 3, lg: 4 } }}>
           {children}
-        </main>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

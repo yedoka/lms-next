@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { Button } from "@/shared/ui/button";
+import Button from "@mui/material/Button";
 import { enrollInCourse } from "../actions/server-actions";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -29,11 +29,10 @@ export const EnrollButton = ({ courseId }: EnrollButtonProps) => {
     <Button
       onClick={onClick}
       disabled={isPending}
-      className="w-full"
+      variant="contained"
+      fullWidth
+      startIcon={isPending ? <Loader2 size={16} className="animate-spin" /> : undefined}
     >
-      {isPending ? (
-        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-      ) : null}
       Enroll Now
     </Button>
   );

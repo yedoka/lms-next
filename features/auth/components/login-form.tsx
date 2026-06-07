@@ -1,21 +1,14 @@
 "use client";
 
-import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/ui/card";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/shared/ui/field";
-import { Input } from "@/shared/ui/input";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -28,10 +21,7 @@ import { submitLogin } from "@/features/auth/actions/client-actions";
 
 type LoginInputValues = z.input<typeof LoginSchema>;
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+export function LoginForm() {
   const router = useRouter();
 
   const {
@@ -67,74 +57,101 @@ export function LoginForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  {...register("email")}
-                  placeholder="m@example.com"
-                  type="email"
-                />
-                {errors.email && (
-                  <FieldDescription className="text-destructive">
-                    {errors.email.message}
-                  </FieldDescription>
-                )}
-              </Field>
-              <Field>
-                <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <Link
-                    href="/forgot-password"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-                <Input {...register("password")} type="password" />
-                {errors.password && (
-                  <FieldDescription className="text-destructive">
-                    {errors.password.message}
-                  </FieldDescription>
-                )}
-                {!errors.password && (
-                  <FieldDescription>
-                    Must be at least 8 characters and include one number.
-                  </FieldDescription>
-                )}
-              </Field>
-              <Field>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" {...register("rememberMe")} />
-                  Remember me for 30 days
-                </label>
-              </Field>
-              <Field>
-                <Button type="submit" disabled={isSubmitting}>
-                  Login
-                </Button>
-                <Button variant="outline" type="button" disabled={isSubmitting}>
-                  Login with Google
-                </Button>
-                <FieldDescription className="text-center">
-                  Don&apos;t have an account?{" "}
-                  <Link href={ROUTES.AUTH_SIGNUP}>Sign up</Link>
-                </FieldDescription>
-              </Field>
-            </FieldGroup>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <Card>
+      <CardContent sx={{ p: 3 }}>
+        <Typography variant="h5" fontWeight={700} sx={{ mb: 0.5 }}>
+          Login to your account
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Enter your email below to login to your account
+        </Typography>
+
+        <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={2}>
+          <TextField
+            label="Email"
+            type="email"
+            placeholder="m@example.com"
+            size="small"
+            fullWidth
+            {...register("email")}
+            error={!!errors.email}
+            helperText={errors.email?.message}
+          />
+
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 0.5,
+              }}
+            >
+              <Typography variant="body2" fontWeight={500}>
+                Password
+              </Typography>
+              <Typography
+                component={Link}
+                href="/forgot-password"
+                variant="caption"
+                color="info.main"
+                sx={{ textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+              >
+                Forgot your password?
+              </Typography>
+            </Box>
+            <TextField
+              type="password"
+              size="small"
+              fullWidth
+              {...register("password")}
+              error={!!errors.password}
+              helperText={
+                errors.password?.message ??
+                "Must be at least 8 characters and include one number."
+              }
+            />
+          </Box>
+
+          <FormControlLabel
+            control={<Checkbox {...register("rememberMe")} size="small" />}
+            label={
+              <Typography variant="body2">Remember me for 30 days</Typography>
+            }
+          />
+
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            disabled={isSubmitting}
+          >
+            Login
+          </Button>
+
+          <Button
+            variant="outlined"
+            fullWidth
+            disabled={isSubmitting}
+            type="button"
+          >
+            Login with Google
+          </Button>
+
+          <Typography variant="body2" color="text.secondary" align="center">
+            Don&apos;t have an account?{" "}
+            <Typography
+              component={Link}
+              href={ROUTES.AUTH_SIGNUP}
+              variant="body2"
+              color="info.main"
+              sx={{ textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+            >
+              Sign up
+            </Typography>
+          </Typography>
+        </Stack>
+      </CardContent>
+    </Card>
   );
 }

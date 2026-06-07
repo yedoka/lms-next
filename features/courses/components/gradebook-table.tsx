@@ -1,19 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
-import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button";
 import { GradebookEntry } from "../services/gradebook-service";
 import { ScoreOverrideDialog } from "./score-override-dialog";
 import { Edit2, AlertCircle } from "lucide-react";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
 
 interface GradebookTableProps {
   courseId: string;
@@ -34,25 +35,22 @@ export function GradebookTable({
   } | null>(null);
 
   return (
-    <div className="rounded-md border border-border/40 bg-card overflow-hidden">
+    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, overflow: "hidden" }}>
       <Table>
-        <TableHeader>
-          <TableRow className="bg-muted/30">
-            <TableHead className="font-semibold">Student</TableHead>
+        <TableHead>
+          <TableRow>
+            <TableCell sx={{ fontWeight: 600 }}>Student</TableCell>
             {quizzes.map((quiz) => (
-              <TableHead key={quiz.id} className="text-center font-semibold">
+              <TableCell key={quiz.id} align="center" sx={{ fontWeight: 600 }}>
                 {quiz.title}
-              </TableHead>
+              </TableCell>
             ))}
           </TableRow>
-        </TableHeader>
+        </TableHead>
         <TableBody>
           {gradebook.length === 0 ? (
             <TableRow>
-              <TableCell
-                colSpan={quizzes.length + 1}
-                className="h-24 text-center text-muted-foreground"
-              >
+              <TableCell colSpan={quizzes.length + 1} align="center" sx={{ py: 6, color: "text.secondary" }}>
                 No students enrolled or no quiz attempts yet.
               </TableCell>
             </TableRow>
@@ -60,64 +58,94 @@ export function GradebookTable({
             gradebook.map((entry) => (
               <TableRow key={entry.student.id}>
                 <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-medium">
+                  <Box sx={{ display: "flex", flexDirection: "column" }}>
+                    <Typography variant="body2" fontWeight={600}>
                       {entry.student.name || "N/A"}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
                       {entry.student.email}
-                    </span>
-                  </div>
+                    </Typography>
+                  </Box>
                 </TableCell>
                 {entry.quizzes.map((quiz) => (
-                  <TableCell key={quiz.quizId} className="text-center">
+                  <TableCell key={quiz.quizId} align="center">
                     {quiz.bestScore !== null ? (
-                      <div className="group relative flex items-center justify-center gap-2">
-                        <div className="flex flex-col items-center">
-                          <span className="font-semibold text-base">
+                      <Box
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 1,
+                          position: "relative",
+                          "&:hover .override-btn": { opacity: 1 },
+                        }}
+                      >
+                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                          <Typography variant="body2" fontWeight={600}>
                             {quiz.bestScore}%
-                          </span>
+                          </Typography>
                           {quiz.passed ? (
-                            <Badge
-                              variant="default"
-                              className="bg-green-500/10 text-green-600 border-green-500/20 px-1 h-4 text-[10px]"
-                            >
-                              Passed
-                            </Badge>
+                            <Chip
+                              label="Passed"
+                              size="small"
+                              sx={{
+                                height: 18,
+                                fontSize: 10,
+                                fontWeight: 600,
+                                bgcolor: "rgba(68,131,97,0.1)",
+                                color: "success.main",
+                                border: "none",
+                                px: 0.5,
+                                "& .MuiChip-label": { px: 0.5 },
+                              }}
+                            />
                           ) : (
-                            <Badge
-                              variant="destructive"
-                              className="px-1 h-4 text-[10px]"
-                            >
-                              Failed
-                            </Badge>
+                            <Chip
+                              label="Failed"
+                              size="small"
+                              color="error"
+                              sx={{
+                                height: 18,
+                                fontSize: 10,
+                                fontWeight: 600,
+                                px: 0.5,
+                                "& .MuiChip-label": { px: 0.5 },
+                              }}
+                            />
                           )}
-                        </div>
+                        </Box>
 
                         {quiz.isOverridden && (
-                          <AlertCircle className="w-3 h-3 text-amber-500" />
+                          <AlertCircle size={14} style={{ color: "var(--mui-palette-warning-main)" }} />
                         )}
 
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        <IconButton
+                          size="small"
+                          className="override-btn"
+                          sx={{
+                            opacity: 0,
+                            transition: "opacity 0.15s",
+                            p: 0.5,
+                            borderRadius: 1,
+                            bgcolor: "action.hover",
+                          }}
                           aria-label={`Override score for ${entry.student.name || entry.student.email} on ${quiz.quizTitle}`}
                           onClick={() =>
                             setOverrideData({
                               attemptId: quiz.bestAttemptId,
-                              studentName:
-                                entry.student.name || entry.student.email,
+                              studentName: entry.student.name || entry.student.email,
                               quizTitle: quiz.quizTitle,
                               currentScore: quiz.bestScore,
                             })
                           }
                         >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                      </div>
+                          <Edit2 size={12} />
+                        </IconButton>
+                      </Box>
                     ) : (
-                      <span className="text-muted-foreground text-xs">-</span>
+                      <Typography variant="body2" color="text.secondary">
+                        -
+                      </Typography>
                     )}
                   </TableCell>
                 ))}
@@ -141,6 +169,7 @@ export function GradebookTable({
           }}
         />
       )}
-    </div>
+    </TableContainer>
   );
 }
+

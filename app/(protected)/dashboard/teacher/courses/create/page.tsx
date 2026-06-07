@@ -2,6 +2,8 @@ import { requireAuth } from "@/features/auth/utils/with-role";
 import { ROLE } from "@/features/auth/utils/roles";
 import { CourseForm } from "@/features/courses/components/course-form";
 import { redirect } from "next/navigation";
+import Box from "@mui/material/Box";
+import { PageContainer, PageHeader } from "@/shared/components/ui";
 
 export default async function CreateCoursePage() {
   const session = await requireAuth();
@@ -11,18 +13,15 @@ export default async function CreateCoursePage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-y-2">
-          <h1 className="text-2xl font-medium">Name your course</h1>
-          <p className="text-sm text-muted-foreground">
-            What would you like to name your course? Don&apos;t worry, you can change this later.
-          </p>
-        </div>
-      </div>
-      <div className="max-w-xl mt-8">
+    <PageContainer>
+      <PageHeader
+        title="Name your course"
+        description="What would you like to name your course? Don&apos;t worry, you can change this later."
+      />
+      <Box sx={{ maxWidth: 600, mt: 4 }}>
         <CourseForm />
-      </div>
-    </div>
+      </Box>
+    </PageContainer>
   );
 }
+

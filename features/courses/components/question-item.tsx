@@ -4,17 +4,15 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Question, Answer } from "@prisma/client";
 import { GripVertical, Pencil, Trash } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/shared/ui/dialog";
+import Box from "@mui/material/Box";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import IconButton from "@mui/material/IconButton";
+import Chip from "@mui/material/Chip";
+import Typography from "@mui/material/Typography";
 import { QuestionForm } from "./question-form";
 import { deleteQuestionAction } from "../actions/quiz-actions";
 
@@ -56,64 +54,99 @@ export const QuestionItem = ({ question, courseId, lessonId, quizId }: QuestionI
   };
 
   return (
-    <div
+    <Box
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-x-2 bg-slate-100 border-slate-200 border text-slate-700 rounded-md text-sm overflow-hidden"
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+        bgcolor: "background.paper",
+        border: 1,
+        borderColor: "divider",
+        borderRadius: 2,
+        overflow: "hidden",
+      }}
     >
-      <div
-        className="px-2 py-3 border-r border-slate-200 hover:bg-slate-200 transition cursor-grab"
+      <Box
+        sx={{
+          px: 1,
+          py: 1.5,
+          borderRight: 1,
+          borderColor: "divider",
+          cursor: "grab",
+          display: "flex",
+          alignItems: "center",
+          "&:hover": {
+            bgcolor: "action.hover",
+          },
+        }}
         {...attributes}
         {...listeners}
       >
-        <GripVertical className="h-5 w-5" />
-      </div>
-      <div className="flex-1 px-2 py-3 truncate">
-        {question.text === "New Question" ? <span className="italic text-slate-400">Empty Question</span> : question.text}
-      </div>
-      <div className="ml-auto pr-2 flex items-center gap-x-2">
-        <Badge variant="outline">
-          {question.type === "MULTIPLE_CHOICE" ? "Multiple Choice" : "True/False"}
-        </Badge>
-        
-        <Dialog open={isEditing} onOpenChange={setIsEditing}>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-auto p-1"
-              disabled={isDeleting}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent 
-            className="max-w-3xl overflow-y-auto max-h-[90vh]"
-            onOpenAutoFocus={(e) => e.preventDefault()}
-            onInteractOutside={(e) => e.preventDefault()}
-          >
-            <DialogHeader>
-              <DialogTitle>Edit Question</DialogTitle>
-            </DialogHeader>
-            <QuestionForm
-              courseId={courseId}
-              lessonId={lessonId}
-              question={question}
-              onSuccess={() => setIsEditing(false)}
-            />
-          </DialogContent>
-        </Dialog>
+        <GripVertical size={18} />
+      </Box>
 
-        <Button
-          onClick={onDelete}
-          variant="ghost"
-          size="sm"
-          className="h-auto p-1 text-destructive hover:text-destructive"
+      <Typography
+        variant="body2"
+        sx={{
+          flex: 1,
+          px: 1.5,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          ...(question.text === "New Question" && {
+            fontStyle: "italic",
+            color: "text.disabled",
+          }),
+        }}
+      >
+        {question.text === "New Question" ? "Empty Question" : question.text}
+      </Typography>
+
+      <Box sx={{ ml: "auto", pr: 1.5, display: "flex", alignItems: "center", gap: 1 }}>
+        <Chip
+          label={question.type === "MULTIPLE_CHOICE" ? "Multiple Choice" : "True/False"}
+          size="small"
+          variant="outlined"
+          sx={{ height: 20, fontSize: "0.75rem" }}
+        />
+
+        <IconButton
+          size="small"
+          onClick={() => setIsEditing(true)}
           disabled={isDeleting}
         >
-          <Trash className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+          <Pencil size={15} />
+        </IconButton>
+
+        <IconButton
+          size="small"
+          onClick={onDelete}
+          disabled={isDeleting}
+          sx={{ color: "error.main" }}
+        >
+          <Trash size={15} />
+        </IconButton>
+      </Box>
+
+      <Dialog
+        open={isEditing}
+        onClose={() => !isDeleting && setIsEditing(false)}
+        maxWidth="md"
+        fullWidth
+        disableRestoreFocus
+      >
+        <DialogTitle>Edit Question</DialogTitle>
+        <DialogContent dividers sx={{ p: 3 }}>
+          <QuestionForm
+            courseId={courseId}
+            lessonId={lessonId}
+            question={question}
+            onSuccess={() => setIsEditing(false)}
+          />
+        </DialogContent>
+      </Dialog>
+    </Box>
   );
 };

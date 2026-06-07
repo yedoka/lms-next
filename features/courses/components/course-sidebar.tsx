@@ -1,20 +1,37 @@
 import prisma from "@/shared/db/prisma";
-import Link from "next/link";
 import { PlayCircle, CheckCircle } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Skeleton from "@mui/material/Skeleton";
+import List from "@mui/material/List";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
 
 export function SidebarSkeleton() {
   return (
-    <div className="w-full md:w-80 border-r border-sidebar-border bg-sidebar flex flex-col h-[calc(100vh-64px)]">
-      <div className="p-4 border-b border-sidebar-border bg-card">
-        <h2 className="font-semibold truncate">Course Content</h2>
-      </div>
-      <div className="flex flex-col w-full space-y-2 p-4">
+    <Box
+      sx={{
+        width: { xs: "100%", md: 320 },
+        borderRight: 1,
+        borderColor: "divider",
+        bgcolor: "background.paper",
+        display: "flex",
+        flexDirection: "column",
+        height: { md: "calc(100vh - 64px)" },
+      }}
+    >
+      <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+        <Typography variant="subtitle2" fontWeight={600}>
+          Course Content
+        </Typography>
+      </Box>
+      <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1 }}>
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-10 bg-muted rounded-lg animate-pulse" />
+          <Skeleton key={i} variant="rectangular" height={40} sx={{ borderRadius: 2 }} />
         ))}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 
@@ -50,35 +67,55 @@ export async function CourseSidebar({
   const completedLessonIds = new Set(userProgress.map((p) => p.lessonId));
 
   return (
-    <div className="w-full md:w-80 border-r border-sidebar-border bg-sidebar flex flex-col h-[calc(100vh-64px)] overflow-y-auto">
-      <div className="p-4 border-b border-sidebar-border bg-card">
-        <h2 className="font-semibold truncate">Course Content</h2>
-      </div>
-      <div className="flex flex-col w-full">
+    <Box
+      sx={{
+        width: { xs: "100%", md: 320 },
+        borderRight: 1,
+        borderColor: "divider",
+        bgcolor: "background.paper",
+        display: "flex",
+        flexDirection: "column",
+        height: { md: "calc(100vh - 64px)" },
+        overflowY: "auto",
+      }}
+    >
+      <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+        <Typography variant="subtitle2" fontWeight={600} noWrap>
+          Course Content
+        </Typography>
+      </Box>
+      <List disablePadding sx={{ p: 1 }}>
         {lessons.map((l) => {
           const isLessonCompleted = completedLessonIds.has(l.id);
+          const isSelected = l.id === lessonId;
+
           return (
-            <Link
+            <ListItemButton
               key={l.id}
               href={`/courses/${courseId}/lessons/${l.id}`}
-              className={cn(
-                "flex items-center gap-x-2 text-muted-foreground text-sm font-medium pl-6 transition-all hover:text-foreground hover:bg-sidebar-accent",
-                l.id === lessonId && "text-sky-700 bg-sky-200/20 hover:bg-sky-200/20 hover:text-sky-700",
-                isLessonCompleted && "text-emerald-700 hover:text-emerald-700"
-              )}
+              selected={isSelected}
+              sx={{ borderRadius: 2, mb: 0.5 }}
             >
-              <div className="flex items-center gap-x-2 py-4">
+              <ListItemIcon sx={{ minWidth: 32 }}>
                 {isLessonCompleted ? (
-                  <CheckCircle size={22} className="text-emerald-500" />
+                  <CheckCircle size={20} style={{ color: isSelected ? "inherit" : "var(--mui-palette-success-main)" }} />
                 ) : (
-                  <PlayCircle size={22} className={cn("text-muted-foreground", l.id === lessonId && "text-sky-700")} />
+                  <PlayCircle size={20} style={{ color: isSelected ? "inherit" : "var(--mui-palette-text-secondary)" }} />
                 )}
-                {l.title}
-              </div>
-            </Link>
+              </ListItemIcon>
+              <ListItemText
+                primary={l.title}
+                primaryTypographyProps={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  noWrap: true,
+                }}
+              />
+            </ListItemButton>
           );
         })}
-      </div>
-    </div>
+      </List>
+    </Box>
   );
 }
+

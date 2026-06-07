@@ -1,43 +1,51 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Button } from "@/shared/ui/button";
 import { PlusCircle } from "lucide-react";
-import Link from "next/link";
 import { ROUTES } from "@/features/auth/utils/routes";
 import { withRole } from "@/features/auth/utils/with-role";
 import { ROLE } from "@/features/auth/utils/roles";
 import { getTeacherCourses } from "@/features/courses/services/service";
 import { CourseTable } from "@/features/courses/components/course-table";
+import { PageContainer, PageHeader } from "@/shared/components/ui";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 
 export default async function TeacherCoursesPage() {
   const session = await withRole([ROLE.TEACHER, ROLE.ADMIN]);
   const courses = await getTeacherCourses(session.user.id);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Manage Courses</h1>
-          <p className="text-muted-foreground">
-            Create and manage your educational content.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href={ROUTES.DASHBOARD_TEACHER_COURSE_CREATE}>
-            <PlusCircle className="mr-2 h-4 w-4" />
+    <PageContainer>
+      <PageHeader
+        title="Manage Courses"
+        description="Create and manage your educational content."
+        actions={
+          <Button
+            variant="contained"
+            href={ROUTES.DASHBOARD_TEACHER_COURSE_CREATE}
+            startIcon={<PlusCircle size={16} />}
+            size="small"
+          >
             New Course
-          </Link>
-        </Button>
-      </div>
+          </Button>
+        }
+      />
 
       <Card>
-        <CardHeader>
-          <CardTitle>Your Courses</CardTitle>
-          <CardDescription>You have created {courses.length} course{courses.length === 1 ? '' : 's'}.</CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
+          <Box sx={{ p: 2, pb: 0 }}>
+            <Typography variant="subtitle2" fontWeight={600}>
+              Your Courses
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
+              You have created {courses.length} course{courses.length === 1 ? "" : "s"}.
+            </Typography>
+          </Box>
           <CourseTable courses={courses} />
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
+

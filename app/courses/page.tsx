@@ -1,14 +1,19 @@
 import { Suspense } from "react";
 import prisma from "@/shared/db/prisma";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/ui/card";
-import { Badge } from "@/shared/ui/badge";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
+import Chip from "@mui/material/Chip";
+import Skeleton from "@mui/material/Skeleton";
+import { PageContainer, PageHeader, EmptyState } from "@/shared/components/ui";
 import { CourseFilters } from "@/features/courses/components/course-filters";
 
-async function CourseList({ 
-  searchParams 
-}: { 
-  searchParams: { title?: string; category?: string } 
+async function CourseList({
+  searchParams,
+}: {
+  searchParams: { title?: string; category?: string };
 }) {
   const { title, category } = searchParams;
 
@@ -31,47 +36,144 @@ async function CourseList({
 
   if (courses.length === 0) {
     return (
-      <div className="text-center py-20 text-muted-foreground">
-        No courses found matching your criteria.
-      </div>
+      <EmptyState
+        title="No courses found"
+        description="Try adjusting your search or filters."
+      />
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", sm: "repeat(2,1fr)", md: "repeat(3,1fr)" },
+        gap: 3,
+      }}
+    >
       {courses.map((course) => (
-        <Link key={course.id} href={`/courses/${course.id}`}>
-          <Card className="h-full hover:shadow-lg transition flex flex-col overflow-hidden">
-            <div className="aspect-video relative bg-slate-100 overflow-hidden">
+        <Link
+          key={course.id}
+          href={`/courses/${course.id}`}
+          style={{ textDecoration: "none", color: "inherit" }}
+        >
+          <Card
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+              "&:hover": {
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                transform: "translateY(-1px)",
+              },
+              transition: "box-shadow 0.15s, transform 0.15s",
+            }}
+          >
+            <Box
+              sx={{
+                position: "relative",
+                paddingTop: "56.25%",
+                bgcolor: "action.hover",
+                overflow: "hidden",
+              }}
+            >
               {course.thumbnail ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={course.thumbnail}
                   alt={course.title}
-                  className="object-cover w-full h-full"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
                 />
               ) : (
-                <div className="flex items-center justify-center w-full h-full text-muted-foreground">
-                  No Image
-                </div>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "text.disabled",
+                  }}
+                >
+                  <Typography variant="body2">No Image</Typography>
+                </Box>
               )}
-            </div>
-            <CardHeader className="flex-none">
-              <div className="flex items-center justify-between mb-2">
-                <Badge variant="secondary">{course.category || "Uncategorized"}</Badge>
-                <span className="text-xs text-muted-foreground">{course._count.lessons} Lessons</span>
-              </div>
-              <CardTitle className="line-clamp-2">{course.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="mt-auto">
-              <CardDescription className="text-sm">
+            </Box>
+            <CardContent
+              sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 1 }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Chip
+                  label={course.category || "Uncategorized"}
+                  size="small"
+                />
+                <Typography variant="caption" color="text.secondary">
+                  {course._count.lessons} Lessons
+                </Typography>
+              </Box>
+              <Typography
+                variant="subtitle1"
+                fontWeight={600}
+                sx={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {course.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: "auto" }}>
                 By {course.teacher?.name || "Unknown Teacher"}
-              </CardDescription>
+              </Typography>
             </CardContent>
           </Card>
         </Link>
       ))}
-    </div>
+    </Box>
+  );
+}
+
+function CourseGridSkeleton() {
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", sm: "repeat(2,1fr)", md: "repeat(3,1fr)" },
+        gap: 3,
+      }}
+    >
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <Card key={i}>
+          <Box sx={{ position: "relative", paddingTop: "56.25%" }}>
+            <Skeleton
+              variant="rectangular"
+              sx={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+            />
+          </Box>
+          <CardContent>
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+              <Skeleton width="40%" height={24} />
+              <Skeleton width="25%" height={20} />
+            </Box>
+            <Skeleton width="80%" height={24} sx={{ mb: 0.5 }} />
+            <Skeleton width="50%" height={20} />
+          </CardContent>
+        </Card>
+      ))}
+    </Box>
   );
 }
 
@@ -93,34 +195,14 @@ export default async function CoursesPage({
     .filter((c): c is string => !!c);
 
   return (
-    <div className="container mx-auto py-10 px-4">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <h1 className="text-3xl font-bold">Course Catalog</h1>
-        <CourseFilters categories={categories} />
-      </div>
-      
-      <Suspense
-        key={JSON.stringify(params)}
-        fallback={
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="rounded-2xl ring-1 ring-foreground/10 overflow-hidden bg-card">
-                <div className="aspect-video bg-muted animate-pulse" />
-                <div className="p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="h-5 w-24 bg-muted rounded-full animate-pulse" />
-                    <div className="h-4 w-16 bg-muted rounded animate-pulse" />
-                  </div>
-                  <div className="h-6 w-3/4 bg-muted rounded animate-pulse" />
-                  <div className="h-4 w-1/2 bg-muted rounded animate-pulse" />
-                </div>
-              </div>
-            ))}
-          </div>
-        }
-      >
+    <PageContainer>
+      <PageHeader
+        title="Course Catalog"
+        actions={<CourseFilters categories={categories} />}
+      />
+      <Suspense key={JSON.stringify(params)} fallback={<CourseGridSkeleton />}>
         <CourseList searchParams={params} />
       </Suspense>
-    </div>
+    </PageContainer>
   );
 }

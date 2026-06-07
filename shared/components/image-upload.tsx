@@ -1,7 +1,9 @@
 "use client";
 
 import { ImagePlus, Trash } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
 import { CLOUDINARY_CONFIG } from "@/shared/lib/config";
 
 interface ImageUploadProps {
@@ -12,12 +14,9 @@ interface ImageUploadProps {
 
 function UploadPlaceholder() {
   return (
-    <div className="mt-2 text-sm text-muted-foreground border border-dashed rounded-md p-4 text-center">
-      <p>Image upload unavailable.</p>
-      <p className="text-xs">
-        Set <code>NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME</code> in your .env file.
-      </p>
-    </div>
+    <Button variant="outlined" disabled sx={{ mt: 1 }}>
+      Image upload unavailable — set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+    </Button>
   );
 }
 
@@ -26,21 +25,36 @@ export const ImageUpload = ({ value, onChange, onRemove }: ImageUploadProps) => 
 
   if (value) {
     return (
-      <div className="relative aspect-video mt-2 rounded-md overflow-hidden bg-slate-100 flex items-center justify-center">
+      <Box
+        sx={{
+          position: "relative",
+          aspectRatio: "16/9",
+          mt: 1,
+          borderRadius: 2,
+          overflow: "hidden",
+          bgcolor: "grey.100",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={value} alt="Upload" className="object-cover w-full h-full" />
-        <div className="absolute top-2 right-2">
-          <Button
-            type="button"
+        <img src={value} alt="Upload" style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+        <Box sx={{ position: "absolute", top: 8, right: 8 }}>
+          <IconButton
+            size="small"
             onClick={onRemove}
-            variant="destructive"
-            size="sm"
-            className="h-auto p-2"
+            sx={{
+              bgcolor: "error.main",
+              color: "error.contrastText",
+              "&:hover": { bgcolor: "error.dark" },
+              p: 0.75,
+            }}
           >
-            <Trash className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+            <Trash size={16} />
+          </IconButton>
+        </Box>
+      </Box>
     );
   }
 
@@ -67,11 +81,11 @@ export const ImageUpload = ({ value, onChange, onRemove }: ImageUploadProps) => 
         return (
           <Button
             type="button"
-            variant="outline"
+            variant="outlined"
             onClick={() => open()}
-            className="mt-2"
+            startIcon={<ImagePlus size={16} />}
+            sx={{ mt: 1 }}
           >
-            <ImagePlus className="h-4 w-4 mr-2" />
             Upload an Image
           </Button>
         );

@@ -5,9 +5,6 @@ import { useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { questionSchema, QuestionFormData } from "../schemas/quiz";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Field, FieldLabel, FieldContent, FieldError } from "@/shared/ui/field";
 import { toast } from "sonner";
 import {
   updateQuestionAction,
@@ -17,6 +14,12 @@ import {
   setCorrectAnswerAction,
 } from "../actions/quiz-actions";
 import { PlusCircle, Trash, CheckCircle } from "lucide-react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
 
 interface QuestionFormProps {
   question: Question & { answers: Answer[] };
@@ -99,117 +102,131 @@ export const QuestionForm = ({
   };
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <Stack spacing={4}>
+      <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={3}>
         <Controller
           control={control}
           name="text"
           render={({ field }) => (
-            <Field data-invalid={!!errors.text}>
-              <FieldLabel>Question Text</FieldLabel>
-              <FieldContent>
-                <Input disabled={isPending} {...field} />
-                {errors.text?.message && (
-                  <FieldError>{errors.text.message}</FieldError>
-                )}
-              </FieldContent>
-            </Field>
+            <TextField
+              {...field}
+              label="Question Text"
+              disabled={isPending}
+              fullWidth
+              size="small"
+              error={!!errors.text}
+              helperText={errors.text?.message}
+            />
           )}
         />
         <Controller
           control={control}
           name="points"
           render={({ field }) => (
-            <Field data-invalid={!!errors.points}>
-              <FieldLabel>Points</FieldLabel>
-              <FieldContent>
-                <Input
-                  type="number"
-                  min="1"
-                  disabled={isPending}
-                  value={field.value}
-                  onChange={(e) => field.onChange(parseInt(e.target.value))}
-                />
-                {errors.points?.message && (
-                  <FieldError>{errors.points.message}</FieldError>
-                )}
-              </FieldContent>
-            </Field>
+            <TextField
+              label="Points"
+              type="number"
+              disabled={isPending}
+              fullWidth
+              size="small"
+              value={field.value}
+              onChange={(e) => field.onChange(parseInt(e.target.value))}
+              error={!!errors.points}
+              helperText={errors.points?.message}
+              slotProps={{ htmlInput: { min: 1 } }}
+            />
           )}
         />
-        <Button disabled={isPending} type="submit">
-          Save Question Details
-        </Button>
-      </form>
+        <Box>
+          <Button disabled={isPending} type="submit" variant="contained">
+            Save Question Details
+          </Button>
+        </Box>
+      </Stack>
 
-      <div className="space-y-4 pt-6 border-t">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium leading-none">Answers</h3>
+      <Box sx={{ pt: 3, borderTop: 1, borderColor: "divider" }}>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+          <Typography variant="subtitle2" fontWeight={600}>
+            Answers
+          </Typography>
           {question.type === "MULTIPLE_CHOICE" && (
             <Button
-              size="sm"
-              variant="outline"
+              size="small"
+              variant="outlined"
               onClick={handleAddAnswer}
               disabled={isPending}
+              startIcon={<PlusCircle size={16} />}
             >
-              <PlusCircle className="h-4 w-4 mr-2" />
               Add Option
             </Button>
           )}
-        </div>
+        </Box>
 
-        <div className="space-y-2">
+        <Stack spacing={2} sx={{ mb: 1 }}>
           {question.answers.map((answer) => (
-            <div
+            <Box
               key={answer.id}
-              className={`flex items-center gap-2 p-2 border rounded-md ${answer.isCorrect ? "border-green-500 bg-green-50" : "bg-slate-50"}`}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                p: 1.5,
+                border: 1,
+                borderRadius: 1.5,
+                borderColor: answer.isCorrect ? "success.main" : "divider",
+                bgcolor: answer.isCorrect ? "rgba(68, 131, 97, 0.08)" : "background.paper",
+              }}
             >
-              <Button
+              <IconButton
                 type="button"
-                variant="ghost"
-                size="sm"
-                className={`h-auto p-1 rounded-full ${answer.isCorrect ? "text-green-600" : "text-slate-300"}`}
+                size="small"
                 onClick={() => handleSetCorrect(answer.id)}
                 disabled={isPending}
+                sx={{
+                  color: answer.isCorrect ? "success.main" : "text.disabled",
+                }}
               >
-                <CheckCircle className="h-5 w-5" />
-              </Button>
+                <CheckCircle size={20} />
+              </IconButton>
 
               {question.type === "MULTIPLE_CHOICE" ? (
-                <Input
-                  className="flex-1 h-8 bg-white"
+                <TextField
+                  fullWidth
+                  size="small"
                   defaultValue={answer.text}
-                  onBlur={(e) =>
-                    handleUpdateAnswerText(answer.id, e.target.value)
-                  }
+                  onBlur={(e) => handleUpdateAnswerText(answer.id, e.target.value)}
                   disabled={isPending}
+                  sx={{
+                    bgcolor: "background.paper",
+                    "& .MuiOutlinedInput-root": {
+                      height: 36,
+                    }
+                  }}
                 />
               ) : (
-                <div className="flex-1 px-3 text-sm font-medium">
+                <Typography variant="body2" sx={{ flex: 1, px: 1.5, fontWeight: 500 }}>
                   {answer.text}
-                </div>
+                </Typography>
               )}
 
-              {question.type === "MULTIPLE_CHOICE" &&
-                question.answers.length > 2 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-auto p-1 text-destructive hover:text-destructive"
-                    onClick={() => handleDeleteAnswer(answer.id)}
-                    disabled={isPending}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                )}
-            </div>
+              {question.type === "MULTIPLE_CHOICE" && question.answers.length > 2 && (
+                <IconButton
+                  type="button"
+                  size="small"
+                  onClick={() => handleDeleteAnswer(answer.id)}
+                  disabled={isPending}
+                  sx={{ color: "error.main" }}
+                >
+                  <Trash size={16} />
+                </IconButton>
+              )}
+            </Box>
           ))}
-        </div>
-        <p className="text-xs text-muted-foreground">
+        </Stack>
+        <Typography variant="caption" color="text.secondary">
           Click the checkmark circle to mark an answer as correct.
-        </p>
-      </div>
-    </div>
+        </Typography>
+      </Box>
+    </Stack>
   );
 };

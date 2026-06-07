@@ -1,47 +1,55 @@
 import prisma from "@/shared/db/prisma";
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { Button } from "@/shared/ui/button";
 import { ChevronLeft, ChevronRight, FileText, Archive, File } from "lucide-react";
 import { sanitizeHtml } from "@/shared/lib/sanitize";
-import { cn } from "@/shared/lib/utils";
 import { VideoPlayer } from "@/features/courses/components/video-player";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import Skeleton from "@mui/material/Skeleton";
+import Stack from "@mui/material/Stack";
+import { PageContainer, SectionCard } from "@/shared/components/ui";
 
 function formatBytes(bytes: number, decimals = 2) {
-  if (!+bytes) return '0 Bytes';
+  if (!+bytes) return "0 Bytes";
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
 function getFileIcon(filename: string) {
-  const ext = filename.split('.').pop()?.toLowerCase();
+  const ext = filename.split(".").pop()?.toLowerCase();
+  const iconProps = { size: 16, style: { marginRight: 8, flexShrink: 0 } };
   switch (ext) {
-    case 'pdf':
-    case 'doc':
-    case 'docx':
-    case 'txt':
-      return <FileText className="h-4 w-4 mr-2 flex-shrink-0" />;
-    case 'zip':
-    case 'rar':
-    case '7z':
-      return <Archive className="h-4 w-4 mr-2 flex-shrink-0" />;
+    case "pdf":
+    case "doc":
+    case "docx":
+    case "txt":
+      return <FileText {...iconProps} />;
+    case "zip":
+    case "rar":
+    case "7z":
+      return <Archive {...iconProps} />;
     default:
-      return <File className="h-4 w-4 mr-2 flex-shrink-0" />;
+      return <File {...iconProps} />;
   }
 }
 
 export function ContentSkeleton() {
   return (
-    <main className="flex-1 overflow-y-auto h-[calc(100vh-64px)]">
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
-        <div className="aspect-video bg-muted rounded-xl animate-pulse" />
-        <div className="h-8 bg-muted rounded-lg w-1/3 animate-pulse" />
-        <div className="h-32 bg-muted rounded-lg animate-pulse" />
-      </div>
-    </main>
+    <Box component="main" sx={{ flex: 1, overflowY: "auto", height: { md: "calc(100vh - 64px)" } }}>
+      <PageContainer maxWidth="md" sx={{ py: 3 }}>
+        <Stack spacing={3}>
+          <Box sx={{ width: "100%", pt: "56.25%", position: "relative" }}>
+            <Skeleton variant="rectangular" sx={{ position: "absolute", inset: 0, borderRadius: 3, height: "100%" }} />
+          </Box>
+          <Skeleton variant="text" width="40%" height={40} />
+          <Skeleton variant="rectangular" height={160} sx={{ borderRadius: 2 }} />
+        </Stack>
+      </PageContainer>
+    </Box>
   );
 }
 
@@ -68,10 +76,10 @@ export async function LessonContent({
           attempts: {
             where: { userId },
             orderBy: { score: "desc" },
-            take: 1
-          }
-        }
-      }
+            take: 1,
+          },
+        },
+      },
     },
   });
 
@@ -105,109 +113,216 @@ export async function LessonContent({
   const isCompleted = !!progress?.isCompleted;
 
   return (
-    <main className="flex-1 overflow-y-auto h-[calc(100vh-64px)]">
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="aspect-video bg-black rounded-xl overflow-hidden mb-8 relative border border-border">
-          {lesson.videoUrl ? (
-            <VideoPlayer url={lesson.videoUrl} lessonId={lessonId} isCompleted={isCompleted} />
-          ) : (
-            <div className="flex items-center justify-center h-full text-white bg-slate-800">
-              No video available for this lesson.
-            </div>
-          )}
-        </div>
+    <Box component="main" sx={{ flex: 1, overflowY: "auto", height: { md: "calc(100vh - 64px)" } }}>
+      <PageContainer maxWidth="md" sx={{ py: 3 }}>
+        {/* Video Player Box */}
+        <Box
+          sx={{
+            position: "relative",
+            width: "100%",
+            pt: "56.25%",
+            bgcolor: "black",
+            borderRadius: 3,
+            overflow: "hidden",
+            mb: 4,
+            border: 1,
+            borderColor: "divider",
+          }}
+        >
+          <Box sx={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
+            {lesson.videoUrl ? (
+              <VideoPlayer url={lesson.videoUrl} lessonId={lessonId} isCompleted={isCompleted} />
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: "100%",
+                  color: "white",
+                  bgcolor: "grey.900",
+                }}
+              >
+                <Typography variant="body1">No video available for this lesson.</Typography>
+              </Box>
+            )}
+          </Box>
+        </Box>
 
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">{lesson.title}</h1>
-          <div className="flex gap-2">
+        {/* Title and Navigation */}
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3, gap: 2 }}>
+          <Typography variant="h5" component="h1" fontWeight={700}>
+            {lesson.title}
+          </Typography>
+          <Stack direction="row" spacing={1}>
             {prevLesson && (
-              <Link href={`/courses/${courseId}/lessons/${prevLesson.id}`}>
-                <Button variant="outline" size="sm">
-                  <ChevronLeft className="h-4 w-4 mr-2" />
-                  Prev
-                </Button>
-              </Link>
+              <Button
+                href={`/courses/${courseId}/lessons/${prevLesson.id}`}
+                variant="outlined"
+                size="small"
+                startIcon={<ChevronLeft size={16} />}
+              >
+                Prev
+              </Button>
             )}
             {nextLesson && (
-              <Link href={`/courses/${courseId}/lessons/${nextLesson.id}`}>
-                <Button variant="outline" size="sm">
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
+              <Button
+                href={`/courses/${courseId}/lessons/${nextLesson.id}`}
+                variant="outlined"
+                size="small"
+                endIcon={<ChevronRight size={16} />}
+              >
+                Next
+              </Button>
             )}
-          </div>
-        </div>
+          </Stack>
+        </Box>
 
-        <div 
-          className="prose max-w-none mb-8" 
+        {/* Lesson Description */}
+        <Box
+          className="tiptap-content"
           dangerouslySetInnerHTML={{ __html: sanitizeHtml(lesson.description || "") }}
+          sx={{ mb: 4 }}
         />
 
+        {/* Attachments Section */}
         {lesson.attachments.length > 0 && (
-          <div className="p-4 border border-border rounded-xl bg-muted/40">
-            <h3 className="font-semibold mb-3">Course Materials</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {lesson.attachments.map((attachment) => {
-                const downloadUrl = attachment.url.replace('/upload/', '/upload/fl_attachment/');
-                return (
-                  <a
-                    key={attachment.id}
-                    href={downloadUrl}
-                    download
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-col p-3 bg-card border border-border rounded-xl hover:bg-accent transition-colors group"
-                  >
-                    <div className="flex items-center text-foreground group-hover:text-primary transition-colors">
-                      {getFileIcon(attachment.name)}
-                      <p className="line-clamp-1 font-medium text-sm">{attachment.name}</p>
-                    </div>
-                    <span className="text-xs text-muted-foreground mt-1 pl-6">
-                      {formatBytes(attachment.size)}
-                    </span>
-                  </a>
-                );
-              })}
-            </div>
-          </div>
+          <Box sx={{ mb: 4 }}>
+            <SectionCard title="Course Materials">
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+                  gap: 2,
+                }}
+              >
+                {lesson.attachments.map((attachment) => {
+                  const downloadUrl = attachment.url.replace("/upload/", "/upload/fl_attachment/");
+                  return (
+                    <Box
+                      key={attachment.id}
+                      component="a"
+                      href={downloadUrl}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        p: 2,
+                        bgcolor: "background.paper",
+                        border: 1,
+                        borderColor: "divider",
+                        borderRadius: 2,
+                        textDecoration: "none",
+                        color: "text.primary",
+                        transition: "background-color 0.15s, border-color 0.15s",
+                        "&:hover": {
+                          bgcolor: "action.hover",
+                          borderColor: "text.disabled",
+                          "& .attachment-title": { color: "info.main" },
+                        },
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+                        {getFileIcon(attachment.name)}
+                        <Typography
+                          variant="body2"
+                          fontWeight={500}
+                          className="attachment-title"
+                          noWrap
+                          sx={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            transition: "color 0.15s",
+                          }}
+                        >
+                          {attachment.name}
+                        </Typography>
+                      </Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ pl: 3 }}>
+                        {formatBytes(attachment.size)}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </Box>
+            </SectionCard>
+          </Box>
         )}
 
+        {/* Quizzes Section */}
         {lesson.quizzes && lesson.quizzes.length > 0 && (
-          <div className="p-4 border border-border rounded-xl bg-muted/40 mt-8">
-            <h3 className="font-semibold mb-3">Lesson Quiz</h3>
-            {lesson.quizzes.map((quiz) => {
-              const bestAttempt = quiz.attempts[0];
-              return (
-                <div key={quiz.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-card border border-border rounded-xl">
-                  <div>
-                    <p className="font-medium">{quiz.title}</p>
-                    {bestAttempt && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Best score: <span className={cn("font-medium", bestAttempt.passed ? "text-green-600" : "text-destructive")}>{bestAttempt.score}%</span>
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {bestAttempt && (
-                      <Button asChild variant="outline">
-                        <Link href={`/courses/${courseId}/lessons/${lessonId}/quiz/results/${bestAttempt.id}`}>
-                          View Results
-                        </Link>
-                      </Button>
-                    )}
-                    <Button asChild>
-                      <Link href={`/courses/${courseId}/lessons/${lessonId}/quiz`}>
-                        {bestAttempt ? "Retake Quiz" : "Take Quiz"}
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <Box sx={{ mt: 4 }}>
+            <SectionCard title="Lesson Quiz">
+              <Stack spacing={2}>
+                {lesson.quizzes.map((quiz) => {
+                  const bestAttempt = quiz.attempts[0];
+                  return (
+                    <Box
+                      key={quiz.id}
+                      sx={{
+                        display: "flex",
+                        flexDirection: { xs: "column", sm: "row" },
+                        alignItems: { xs: "flex-start", sm: "center" },
+                        justifyContent: "space-between",
+                        gap: 2,
+                        p: 2,
+                        bgcolor: "background.paper",
+                        border: 1,
+                        borderColor: "divider",
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Box>
+                        <Typography variant="body2" fontWeight={600}>
+                          {quiz.title}
+                        </Typography>
+                        {bestAttempt && (
+                          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
+                            Best score:{" "}
+                            <Typography
+                              component="span"
+                              variant="caption"
+                              fontWeight={600}
+                              sx={{
+                                color: bestAttempt.passed ? "success.main" : "error.main",
+                              }}
+                            >
+                              {bestAttempt.score}%
+                            </Typography>
+                          </Typography>
+                        )}
+                      </Box>
+                      <Stack direction="row" spacing={1} sx={{ width: { xs: "100%", sm: "auto" } }}>
+                        {bestAttempt && (
+                          <Button
+                            href={`/courses/${courseId}/lessons/${lessonId}/quiz/results/${bestAttempt.id}`}
+                            variant="outlined"
+                            size="small"
+                            sx={{ width: { xs: "100%", sm: "auto" } }}
+                          >
+                            View Results
+                          </Button>
+                        )}
+                        <Button
+                          href={`/courses/${courseId}/lessons/${lessonId}/quiz`}
+                          variant="contained"
+                          size="small"
+                          sx={{ width: { xs: "100%", sm: "auto" } }}
+                        >
+                          {bestAttempt ? "Retake Quiz" : "Take Quiz"}
+                        </Button>
+                      </Stack>
+                    </Box>
+                  );
+                })}
+              </Stack>
+            </SectionCard>
+          </Box>
         )}
-      </div>
-    </main>
+      </PageContainer>
+    </Box>
   );
 }
+

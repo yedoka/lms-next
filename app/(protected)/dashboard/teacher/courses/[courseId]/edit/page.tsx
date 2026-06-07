@@ -5,6 +5,12 @@ import { CourseForm } from "@/features/courses/components/course-form";
 import { redirect } from "next/navigation";
 import { LessonList } from "@/features/courses/components/lesson-list";
 import { AddLessonButton } from "@/features/courses/components/add-lesson-button";
+import { PageContainer, PageHeader } from "@/shared/components/ui";
+import Box from "@mui/material/Box";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
 
 export default async function EditCoursePage({
   params,
@@ -47,41 +53,50 @@ export default async function EditCoursePage({
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-y-2">
-          <h1 className="text-2xl font-medium">Course setup</h1>
-          <span className="text-sm text-slate-700">
-            Customize your course and lessons
-          </span>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-16">
-        <div>
-          <div className="flex items-center gap-x-2 mb-4">
-            <h2 className="text-xl">Course Details</h2>
-          </div>
-          <CourseForm
-            initialData={{
-              id: course.id,
-              title: course.title,
-              description: course.description || "",
-              category: course.category || "",
-              thumbnail: course.thumbnail || "",
-              isPublished: course.isPublished,
-            }}
-          />
-        </div>
-        <div className="space-y-6">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl">Course Lessons</h2>
-              <AddLessonButton courseId={courseId} />
-            </div>
-            <LessonList items={course.lessons} courseId={courseId} />
-          </div>
-        </div>
-      </div>
-    </div>
+    <PageContainer>
+      <PageHeader
+        title="Course setup"
+        description="Customize your course and lessons"
+      />
+
+      <Grid container spacing={4} sx={{ mt: 2 }}>
+        {/* Left side: Course details */}
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
+                Course Details
+              </Typography>
+              <CourseForm
+                initialData={{
+                  id: course.id,
+                  title: course.title,
+                  description: course.description || "",
+                  category: course.category || "",
+                  thumbnail: course.thumbnail || "",
+                  isPublished: course.isPublished,
+                }}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Right side: Lessons list */}
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                <Typography variant="h6" fontWeight={600}>
+                  Course Lessons
+                </Typography>
+                <AddLessonButton courseId={courseId} />
+              </Box>
+              <LessonList items={course.lessons} courseId={courseId} />
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </PageContainer>
   );
 }
+

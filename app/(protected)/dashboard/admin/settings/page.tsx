@@ -1,26 +1,45 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
+import { PageContainer, PageHeader } from "@/shared/components/ui";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 
 export default function AdminSettingsPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">System Settings</h1>
-        <p className="text-muted-foreground">
-          Configure platform-wide parameters and features.
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="System Settings"
+        description="Configure platform-wide parameters and features."
+      />
 
       <Card>
-        <CardHeader>
-          <CardTitle>Configuration</CardTitle>
-          <CardDescription>Global site settings and preferences.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex h-[200px] items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
-            System configuration module is under development.
-          </div>
+        <CardContent sx={{ p: 3 }}>
+          <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 0.5 }}>
+            Configuration
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
+            Global site settings and preferences.
+          </Typography>
+
+          <Box
+            sx={{
+              display: "flex",
+              height: 200,
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 2,
+              border: "1px dashed",
+              borderColor: "divider",
+              bgcolor: "action.hover",
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              System configuration module is under development.
+            </Typography>
+          </Box>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
+

@@ -3,16 +3,11 @@ import { getCourseGradebook } from "@/features/courses/services/gradebook-servic
 import { validateCourseOwnership } from "@/features/courses/utils/auth";
 import { notFound, redirect } from "next/navigation";
 import { GradebookTable } from "@/features/courses/components/gradebook-table";
-import { Button } from "@/shared/ui/button";
-import {
-  Download,
-  ChevronLeft,
-  BarChart3,
-  Users,
-  BookOpen,
-} from "lucide-react";
-import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Download, ChevronLeft, BarChart3, Users, BookOpen } from "lucide-react";
+import { PageContainer, PageHeader, StatCard } from "@/shared/components/ui";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
 
 export default async function GradebookPage({
   params,
@@ -42,7 +37,7 @@ export default async function GradebookPage({
   const allScores = gradebook.flatMap((entry) =>
     entry.quizzes
       .map((q) => q.bestScore)
-      .filter((s): s is number => s !== null),
+      .filter((s): s is number => s !== null)
   );
   const averageScore =
     allScores.length > 0
@@ -50,72 +45,70 @@ export default async function GradebookPage({
       : 0;
 
   return (
-    <div className="flex-1 space-y-6 p-8 pt-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <Link
-              href={`/dashboard/teacher/courses/${courseId}/lessons`}
-              className="hover:text-foreground transition-colors flex items-center gap-1"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Back to Course
-            </Link>
-          </div>
-          <h2 className="text-3xl font-bold tracking-tight">Gradebook</h2>
-          <p className="text-muted-foreground">
-            Monitor student progress and manage quiz scores.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline">
-            <a href={`/api/courses/${courseId}/gradebook/export`} download>
-              <Download className="mr-2 h-4 w-4" />
-              Export CSV
-            </a>
-          </Button>
-        </div>
-      </div>
+    <PageContainer>
+      {/* Back button */}
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+        <Button
+          href={`/dashboard/teacher/courses/${courseId}/edit`}
+          variant="text"
+          size="small"
+          startIcon={<ChevronLeft size={16} />}
+          sx={{ color: "text.secondary", p: 0.5 }}
+        >
+          Back to Course Setup
+        </Button>
+      </Stack>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border-border/40 bg-muted/30 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Students
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalStudents}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-border/40 bg-muted/30 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Active Quizzes
-            </CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalQuizzes}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-border/40 bg-muted/30 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Score</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{averageScore}%</div>
-          </CardContent>
-        </Card>
-      </div>
+      <PageHeader
+        title="Gradebook"
+        description="Monitor student progress and manage quiz scores."
+        actions={
+          <Button
+            href={`/api/courses/${courseId}/gradebook/export`}
+            download
+            variant="outlined"
+            size="small"
+            startIcon={<Download size={16} />}
+          >
+            Export CSV
+          </Button>
+        }
+      />
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+          gap: 3,
+          mb: 4,
+        }}
+      >
+        <StatCard
+          icon={<Users size={20} />}
+          label="Total Students"
+          value={totalStudents}
+          color="info"
+        />
+        <StatCard
+          icon={<BookOpen size={20} />}
+          label="Active Quizzes"
+          value={totalQuizzes}
+          color="default"
+        />
+        <StatCard
+          icon={<BarChart3 size={20} />}
+          label="Average Score"
+          value={`${averageScore}%`}
+          color="success"
+        />
+      </Box>
 
       <GradebookTable
         courseId={courseId}
         gradebook={gradebook}
         quizzes={quizzes}
       />
-    </div>
+    </PageContainer>
   );
 }
+
