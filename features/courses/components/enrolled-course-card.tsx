@@ -81,7 +81,7 @@ export function EnrolledCourseCard({
                 boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
                 fontSize: 11,
                 fontWeight: 600,
-                "& .MuiChip-label": { pl: 0.5 },
+                "& .MuiChip-label": { pl: 1 },
                 "& .MuiChip-icon": { ml: 0.5 },
               }}
             />
@@ -93,7 +93,7 @@ export function EnrolledCourseCard({
       <CardContent sx={{ flex: 1, p: 2, pb: 1, display: "flex", flexDirection: "column", gap: 1 }}>
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
           {category ? (
-            <Chip label={category} size="small" sx={{ fontWeight: 400, height: 20 }} />
+            <Chip label={category} size="small" sx={{ fontWeight: 400 }} />
           ) : (
             <Box />
           )}
@@ -108,8 +108,7 @@ export function EnrolledCourseCard({
                 fontWeight: 600,
                 border: "none",
                 fontSize: 11,
-                height: 20,
-                "& .MuiChip-label": { pl: 0.5 },
+                "& .MuiChip-label": { pl: 1 },
                 "& .MuiChip-icon": { ml: 0.5 },
               }}
             />
