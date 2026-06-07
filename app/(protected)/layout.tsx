@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { ProfileDropdown } from "@/features/auth/components/profile-dropdown";
+import { AuthSessionProvider } from "@/features/auth/components/session-provider";
 import { ROUTES } from "@/features/auth/utils/routes";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -23,6 +24,7 @@ async function ProtectedHeader() {
           name={session.user.name}
           email={session.user.email}
           role={session.user.role}
+          image={session.user.image}
         />
       }
     />
@@ -35,6 +37,7 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }>) {
   return (
+    <AuthSessionProvider>
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <Suspense
         fallback={
@@ -77,5 +80,6 @@ export default function ProtectedLayout({
         </Box>
       </Box>
     </Box>
+    </AuthSessionProvider>
   );
 }

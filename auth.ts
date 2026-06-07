@@ -111,9 +111,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         applyUserToToken(token, user);
+      }
+
+      if (trigger === "update" && session) {
+        if (typeof session.name === "string") token.name = session.name;
+        if (session.image !== undefined) token.picture = session.image;
       }
 
       const authTime = getTokenAuthTime(token);
@@ -132,6 +137,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.email =
           typeof token.email === "string" ? token.email : session.user.email;
         session.user.role = normalizeRole(token.role) ?? DEFAULT_ROLE;
+        if (typeof token.name === "string") session.user.name = token.name;
+        session.user.image = typeof token.picture === "string" ? token.picture : null;
       }
 
       return session;

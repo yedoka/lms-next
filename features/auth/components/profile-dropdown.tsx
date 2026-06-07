@@ -18,9 +18,10 @@ type ProfileDropdownProps = {
   name?: string | null;
   email?: string | null;
   role: UserRole;
+  image?: string | null;
 };
 
-export function ProfileDropdown({ name, email, role }: ProfileDropdownProps) {
+export function ProfileDropdown({ name, email, role, image }: ProfileDropdownProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -56,6 +57,7 @@ export function ProfileDropdown({ name, email, role }: ProfileDropdownProps) {
         }}
       >
         <Avatar
+          src={image ?? undefined}
           sx={{
             width: 32,
             height: 32,
