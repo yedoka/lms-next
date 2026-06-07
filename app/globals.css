@@ -26,3 +26,12 @@
 /* Spin animation for loading icons */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 1s linear infinite; }
+
+/* Override autofill background and text color to match theme colors */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--mui-palette-background-paper, #ffffff) inset !important;
+  -webkit-text-fill-color: var(--mui-palette-text-primary, #000000) !important;
+}
