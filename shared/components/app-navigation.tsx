@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ROUTES } from "@/features/auth/utils/routes";
 import { MAIN_NAV, DASHBOARD_NAV } from "@/shared/lib/navigation";
 import { UserRole } from "@prisma/client";
-import { GraduationCap, Settings, Menu, X } from "lucide-react";
+import { GraduationCap, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
@@ -17,7 +16,6 @@ import ListItemText from "@mui/material/ListItemText";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import Divider from "@mui/material/Divider";
 
 const SIDEBAR_WIDTH = 256;
 
@@ -50,7 +48,7 @@ export function AppNavigation({
   const allDashboardItems = dashboardSections.flatMap((s) => s.items);
 
   const filteredMainNav = MAIN_NAV.filter(
-    (item) => !item.roles || !userRole || item.roles.includes(userRole)
+    (item) => !item.roles || !userRole || item.roles.includes(userRole),
   );
 
   const isActive = (href: string, contextItems: { href: string }[] = []) => {
@@ -62,7 +60,7 @@ export function AppNavigation({
       (item) =>
         item.href !== href &&
         (pathname === item.href || pathname.startsWith(item.href + "/")) &&
-        item.href.startsWith(href)
+        item.href.startsWith(href),
     );
   };
 
@@ -127,14 +125,19 @@ export function AppNavigation({
               {section.items.map((item) => {
                 const active = isActive(item.href, allDashboardItems);
                 return (
-                   <ListItemButton
+                  <ListItemButton
                     key={item.href}
                     href={item.href}
                     selected={active}
                     sx={{ borderRadius: 2, mb: 0.25 }}
                     aria-current={active ? "page" : undefined}
                   >
-                    <ListItemIcon sx={{ minWidth: 36, color: active ? "inherit" : "text.secondary" }}>
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 36,
+                        color: active ? "inherit" : "text.secondary",
+                      }}
+                    >
                       <item.icon size={18} />
                     </ListItemIcon>
                     <ListItemText
@@ -149,22 +152,6 @@ export function AppNavigation({
         ))}
       </Box>
 
-      {/* Settings footer */}
-      <Box sx={{ borderTop: 1, borderColor: "divider", p: 1 }}>
-        <ListItemButton
-          href={ROUTES.DASHBOARD_SETTINGS}
-          selected={isActive(ROUTES.DASHBOARD_SETTINGS, allDashboardItems)}
-          sx={{ borderRadius: 2 }}
-        >
-          <ListItemIcon sx={{ minWidth: 36, color: "text.secondary" }}>
-            <Settings size={18} />
-          </ListItemIcon>
-          <ListItemText
-            primary="Settings"
-            primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}
-          />
-        </ListItemButton>
-      </Box>
     </Box>
   );
 
@@ -198,7 +185,10 @@ export function AppNavigation({
           onClose={() => setMobileOpen(false)}
           sx={{
             display: { xs: "block", lg: "none" },
-            "& .MuiDrawer-paper": { width: SIDEBAR_WIDTH, boxSizing: "border-box" },
+            "& .MuiDrawer-paper": {
+              width: SIDEBAR_WIDTH,
+              boxSizing: "border-box",
+            },
           }}
           ModalProps={{ keepMounted: true }}
         >
@@ -249,7 +239,12 @@ export function AppNavigation({
             }}
           >
             <GraduationCap size={24} />
-            <Typography variant="subtitle1" fontWeight={700} color="primary" sx={{ display: { lg: "none" } }}>
+            <Typography
+              variant="subtitle1"
+              fontWeight={700}
+              color="primary"
+              sx={{ display: { lg: "none" } }}
+            >
               LMS
             </Typography>
           </Box>
@@ -261,7 +256,10 @@ export function AppNavigation({
               sx={{ display: { xs: "none", lg: "flex" }, gap: 0.5, ml: 2 }}
             >
               {filteredMainNav.map((item) => {
-                const active = isActive(item.href, MAIN_NAV as { href: string }[]);
+                const active = isActive(
+                  item.href,
+                  MAIN_NAV as { href: string }[],
+                );
                 return (
                   <Box
                     key={item.href}

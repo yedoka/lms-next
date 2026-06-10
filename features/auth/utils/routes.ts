@@ -15,14 +15,14 @@ export const ROUTES = {
   DASHBOARD_ADMIN: "/dashboard/admin",
   DASHBOARD_ADMIN_USERS: "/dashboard/admin/users",
   DASHBOARD_ADMIN_SETTINGS: "/dashboard/admin/settings",
-  DASHBOARD_SETTINGS: "/dashboard/settings",
+  DASHBOARD_SETTINGS: "/settings",
   AUTH_LOGIN: "/auth/login",
   AUTH_SIGNUP: "/auth/signup",
   API_AUTH_SIGNUP: "/api/auth/signup",
   FORBIDDEN: "/forbidden",
 } as const;
 
-export const PROTECTED_ROUTES: ReadonlyArray<string> = [ROUTES.HOME];
+export const PROTECTED_ROUTES: ReadonlyArray<string> = [ROUTES.HOME, ROUTES.DASHBOARD_SETTINGS];
 export const PROTECTED_ROUTE_PREFIXES: ReadonlyArray<string> = [ROUTES.DASHBOARD];
 export const PUBLIC_AUTH_ROUTES: ReadonlyArray<string> = [
   ROUTES.AUTH_LOGIN,

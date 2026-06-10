@@ -13,6 +13,7 @@ import { signOut } from "next-auth/react";
 import { ROLE_LABELS } from "@/features/auth/utils/rbac";
 import { ROUTES } from "@/features/auth/utils/routes";
 import type { UserRole } from "@prisma/client";
+import Link from "next/link";
 
 type ProfileDropdownProps = {
   name?: string | null;
@@ -110,8 +111,16 @@ export function ProfileDropdown({ name, email, role, image }: ProfileDropdownPro
         </Box>
         <Divider />
         <MenuItem
+          component={Link}
+          href={ROUTES.DASHBOARD_SETTINGS}
+          onClick={handleClose}
+          sx={{ mt: 0.5, mx: 1, borderRadius: 1 }}
+        >
+          <Typography variant="body2">Settings</Typography>
+        </MenuItem>
+        <MenuItem
           onClick={handleSignOut}
-          sx={{ mt: 0.5, mx: 1, mb: 0.5, borderRadius: 1 }}
+          sx={{ mx: 1, mb: 0.5, borderRadius: 1 }}
         >
           <Typography variant="body2">Sign out</Typography>
         </MenuItem>
