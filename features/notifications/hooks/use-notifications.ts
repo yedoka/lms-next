@@ -62,10 +62,15 @@ export function useNotifications() {
     }
 
     socket.on("notification:new", onNewNotification);
+    // Refresh the token and reconnect whenever the socket drops so that
+    // a rotated NextAuth session doesn't leave the client in a ghost state.
+    socket.on("disconnect", connectSocket);
     connectSocket();
 
     return () => {
       socket.off("notification:new", onNewNotification);
+      socket.off("disconnect", connectSocket);
+      socket.disconnect();
     };
   }, [load]);
 

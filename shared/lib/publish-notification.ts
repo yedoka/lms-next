@@ -9,7 +9,7 @@ function getPublisher(): Redis {
   if (!publisher) {
     const url = process.env.REDIS_URL;
     if (!url) throw new Error("REDIS_URL is not defined");
-    publisher = new Redis(url, { lazyConnect: true, enableOfflineQueue: false });
+    publisher = new Redis(url);
   }
   return publisher;
 }
