@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { courseSchema, CourseFormData } from "@/features/courses/schemas/schema";
 import { v2 as cloudinary } from "cloudinary";
 import { validateCourseOwnership } from "../utils/auth";
+import { publishNotification } from "@/shared/lib/publish-notification";
 
 cloudinary.config({
   secure: true,
@@ -130,6 +131,16 @@ export async function enrollInCourse(courseId: string) {
       courseId,
     },
   });
+
+  // Notify the student of confirmed enrollment
+  const course = await prisma.course.findUnique({ where: { id: courseId }, select: { title: true } });
+  if (course) {
+    await publishNotification({
+      userId: session.user.id,
+      type: "ENROLLMENT",
+      message: `You have successfully enrolled in "${course.title}"`,
+    });
+  }
 
   // Revalidate to show "Continue" instead of "Enroll" on details/catalog pages
   revalidateTag(`enrollment:${session.user.id}:${courseId}`, "max");

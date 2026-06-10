@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import * as gradebookService from "../services/gradebook-service";
 import { validateCourseOwnership } from "../utils/auth";
 import prisma from "@/shared/db/prisma";
+import { publishNotification } from "@/shared/lib/publish-notification";
 
 import { z } from "zod";
 
@@ -56,6 +57,13 @@ export async function overrideScoreAction(
     newScore: parsed.data.newScore,
     reason: parsed.data.reason ?? null,
     teacherId: session.user.id!,
+  });
+
+  // Notify the student their score was updated
+  await publishNotification({
+    userId: attempt.userId,
+    type: "GRADE",
+    message: `Your quiz score has been updated to ${parsed.data.newScore}%`,
   });
 
   revalidatePath(`/dashboard/teacher/courses/${courseId}/gradebook`);

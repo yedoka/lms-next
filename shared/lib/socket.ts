@@ -6,3 +6,7 @@ export const socket: Socket = io(SOCKET_URL, {
   autoConnect: false,
   withCredentials: true,
 });
+
+export function setSocketAuthToken(token: string) {
+  socket.auth = { token };
+}

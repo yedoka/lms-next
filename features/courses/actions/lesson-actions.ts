@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import * as lessonService from "../services/lesson-service";
 import { lessonSchema, LessonFormData, reorderLessonsSchema } from "../schemas/lesson";
 import { validateCourseOwnership } from "../utils/auth";
+import prisma from "@/shared/db/prisma";
+import { publishNotification } from "@/shared/lib/publish-notification";
 
 export async function createLessonAction(courseId: string, data: LessonFormData) {
   const session = await requireAuth();
@@ -24,7 +26,32 @@ export async function updateLessonAction(courseId: string, lessonId: string, dat
   const session = await requireAuth();
   await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
 
+  // Check current publish state before updating
+  const currentLesson = data.isPublished
+    ? await prisma.lesson.findUnique({ where: { id: lessonId }, select: { isPublished: true, title: true } })
+    : null;
+
   const lesson = await lessonService.updateLesson(lessonId, data);
+
+  // Notify all enrolled students when a lesson is newly published
+  if (data.isPublished && currentLesson && !currentLesson.isPublished) {
+    const [enrollments, course] = await Promise.all([
+      prisma.enrollment.findMany({ where: { courseId }, select: { userId: true } }),
+      prisma.course.findUnique({ where: { id: courseId }, select: { title: true } }),
+    ]);
+    if (course) {
+      await Promise.all(
+        enrollments.map((e) =>
+          publishNotification({
+            userId: e.userId,
+            type: "LESSON",
+            message: `New lesson "${lesson.title}" published in "${course.title}"`,
+          }),
+        ),
+      );
+    }
+  }
+
   revalidatePath(`/dashboard/teacher/courses/${courseId}/edit`);
   return lesson;
 }

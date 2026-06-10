@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { ProfileDropdown } from "@/features/auth/components/profile-dropdown";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { AuthSessionProvider } from "@/features/auth/components/session-provider";
 import { ROUTES } from "@/features/auth/utils/routes";
 import { redirect } from "next/navigation";
@@ -20,12 +21,15 @@ async function ProtectedHeader() {
       isProtected
       userRole={session.user.role}
       userArea={
-        <ProfileDropdown
-          name={session.user.name}
-          email={session.user.email}
-          role={session.user.role}
-          image={session.user.image}
-        />
+        <>
+          <NotificationBell />
+          <ProfileDropdown
+            name={session.user.name}
+            email={session.user.email}
+            role={session.user.role}
+            image={session.user.image}
+          />
+        </>
       }
     />
   );
