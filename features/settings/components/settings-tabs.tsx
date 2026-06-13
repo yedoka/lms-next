@@ -11,6 +11,7 @@ import Divider from "@mui/material/Divider";
 import { ProfileSettingsForm } from "./profile-settings-form";
 import { PasswordSettingsForm } from "./password-settings-form";
 import { AppearanceSettings } from "./appearance-settings";
+import { RequestRoleCard } from "./request-role-card";
 
 interface SettingsTabsProps {
   user: {
@@ -18,15 +19,11 @@ interface SettingsTabsProps {
     email: string | null;
     image: string | null;
   };
+  canRequestRole?: boolean;
+  hasPendingRequest?: boolean;
 }
 
-const TABS = [
-  { value: "profile", label: "Profile" },
-  { value: "security", label: "Security" },
-  { value: "appearance", label: "Appearance" },
-] as const;
-
-type TabValue = (typeof TABS)[number]["value"];
+type TabValue = "profile" | "security" | "appearance" | "access";
 
 const SECTION_LABELS: Record<TabValue, { title: string; description: string }> = {
   profile: {
@@ -41,11 +38,28 @@ const SECTION_LABELS: Record<TabValue, { title: string; description: string }> =
     title: "Appearance",
     description: "Personalise how the app looks.",
   },
+  access: {
+    title: "Access",
+    description: "Request additional permissions on the platform.",
+  },
 };
 
-export function SettingsTabs({ user }: SettingsTabsProps) {
+export function SettingsTabs({
+  user,
+  canRequestRole = false,
+  hasPendingRequest = false,
+}: SettingsTabsProps) {
   const [activeTab, setActiveTab] = useState<TabValue>("profile");
   const section = SECTION_LABELS[activeTab];
+
+  const tabs: { value: TabValue; label: string }[] = [
+    { value: "profile", label: "Profile" },
+    { value: "security", label: "Security" },
+    { value: "appearance", label: "Appearance" },
+    ...(canRequestRole
+      ? [{ value: "access" as TabValue, label: "Access" }]
+      : []),
+  ];
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -54,7 +68,7 @@ export function SettingsTabs({ user }: SettingsTabsProps) {
         onChange={(_, v) => setActiveTab(v as TabValue)}
         sx={{ borderBottom: 1, borderColor: "divider" }}
       >
-        {TABS.map(({ value, label }) => (
+        {tabs.map(({ value, label }) => (
           <Tab key={value} value={value} label={label} sx={{ textTransform: "none", fontWeight: 500 }} />
         ))}
       </Tabs>
@@ -72,6 +86,9 @@ export function SettingsTabs({ user }: SettingsTabsProps) {
           {activeTab === "profile" && <ProfileSettingsForm initialData={user} />}
           {activeTab === "security" && <PasswordSettingsForm />}
           {activeTab === "appearance" && <AppearanceSettings />}
+          {activeTab === "access" && (
+            <RequestRoleCard hasPending={hasPendingRequest} />
+          )}
         </CardContent>
       </Card>
     </Box>

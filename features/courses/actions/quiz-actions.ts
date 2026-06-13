@@ -14,6 +14,7 @@ import {
   SubmitQuizData,
 } from "../schemas/quiz";
 import { validateCourseOwnership } from "../utils/auth";
+import { publishAdminEvent } from "@/shared/lib/publish-admin-event";
 
 export async function createQuizAction(
   courseId: string,
@@ -235,6 +236,11 @@ export async function submitQuizAction(
     parsed.data.quizId,
     parsed.data.answers,
   );
+
+  await publishAdminEvent({
+    kind: "quiz_completed",
+    label: `${session.user.name ?? "A student"} completed "${quiz.title}" — ${attempt.score}% (${attempt.passed ? "passed" : "failed"})`,
+  });
 
   revalidatePath(`/dashboard`);
   revalidatePath(`/courses/${courseId}/lessons/${lessonId}`);

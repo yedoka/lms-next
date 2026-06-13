@@ -5,11 +5,15 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { ThemeProvider } from "next-themes";
 import { MuiThemeProvider } from "@/shared/components/mui-theme-provider";
 import { inter } from "@/shared/lib/mui-theme";
+import { getSettings } from "@/features/admin/services/settings-service";
 
-export const metadata: Metadata = {
-  title: "LMS",
-  description: "Learning Management System",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings();
+  return {
+    title: settings.platformName,
+    description: "Learning Management System",
+  };
+}
 
 export default async function RootLayout({
   children,

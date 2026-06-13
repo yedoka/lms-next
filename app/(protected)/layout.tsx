@@ -2,10 +2,13 @@ import { auth } from "@/auth";
 import { ProfileDropdown } from "@/features/auth/components/profile-dropdown";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { AuthSessionProvider } from "@/features/auth/components/session-provider";
+import { SessionGuard } from "@/features/auth/components/session-guard";
 import { ROUTES } from "@/features/auth/utils/routes";
+import { ROLE } from "@/features/auth/utils/roles";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { AppNavigation } from "@/shared/components/app-navigation";
+import { getSettings } from "@/features/admin/services/settings-service";
 import Box from "@mui/material/Box";
 import Skeleton from "@mui/material/Skeleton";
 
@@ -16,10 +19,19 @@ async function ProtectedHeader() {
     redirect(ROUTES.AUTH_LOGIN);
   }
 
+  const settings = await getSettings();
+
+  if (settings.maintenanceMode && session.user.role !== ROLE.ADMIN) {
+    redirect("/maintenance");
+  }
+
   return (
+    <>
+    <SessionGuard role={session.user.role} />
     <AppNavigation
       isProtected
       userRole={session.user.role}
+      platformName={settings.platformName}
       userArea={
         <>
           <NotificationBell />
@@ -32,6 +44,7 @@ async function ProtectedHeader() {
         </>
       }
     />
+    </>
   );
 }
 

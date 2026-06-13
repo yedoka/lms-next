@@ -37,6 +37,7 @@
     "@mui/material": "^6",
     "@mui/material-nextjs": "^9.0.1",
     "@mui/system": "^9.0.1",
+    "@mui/x-charts": "^9.5.0",
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
     "@tiptap/pm": "^3.22.4",

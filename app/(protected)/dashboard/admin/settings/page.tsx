@@ -1,45 +1,32 @@
+import { withRole } from "@/features/auth/utils/with-role";
+import { ROLE } from "@/features/auth/utils/roles";
 import { PageContainer, PageHeader } from "@/shared/components/ui";
+import { getSettings } from "@/features/admin/services/settings-service";
+import { SystemSettingsForm } from "@/features/admin/components/SystemSettingsForm";
+import { BroadcastDialog } from "@/features/admin/components/BroadcastDialog";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  await withRole(ROLE.ADMIN);
+
+  const settings = await getSettings();
+
   return (
     <PageContainer>
       <PageHeader
         title="System Settings"
         description="Configure platform-wide parameters and features."
       />
-
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        <BroadcastDialog />
+      </Box>
       <Card>
         <CardContent sx={{ p: 3 }}>
-          <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 0.5 }}>
-            Configuration
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-            Global site settings and preferences.
-          </Typography>
-
-          <Box
-            sx={{
-              display: "flex",
-              height: 200,
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: 2,
-              border: "1px dashed",
-              borderColor: "divider",
-              bgcolor: "action.hover",
-            }}
-          >
-            <Typography variant="body2" color="text.secondary">
-              System configuration module is under development.
-            </Typography>
-          </Box>
+          <SystemSettingsForm defaultValues={settings} />
         </CardContent>
       </Card>
     </PageContainer>
   );
 }
-

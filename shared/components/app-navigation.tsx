@@ -23,12 +23,14 @@ interface AppNavigationProps {
   userRole?: UserRole;
   isProtected?: boolean;
   userArea?: React.ReactNode;
+  platformName?: string;
 }
 
 export function AppNavigation({
   userRole,
   isProtected,
   userArea,
+  platformName,
 }: AppNavigationProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -95,7 +97,7 @@ export function AppNavigation({
         >
           <GraduationCap size={24} />
           <Typography variant="subtitle1" fontWeight={700} color="primary">
-            LMS Platform
+            {platformName ?? "LMS Platform"}
           </Typography>
         </Box>
       </Box>
@@ -245,7 +247,7 @@ export function AppNavigation({
               color="primary"
               sx={{ display: { lg: "none" } }}
             >
-              LMS
+              {platformName ?? "LMS"}
             </Typography>
           </Box>
 

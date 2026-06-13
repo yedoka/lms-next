@@ -4,11 +4,18 @@ import prisma from "@/shared/db/prisma";
 import { SignupSchema } from "@/features/auth/schemas/signup";
 import argon2 from "argon2";
 import type { ActionResult, SignupActionInput } from "@/features/auth/actions/client-actions";
+import { getSettings } from "@/features/admin/services/settings-service";
+import { publishAdminEvent } from "@/shared/lib/publish-admin-event";
 
 export const executeSignup = async (
   input: SignupActionInput
 ): Promise<ActionResult> => {
   try {
+    const { allowSelfRegistration } = await getSettings();
+    if (!allowSelfRegistration) {
+      return { ok: false, message: "Registration is currently disabled" };
+    }
+
     const data = SignupSchema.safeParse(input);
     if (!data.success) {
       const message = data.error.issues[0]?.message ?? "Invalid input data";
@@ -27,6 +34,11 @@ export const executeSignup = async (
 
     await prisma.user.create({
       data: { email, name, password: hashedPassword, role },
+    });
+
+    await publishAdminEvent({
+      kind: "signup",
+      label: `${name || email} signed up as ${role}`,
     });
 
     return { ok: true };

@@ -1,14 +1,14 @@
 import { ROUTES } from "@/features/auth/utils/routes";
 import { ROLE } from "@/features/auth/utils/roles";
-import { 
-  LayoutDashboard, 
-  BookOpen, 
-  Settings, 
-  Users, 
+import {
+  LayoutDashboard,
+  BookOpen,
+  Users,
   GraduationCap,
   PlusCircle,
   Library,
-  ShieldCheck
+  ShieldCheck,
+  UserCog,
 } from "lucide-react";
 import type { UserRole } from "@prisma/client";
 import type { LucideIcon } from "lucide-react";
@@ -87,6 +87,16 @@ export const DASHBOARD_NAV: Record<UserRole, NavSection[]> = {
           title: "User Management",
           href: ROUTES.DASHBOARD_ADMIN_USERS,
           icon: Users,
+        },
+        {
+          title: "Courses",
+          href: ROUTES.DASHBOARD_ADMIN_COURSES,
+          icon: BookOpen,
+        },
+        {
+          title: "Role Requests",
+          href: ROUTES.DASHBOARD_ADMIN_REQUESTS,
+          icon: UserCog,
         },
         {
           title: "System Settings",

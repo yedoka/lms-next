@@ -33,7 +33,7 @@ export function AppearanceSettings() {
           Theme
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          Choose how the app looks for you. "System" follows your OS preference.
+          Choose how the app looks for you. &quot;System&quot; follows your OS preference.
         </Typography>
       </Box>
 

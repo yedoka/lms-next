@@ -14,6 +14,8 @@ export const ROUTES = {
     `/dashboard/teacher/courses/${id}/edit`,
   DASHBOARD_ADMIN: "/dashboard/admin",
   DASHBOARD_ADMIN_USERS: "/dashboard/admin/users",
+  DASHBOARD_ADMIN_COURSES: "/dashboard/admin/courses",
+  DASHBOARD_ADMIN_REQUESTS: "/dashboard/admin/requests",
   DASHBOARD_ADMIN_SETTINGS: "/dashboard/admin/settings",
   DASHBOARD_SETTINGS: "/settings",
   AUTH_LOGIN: "/auth/login",

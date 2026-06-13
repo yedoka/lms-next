@@ -9,6 +9,7 @@ import { courseSchema, CourseFormData } from "@/features/courses/schemas/schema"
 import { v2 as cloudinary } from "cloudinary";
 import { validateCourseOwnership } from "../utils/auth";
 import { publishNotification } from "@/shared/lib/publish-notification";
+import { publishAdminEvent } from "@/shared/lib/publish-admin-event";
 
 cloudinary.config({
   secure: true,
@@ -139,6 +140,10 @@ export async function enrollInCourse(courseId: string) {
       userId: session.user.id,
       type: "ENROLLMENT",
       message: `You have successfully enrolled in "${course.title}"`,
+    });
+    await publishAdminEvent({
+      kind: "enrollment",
+      label: `${session.user.name ?? "A student"} enrolled in "${course.title}"`,
     });
   }
 
