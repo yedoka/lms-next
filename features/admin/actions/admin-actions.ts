@@ -47,7 +47,10 @@ export async function updateUserRole(userId: string, newRole: string) {
   revalidatePath("/dashboard/admin/users");
 }
 
-export async function toggleCoursePublished(courseId: string, isPublished: boolean) {
+export async function toggleCoursePublished(
+  courseId: string,
+  isPublished: boolean,
+) {
   await requireAdmin();
 
   const parsed = coursePublishSchema.safeParse({ courseId, isPublished });
@@ -75,7 +78,8 @@ export async function updateUser(userId: string, name: string, email: string) {
   await requireAdmin();
 
   const parsed = userUpdateSchema.safeParse({ userId, name, email });
-  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Invalid data");
+  if (!parsed.success)
+    throw new Error(parsed.error.issues[0]?.message ?? "Invalid data");
 
   const existing = await prisma.user.findFirst({
     where: { email: parsed.data.email, NOT: { id: userId } },
@@ -95,7 +99,8 @@ export async function deleteUser(userId: string) {
   const session = await requireAdmin();
 
   if (!userId) throw new Error("Invalid user id");
-  if (userId === session.user.id) throw new Error("You cannot delete your own account");
+  if (userId === session.user.id)
+    throw new Error("You cannot delete your own account");
 
   await prisma.$transaction([
     // QuizOverride.updatedBy is nullable — clear it
@@ -152,7 +157,8 @@ export async function broadcastAnnouncement(data: BroadcastData) {
   if (!parsed.success) throw new Error("Invalid announcement data");
 
   const recipients = await prisma.user.findMany({
-    where: parsed.data.targetRole === "ALL" ? {} : { role: parsed.data.targetRole },
+    where:
+      parsed.data.targetRole === "ALL" ? {} : { role: parsed.data.targetRole },
     select: { id: true },
   });
 
@@ -182,6 +188,6 @@ export async function saveSystemSettings(data: SystemSettingsData) {
 
   await settingsService.updateSettings(parsed.data);
 
-  revalidateTag(SYSTEM_SETTINGS_TAG);
+  revalidateTag(SYSTEM_SETTINGS_TAG, "max");
   revalidatePath("/dashboard/admin/settings");
 }
