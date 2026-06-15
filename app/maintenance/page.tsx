@@ -39,9 +39,11 @@ export default async function MaintenancePage() {
         back shortly.
       </Typography>
 
-      <Button component={Link} href="/auth/login" variant="outlined" sx={{ mt: 2 }}>
-        Admin login
-      </Button>
+      <Link href="/auth/login">
+        <Button variant="outlined" sx={{ mt: 2 }}>
+          Admin login
+        </Button>
+      </Link>
     </Box>
   );
 }
