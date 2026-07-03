@@ -35,7 +35,7 @@ export default async function MaintenancePage() {
         Under Maintenance
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 420 }}>
-        {platformName} is temporarily down for scheduled maintenance. We'll be
+        {platformName} is temporarily down for scheduled maintenance. We&apos;ll be
         back shortly.
       </Typography>
 

@@ -2,10 +2,11 @@
 
 import { signIn } from "next-auth/react";
 import { SIGNUP_ROLES } from "@/features/auth/utils/roles";
-import { executeSignup } from "@/features/auth/actions/server-actions";
+import { executeSignup, executePasswordResetRequest, executePasswordReset } from "@/features/auth/actions/server-actions";
 
 type ActionSuccess = {
   ok: true;
+  message?: string;
 };
 
 type ActionFailure = {
@@ -91,5 +92,26 @@ export const autoSignInAfterSignup = async (
       ok: false,
       message: "Account created. Please login.",
     };
+  }
+};
+
+export const submitPasswordResetRequest = async (
+  email: string,
+): Promise<ActionResult> => {
+  try {
+    return await executePasswordResetRequest(email);
+  } catch {
+    return { ok: false, message: "Network error during password reset request" };
+  }
+};
+
+export const submitPasswordReset = async (
+  token: string,
+  input: unknown,
+): Promise<ActionResult> => {
+  try {
+    return await executePasswordReset(token, input);
+  } catch {
+    return { ok: false, message: "Network error during password reset" };
   }
 };
