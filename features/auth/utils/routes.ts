@@ -28,11 +28,13 @@ export const ROUTES = {
 
 export const PROTECTED_ROUTES: ReadonlyArray<string> = [ROUTES.HOME, ROUTES.DASHBOARD_SETTINGS];
 export const PROTECTED_ROUTE_PREFIXES: ReadonlyArray<string> = [ROUTES.DASHBOARD];
+// Routes that redirect an already-logged-in user to HOME. AUTH_RESET_PASSWORD
+// is intentionally excluded: it carries a one-time token in the query string
+// that must remain usable even if the user's session is still active.
 export const PUBLIC_AUTH_ROUTES: ReadonlyArray<string> = [
   ROUTES.AUTH_LOGIN,
   ROUTES.AUTH_SIGNUP,
   ROUTES.AUTH_FORGOT_PASSWORD,
-  ROUTES.AUTH_RESET_PASSWORD,
 ];
 
 export const matchesRoutePrefix = (path: string, prefix: string) =>

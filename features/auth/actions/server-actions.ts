@@ -7,9 +7,8 @@ import type { ActionResult, SignupActionInput } from "@/features/auth/actions/cl
 import { getSettings } from "@/features/admin/services/settings-service";
 import { publishAdminEvent } from "@/shared/lib/publish-admin-event";
 import { ForgotPasswordSchema, ResetPasswordSchema } from "@/features/auth/schemas/reset-password";
-import { createPasswordResetToken, getPasswordResetTokenByToken, deletePasswordResetToken } from "@/features/auth/services/password-reset-service";
+import { createPasswordResetToken, getPasswordResetTokenByToken, deletePasswordResetToken, checkPasswordResetRateLimit } from "@/features/auth/services/password-reset-service";
 import { sendPasswordResetEmail } from "@/features/auth/services/email-service";
-import { headers } from "next/headers";
 
 export const executeSignup = async (
   input: SignupActionInput
@@ -61,6 +60,14 @@ export const executePasswordResetRequest = async (
       return { ok: false, message: "Invalid email address" };
     }
 
+    const withinRateLimit = await checkPasswordResetRateLimit(validated.data.email);
+    if (!withinRateLimit) {
+      return {
+        ok: true,
+        message: "If an account exists with that email, a password reset link has been sent.",
+      };
+    }
+
     const user = await prisma.user.findUnique({
       where: { email: validated.data.email },
     });
@@ -77,20 +84,10 @@ export const executePasswordResetRequest = async (
     // Generate token record
     const tokenRecord = await createPasswordResetToken(user.email);
 
-    // Resolve base URL dynamically from request headers
-    let baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    try {
-      const headersList = headers();
-      const resolvedHeaders = headersList instanceof Promise ? await headersList : headersList;
-      const host = resolvedHeaders.get("host");
-      if (host) {
-        const protocol = host.startsWith("localhost") ? "http" : "https";
-        baseUrl = `${protocol}://${host}`;
-      }
-    } catch {
-      // Graceful fallback for CLI/script testing where request headers are unavailable
-    }
-
+    // Base URL must come from a trusted, server-controlled env var, never
+    // from the request's Host header (which is attacker-controllable and
+    // would let a spoofed Host leak the reset token to an attacker domain).
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const resetLink = `${baseUrl}/auth/reset-password?token=${tokenRecord.token}`;
 
     // Send email (logs to console in dev mode)
