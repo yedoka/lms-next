@@ -5,36 +5,29 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import FormControl from "@mui/material/FormControl";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormHelperText from "@mui/material/FormHelperText";
-import FormLabel from "@mui/material/FormLabel";
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import CircularProgress from "@mui/material/CircularProgress";
-import Link from "next/link";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import z from "zod";
+import { ResetPasswordSchema } from "@/features/auth/schemas/reset-password";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SignupSchema } from "@/features/auth/schemas/signup";
-import z from "zod";
-import { useRouter } from "next/navigation";
 import { ROUTES } from "@/features/auth/utils/routes";
-import { ROLE } from "@/features/auth/utils/roles";
-import {
-  autoSignInAfterSignup,
-  submitSignup,
-} from "@/features/auth/actions/client-actions";
-import { User, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { submitPasswordReset } from "@/features/auth/actions/client-actions";
+import { Lock, Eye, EyeOff } from "lucide-react";
 
-type SignupInput = z.infer<typeof SignupSchema>;
+type ResetInputValues = z.input<typeof ResetPasswordSchema>;
 
-export function SignupForm() {
+interface ResetPasswordFormProps {
+  token: string;
+}
+
+export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -44,37 +37,27 @@ export function SignupForm() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<SignupInput>({
-    resolver: zodResolver(SignupSchema),
+  } = useForm<ResetInputValues>({
+    resolver: zodResolver(ResetPasswordSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      role: undefined,
       password: "",
       passwordConfirmation: "",
     },
     mode: "onSubmit",
   });
 
-  const onSubmit = async (data: SignupInput) => {
-    const signupResult = await submitSignup(data);
+  const onSubmit = async (data: ResetInputValues) => {
+    const result = await submitPasswordReset(token, {
+      password: data.password,
+      passwordConfirmation: data.passwordConfirmation,
+    });
 
-    if (!signupResult.ok) {
-      toast.error(signupResult.message);
+    if (!result.ok) {
+      toast.error(result.message);
       return;
     }
 
-    const signInResult = await autoSignInAfterSignup(data.email, data.password);
-
-    if (signInResult.ok) {
-      toast.success("Account created. Welcome!");
-      reset();
-      router.push(ROUTES.HOME);
-      router.refresh();
-      return;
-    }
-
-    toast.success(signInResult.message);
+    toast.success("Password reset successful! Please log in.");
     reset();
     router.push(ROUTES.AUTH_LOGIN);
   };
@@ -83,78 +66,15 @@ export function SignupForm() {
     <Card variant="outlined" sx={{ borderRadius: 2, borderColor: "divider" }}>
       <CardContent sx={{ p: 4 }}>
         <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>
-          Create an account
+          Reset Password
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-          Enter your information below to create your account
+          Enter and confirm your new password below.
         </Typography>
 
         <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={3}>
           <TextField
-            label="Full Name"
-            placeholder="John Doe"
-            size="medium"
-            fullWidth
-            {...register("name")}
-            error={!!errors.name}
-            helperText={errors.name?.message}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <User size={18} style={{ opacity: 0.6 }} />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-
-          <TextField
-            label="Email Address"
-            type="email"
-            placeholder="name@example.com"
-            size="medium"
-            fullWidth
-            {...register("email")}
-            error={!!errors.email}
-            helperText={errors.email?.message}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Mail size={18} style={{ opacity: 0.6 }} />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-
-          <FormControl error={!!errors.role} component="fieldset">
-            <FormLabel
-              component="legend"
-              sx={{ typography: "body2", fontWeight: 500, mb: 1, color: "text.primary" }}
-            >
-              I am signing up as
-            </FormLabel>
-            <RadioGroup row>
-              <FormControlLabel
-                value={ROLE.STUDENT}
-                control={<Radio size="medium" {...register("role")} />}
-                label={<Typography variant="body2">Student</Typography>}
-              />
-              <FormControlLabel
-                value={ROLE.TEACHER}
-                control={<Radio size="medium" {...register("role")} />}
-                label={<Typography variant="body2">Teacher</Typography>}
-              />
-            </RadioGroup>
-            {errors.role && (
-              <FormHelperText>{errors.role.message}</FormHelperText>
-            )}
-          </FormControl>
-
-          <TextField
-            label="Password"
+            label="New Password"
             type={showPassword ? "text" : "password"}
             placeholder="••••••••"
             size="medium"
@@ -189,7 +109,7 @@ export function SignupForm() {
           />
 
           <TextField
-            label="Confirm Password"
+            label="Confirm New Password"
             type={showConfirmPassword ? "text" : "password"}
             placeholder="••••••••"
             size="medium"
@@ -230,25 +150,8 @@ export function SignupForm() {
             disabled={isSubmitting}
             startIcon={isSubmitting && <CircularProgress size={16} color="inherit" />}
           >
-            {isSubmitting ? "Creating Account..." : "Create Account"}
+            {isSubmitting ? "Resetting Password..." : "Reset Password"}
           </Button>
-
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
-            Already have an account?{" "}
-            <Typography
-              component={Link}
-              href={ROUTES.AUTH_LOGIN}
-              variant="body2"
-              color="primary"
-              sx={{
-                textDecoration: "none",
-                fontWeight: 600,
-                "&:hover": { textDecoration: "underline" },
-              }}
-            >
-              Login
-            </Typography>
-          </Typography>
         </Stack>
       </CardContent>
     </Card>

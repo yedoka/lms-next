@@ -20,6 +20,8 @@ export const ROUTES = {
   DASHBOARD_SETTINGS: "/settings",
   AUTH_LOGIN: "/auth/login",
   AUTH_SIGNUP: "/auth/signup",
+  AUTH_FORGOT_PASSWORD: "/auth/forgot-password",
+  AUTH_RESET_PASSWORD: "/auth/reset-password",
   API_AUTH_SIGNUP: "/api/auth/signup",
   FORBIDDEN: "/forbidden",
 } as const;
@@ -29,6 +31,8 @@ export const PROTECTED_ROUTE_PREFIXES: ReadonlyArray<string> = [ROUTES.DASHBOARD
 export const PUBLIC_AUTH_ROUTES: ReadonlyArray<string> = [
   ROUTES.AUTH_LOGIN,
   ROUTES.AUTH_SIGNUP,
+  ROUTES.AUTH_FORGOT_PASSWORD,
+  ROUTES.AUTH_RESET_PASSWORD,
 ];
 
 export const matchesRoutePrefix = (path: string, prefix: string) =>
