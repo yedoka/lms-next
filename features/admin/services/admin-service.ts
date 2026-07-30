@@ -86,11 +86,25 @@ export interface PassRateStats {
 }
 
 export async function getQuizPassRate(): Promise<PassRateStats> {
-  const [total, passed] = await Promise.all([
-    prisma.quizAttempt.count({ where: { submittedAt: { not: null } } }),
-    prisma.quizAttempt.count({ where: { submittedAt: { not: null }, passed: true } }),
-  ]);
+  // `QuizAttempt.passed` holds the auto-graded verdict and is not updated when a
+  // teacher overrides the score, so the pass/fail decision is recomputed here
+  // from the effective score. Done in SQL to keep it a single aggregate.
+  const [row] = await prisma.$queryRaw<{ total: bigint; passed: bigint }[]>`
+    SELECT
+      COUNT(*) AS total,
+      COUNT(*) FILTER (
+        WHERE COALESCE(o."newScore", a."score") >= q."passingScore"
+      ) AS passed
+    FROM "QuizAttempt" a
+    JOIN "Quiz" q ON q."id" = a."quizId"
+    LEFT JOIN "QuizOverride" o ON o."quizAttemptId" = a."id"
+    WHERE a."submittedAt" IS NOT NULL
+  `;
+
+  const total = Number(row?.total ?? 0);
+  const passed = Number(row?.passed ?? 0);
   const rate = total === 0 ? 0 : Math.round((passed / total) * 100);
+
   return { passed, total, rate };
 }
 

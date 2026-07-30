@@ -1,4 +1,5 @@
 import prisma from "@/shared/db/prisma";
+import { getEffectiveScore } from "@/features/courses/utils/effective-score";
 
 export async function getStudentDashboardData(userId: string) {
   const enrollments = await prisma.enrollment.findMany({
@@ -41,6 +42,7 @@ export async function getStudentDashboardData(userId: string) {
   const attemptRecords = await prisma.quizAttempt.findMany({
     where: { userId },
     include: {
+      override: { select: { newScore: true } },
       quiz: {
         select: { lessonId: true },
       },
@@ -72,7 +74,7 @@ export async function getStudentDashboardData(userId: string) {
     );
     const bestQuizScore =
       courseAttempts.length > 0
-        ? Math.max(...courseAttempts.map((a) => a.score))
+        ? Math.max(...courseAttempts.map(getEffectiveScore))
         : null;
 
     return {

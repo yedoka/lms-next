@@ -8,6 +8,7 @@ import {
 
 export type QuizAttemptWithDetails = Prisma.QuizAttemptGetPayload<{
   include: {
+    override: { select: { newScore: true } };
     quiz: {
       include: {
         lesson: {
@@ -263,6 +264,7 @@ export async function getQuizAttemptById(
       userId, // Ensure the user owns this attempt
     },
     include: {
+      override: { select: { newScore: true } },
       quiz: {
         include: {
           lesson: {

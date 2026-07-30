@@ -3,6 +3,11 @@ import { notFound } from "next/navigation";
 import { ChevronLeft, ChevronRight, FileText, Archive, File } from "lucide-react";
 import { sanitizeHtml } from "@/shared/lib/sanitize";
 import { VideoPlayer } from "@/features/courses/components/video-player";
+import {
+  getBestAttempt,
+  getEffectiveScore,
+  hasPassed,
+} from "@/features/courses/utils/effective-score";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -75,8 +80,9 @@ export async function LessonContent({
         include: {
           attempts: {
             where: { userId },
-            orderBy: { score: "desc" },
-            take: 1,
+            // Every attempt is needed: the best one is decided by effective
+            // score, which the database cannot order by on its own.
+            include: { override: { select: { newScore: true } } },
           },
         },
       },
@@ -257,7 +263,13 @@ export async function LessonContent({
             <SectionCard title="Lesson Quiz">
               <Stack spacing={2}>
                 {lesson.quizzes.map((quiz) => {
-                  const bestAttempt = quiz.attempts[0];
+                  const bestAttempt = getBestAttempt(quiz.attempts);
+                  const bestScore = bestAttempt
+                    ? getEffectiveScore(bestAttempt)
+                    : null;
+                  const passed = bestAttempt
+                    ? hasPassed(bestAttempt, quiz.passingScore)
+                    : false;
                   return (
                     <Box
                       key={quiz.id}
@@ -286,10 +298,10 @@ export async function LessonContent({
                               variant="caption"
                               fontWeight={600}
                               sx={{
-                                color: bestAttempt.passed ? "success.main" : "error.main",
+                                color: passed ? "success.main" : "error.main",
                               }}
                             >
-                              {bestAttempt.score}%
+                              {bestScore}%
                             </Typography>
                           </Typography>
                         )}

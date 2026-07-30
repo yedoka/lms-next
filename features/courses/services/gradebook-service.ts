@@ -1,4 +1,9 @@
 import prisma from "@/shared/db/prisma";
+import {
+  getBestAttempt,
+  getEffectiveScore,
+  hasPassed,
+} from "@/features/courses/utils/effective-score";
 
 export interface GradebookEntry {
   student: {
@@ -75,28 +80,15 @@ export async function getCourseGradebook(courseId: string) {
     const studentQuizzes = quizzes.map((quiz) => {
       const attempts = attemptsMap.get(`${student.id}-${quiz.id}`) || [];
 
-      // Calculate effective score for each attempt to find the best one
-      const attemptsWithEffectiveScore = attempts.map((a) => ({
-        ...a,
-        effectiveScore: a.override ? a.override.newScore : a.score,
-      }));
-
-      // Sort by effective score desc
-      attemptsWithEffectiveScore.sort(
-        (a, b) => b.effectiveScore - a.effectiveScore,
-      );
-
-      const bestAttempt = attemptsWithEffectiveScore[0] || null;
+      const bestAttempt = getBestAttempt(attempts);
 
       return {
         quizId: quiz.id,
         quizTitle: quiz.title,
-        bestScore: bestAttempt ? bestAttempt.effectiveScore : null,
+        bestScore: bestAttempt ? getEffectiveScore(bestAttempt) : null,
         bestAttemptId: bestAttempt?.id || null,
         // Recompute passed status based on effective score
-        passed: bestAttempt
-          ? bestAttempt.effectiveScore >= quiz.passingScore
-          : null,
+        passed: bestAttempt ? hasPassed(bestAttempt, quiz.passingScore) : null,
         isOverridden: !!bestAttempt?.override,
       };
     });
