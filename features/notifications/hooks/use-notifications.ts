@@ -8,19 +8,19 @@ import {
 } from "../actions/notification-actions";
 import type { Notification } from "@prisma/client";
 
-export function useNotifications() {
+export function useNotifications(limit?: number) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const unreadCount = notifications.filter((n) => !n.readAt).length;
 
   const load = useCallback(async () => {
     try {
-      const data = await getNotificationsAction();
+      const data = await getNotificationsAction(limit);
       setNotifications(data);
     } catch {
       // Not authenticated or fetch error — leave empty
     }
-  }, []);
+  }, [limit]);
 
   const markAllRead = useCallback(async () => {
     await markAllAsReadAction();

@@ -8,6 +8,7 @@ export const ROUTES = {
   DASHBOARD_STUDENT: "/dashboard/student",
   DASHBOARD_STUDENT_COURSES: "/dashboard/student/courses",
   DASHBOARD_STUDENT_GRADES: "/dashboard/student/grades",
+  DASHBOARD_STUDENT_NOTIFICATIONS: "/dashboard/student/notifications",
   DASHBOARD_TEACHER: "/dashboard/teacher",
   DASHBOARD_TEACHER_COURSES: "/dashboard/teacher/courses",
   DASHBOARD_TEACHER_COURSE_CREATE: "/dashboard/teacher/courses/create",

@@ -6,20 +6,14 @@ import { Bell } from "lucide-react";
 import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import Popover from "@mui/material/Popover";
 import Typography from "@mui/material/Typography";
 import type { Notification } from "@prisma/client";
-
-const TYPE_LABELS: Record<string, string> = {
-  GRADE: "Grade updated",
-  LESSON: "New lesson",
-  ENROLLMENT: "Enrollment confirmed",
-};
+import { notificationTypeLabel } from "../utils/type-labels";
 
 function NotificationItem({ notification }: { notification: Notification }) {
-  const label = TYPE_LABELS[notification.type] ?? notification.type;
+  const label = notificationTypeLabel(notification.type);
   const isUnread = !notification.readAt;
 
   return (
