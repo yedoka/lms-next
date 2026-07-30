@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Box from "@mui/material/Box";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
@@ -24,6 +24,13 @@ export function EnrolledCourseFilters() {
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const debouncedQuery = useDebounce(query, 500);
 
+  // Tracks the last `q` value *this component* wrote to the URL, so the
+  // resync effect below can tell "the URL changed because our own debounced
+  // write landed" (ref matches, ignore) apart from "the URL changed for some
+  // other reason" (ref stale, e.g. browser back/forward or a Clear filters
+  // link — sync `query` to match).
+  const lastWrittenQuery = useRef(searchParams.get("q") ?? "");
+
   const write = (mutate: (params: URLSearchParams) => void) => {
     const params = new URLSearchParams(window.location.search);
     mutate(params);
@@ -40,6 +47,7 @@ export function EnrolledCourseFilters() {
     if (debouncedQuery === current) {
       return;
     }
+    lastWrittenQuery.current = debouncedQuery;
     write((params) => {
       if (debouncedQuery) {
         params.set("q", debouncedQuery);
@@ -51,6 +59,20 @@ export function EnrolledCourseFilters() {
     // that never change identity across renders of this component.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQuery, pathname, router]);
+
+  // Resync local `query` when `q` changes in the URL for a reason other than
+  // our own write above (back/forward navigation, a "Clear filters" link,
+  // etc.). If the new URL value matches what we last wrote ourselves, it's
+  // just our own write echoing back through useSearchParams — skip it so we
+  // don't clobber any text the user has typed since.
+  useEffect(() => {
+    const urlQuery = searchParams.get("q") ?? "";
+    if (urlQuery === lastWrittenQuery.current) {
+      return;
+    }
+    lastWrittenQuery.current = urlQuery;
+    setQuery(urlQuery);
+  }, [searchParams]);
 
   const setParam = (key: string, value: string, clearWhen: string) =>
     write((params) => {
