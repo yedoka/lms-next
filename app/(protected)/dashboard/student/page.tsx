@@ -34,6 +34,10 @@ export default async function StudentDashboardPage() {
     getStudentActivityFeed(session.user.id),
   ]);
 
+  // The full, filterable list lives at /dashboard/student/courses; the dashboard
+  // only previews the most recently active courses.
+  const PREVIEW_COURSE_COUNT = 4;
+
   const enrolledCount = dashboardData.length;
 
   const totalCompletedLessons = dashboardData.reduce(
@@ -107,9 +111,28 @@ export default async function StudentDashboardPage() {
       </Box>
 
       <Box>
-        <Typography variant="h5" component="h2" sx={{ mb: 3 }}>
-          Your Courses
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 3,
+            gap: 2,
+          }}
+        >
+          <Typography variant="h5" component="h2">
+            Your Courses
+          </Typography>
+          {dashboardData.length > PREVIEW_COURSE_COUNT && (
+            <Button
+              href={ROUTES.DASHBOARD_STUDENT_COURSES}
+              size="small"
+              sx={{ textTransform: "none", flexShrink: 0 }}
+            >
+              View all {dashboardData.length} →
+            </Button>
+          )}
+        </Box>
         {dashboardData.length > 0 ? (
           <Box
             sx={{
@@ -123,9 +146,11 @@ export default async function StudentDashboardPage() {
               },
             }}
           >
-            {dashboardData.map((course) => (
-              <EnrolledCourseCard key={course.courseId} {...course} />
-            ))}
+            {dashboardData
+              .slice(0, PREVIEW_COURSE_COUNT)
+              .map((course) => (
+                <EnrolledCourseCard key={course.courseId} {...course} />
+              ))}
           </Box>
         ) : (
           <EmptyState
