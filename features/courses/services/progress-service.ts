@@ -37,7 +37,9 @@ export async function getStudentDashboardData(userId: string) {
     },
   });
 
-  const progressMap = new Set(progressRecords.map((p) => p.lessonId));
+  const progressMap = new Map(
+    progressRecords.map((p) => [p.lessonId, p.completedAt]),
+  );
 
   const attemptRecords = await prisma.quizAttempt.findMany({
     where: { userId },
@@ -77,6 +79,18 @@ export async function getStudentDashboardData(userId: string) {
         ? Math.max(...courseAttempts.map(getEffectiveScore))
         : null;
 
+    // Most recent lesson completion or quiz submission in this course. Drives
+    // which course the dashboard offers to continue.
+    const activityDates = [
+      ...completedLessons.map((l) => progressMap.get(l.id)),
+      ...courseAttempts.map((a) => a.submittedAt),
+    ].filter((date): date is Date => date !== null && date !== undefined);
+
+    const lastActivityAt =
+      activityDates.length > 0
+        ? new Date(Math.max(...activityDates.map((d) => d.getTime())))
+        : null;
+
     return {
       courseId: course.id,
       title: course.title,
@@ -87,7 +101,9 @@ export async function getStudentDashboardData(userId: string) {
       completedCount,
       progressPercentage,
       nextLessonId: nextLesson?.id || null, // If null, all completed or no lessons
+      nextLessonTitle: nextLesson?.title || null,
       bestQuizScore,
+      lastActivityAt,
     };
   });
 }

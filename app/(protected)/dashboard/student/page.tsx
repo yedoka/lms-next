@@ -1,13 +1,23 @@
 import { auth } from "@/auth";
 import { getStudentDashboardData } from "@/features/courses/services/progress-service";
+import {
+  getStudentActivityFeed,
+  getStudentActivityOverTime,
+} from "@/features/courses/services/student-activity-service";
 import { withRole } from "@/features/auth/utils/with-role";
 import { ROLE } from "@/features/auth/utils/roles";
-import { BookOpen, GraduationCap, Clock } from "lucide-react";
+import { BookOpen, GraduationCap, Percent } from "lucide-react";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { ROUTES } from "@/features/auth/utils/routes";
 import { EnrolledCourseCard } from "@/features/courses/components/enrolled-course-card";
+import {
+  ContinueLearningCard,
+  type ContinueLearningTarget,
+} from "@/features/courses/components/continue-learning-card";
+import { StudentActivityChart } from "@/features/courses/components/student-activity-chart";
+import { StudentActivityFeed } from "@/features/courses/components/student-activity-feed";
 import { PageContainer, PageHeader, EmptyState, StatCard } from "@/shared/components/ui";
 
 export default async function StudentDashboardPage() {
@@ -18,7 +28,12 @@ export default async function StudentDashboardPage() {
     return null;
   }
 
-  const dashboardData = await getStudentDashboardData(session.user.id);
+  const [dashboardData, activityPoints, activityEvents] = await Promise.all([
+    getStudentDashboardData(session.user.id),
+    getStudentActivityOverTime(session.user.id),
+    getStudentActivityFeed(session.user.id),
+  ]);
+
   const enrolledCount = dashboardData.length;
 
   const totalCompletedLessons = dashboardData.reduce(
@@ -26,9 +41,18 @@ export default async function StudentDashboardPage() {
     0,
   );
 
-  const activeCourse = dashboardData.find(
-    (c) => c.progressPercentage > 0 && c.progressPercentage < 100,
+  const scoredCourses = dashboardData.filter(
+    (course) => course.bestQuizScore !== null,
   );
+  const averageScore =
+    scoredCourses.length > 0
+      ? Math.round(
+          scoredCourses.reduce((acc, c) => acc + c.bestQuizScore!, 0) /
+            scoredCourses.length,
+        )
+      : null;
+
+  const continueTarget = pickContinueTarget(dashboardData);
 
   return (
     <PageContainer>
@@ -37,12 +61,17 @@ export default async function StudentDashboardPage() {
         description="Track your progress and continue your learning journey."
       />
 
+      <ContinueLearningCard
+        target={continueTarget}
+        allCoursesComplete={enrolledCount > 0 && continueTarget === null}
+      />
+
       <Box
         sx={{
           display: "grid",
           gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
           gap: 3,
-          mb: 5,
+          mb: 3,
         }}
       >
         <StatCard
@@ -58,11 +87,23 @@ export default async function StudentDashboardPage() {
           color="success"
         />
         <StatCard
-          icon={<Clock />}
-          label="Active Now"
-          value={activeCourse ? activeCourse.title : "None"}
+          icon={<Percent />}
+          label="Average Best Score"
+          value={averageScore !== null ? `${averageScore}%` : "—"}
           color="default"
         />
+      </Box>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", lg: "3fr 2fr" },
+          gap: 3,
+          mb: 5,
+        }}
+      >
+        <StudentActivityChart points={activityPoints} />
+        <StudentActivityFeed events={activityEvents} />
       </Box>
 
       <Box>
@@ -101,4 +142,41 @@ export default async function StudentDashboardPage() {
       </Box>
     </PageContainer>
   );
+}
+
+type DashboardCourse = Awaited<
+  ReturnType<typeof getStudentDashboardData>
+>[number];
+
+/**
+ * The course to offer next: the one with an unfinished lesson that the student
+ * touched most recently. Courses never started rank last but stay eligible, so
+ * a fresh enrollment still gets a resume target.
+ */
+function pickContinueTarget(
+  courses: DashboardCourse[],
+): ContinueLearningTarget | null {
+  const candidates = courses.filter(
+    (course) => course.nextLessonId !== null && course.nextLessonTitle !== null,
+  );
+
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  const [best] = candidates.sort(
+    (a, b) =>
+      (b.lastActivityAt?.getTime() ?? -Infinity) -
+      (a.lastActivityAt?.getTime() ?? -Infinity),
+  );
+
+  return {
+    courseId: best.courseId,
+    courseTitle: best.title,
+    lessonId: best.nextLessonId!,
+    lessonTitle: best.nextLessonTitle!,
+    completedCount: best.completedCount,
+    totalLessons: best.totalLessons,
+    progressPercentage: best.progressPercentage,
+  };
 }
