@@ -186,22 +186,45 @@ export const theme = createTheme({
             WebkitFontSmoothing: "antialiased",
             MozOsxFontSmoothing: "grayscale",
           },
-          "::-webkit-scrollbar": { width: 6, height: 6 },
+          // Chromium and Safari are styled through the legacy pseudo-elements,
+          // which give control over the track, the radius and the hover state.
+          //
+          // Those pseudo-elements are ignored outright by Chromium as soon as
+          // `scrollbar-width` or `scrollbar-color` is set on the same element,
+          // which drops the scrollbar back to the platform default. So the
+          // standard properties are applied only where ::-webkit-scrollbar does
+          // not exist — Firefox — via the @supports guard below.
+          "::-webkit-scrollbar": { width: 10, height: 10 },
           "::-webkit-scrollbar-track": { background: "transparent" },
           "::-webkit-scrollbar-thumb": {
-            backgroundColor: "rgba(0,0,0,0.12)",
-            borderRadius: 3,
+            // The transparent border plus content-box clipping insets the thumb,
+            // so it reads as a floating 4px pill rather than a full-width bar.
+            backgroundColor: "rgba(0,0,0,0.16)",
+            borderRadius: 999,
+            border: "3px solid transparent",
+            backgroundClip: "content-box",
             "&:hover": {
-              backgroundColor: "rgba(0,0,0,0.22)",
+              backgroundColor: "rgba(0,0,0,0.28)",
             },
           },
-          "*": { scrollbarWidth: "thin" as const },
+          "::-webkit-scrollbar-corner": { background: "transparent" },
+          "@supports not selector(::-webkit-scrollbar)": {
+            "*": {
+              scrollbarWidth: "thin" as const,
+              scrollbarColor: "rgba(0,0,0,0.28) transparent",
+            },
+          },
         },
         themeParam.applyStyles("dark", {
           "::-webkit-scrollbar-thumb": {
-            backgroundColor: "rgba(255,255,255,0.15)",
+            backgroundColor: "rgba(255,255,255,0.18)",
             "&:hover": {
-              backgroundColor: "rgba(255,255,255,0.25)",
+              backgroundColor: "rgba(255,255,255,0.32)",
+            },
+          },
+          "@supports not selector(::-webkit-scrollbar)": {
+            "*": {
+              scrollbarColor: "rgba(255,255,255,0.32) transparent",
             },
           },
         }),
