@@ -763,6 +763,424 @@ const COURSES: CourseSeed[] = [
     ],
     quizzes: [],
   },
+  {
+    title: "Testing JavaScript Applications",
+    description:
+      "Unit, integration and end-to-end tests that catch real regressions instead of restating the implementation.",
+    category: "Engineering Practices",
+    thumbnail: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3",
+    isPublished: true,
+    lessons: [
+      {
+        title: "What to Test and What to Skip",
+        description:
+          "Pick assertions by risk, not by coverage percentage.",
+      },
+      {
+        title: "Unit Tests with Vitest",
+        description: "Fast feedback loops, mocking and test doubles.",
+      },
+      {
+        title: "Testing React Components",
+        description:
+          "Query by role, assert on behaviour and avoid implementation details.",
+      },
+      {
+        title: "End-to-End Tests with Playwright",
+        description: "Drive the real app and keep the suite stable.",
+      },
+      {
+        title: "Tests in CI",
+        description: "Parallelism, flake triage and useful failure output.",
+      },
+    ],
+    quizzes: [
+      {
+        title: "Testing Foundations Quiz",
+        lessonIndex: 1,
+        timeLimit: 15,
+        passingScore: 70,
+        isPublished: true,
+        questions: [
+          mc("What makes a test brittle?", 2, [
+            ["It asserts on user-visible behaviour", false],
+            ["It couples to internal implementation details", true],
+            ["It runs in under a second", false],
+            ["It uses a real database", false],
+          ]),
+          mc("Why prefer queries by accessible role in component tests?", 2, [
+            ["They are faster to execute", false],
+            ["They survive refactors and check accessibility at once", true],
+            ["They avoid the need for assertions", false],
+            ["They disable React strict mode", false],
+          ]),
+          tf("100% line coverage proves the code is correct.", 1, false),
+          tf("A flaky test is worse than no test if it is always ignored.", 1, true),
+        ],
+      },
+      {
+        title: "End-to-End Testing Quiz",
+        lessonIndex: 3,
+        timeLimit: 12,
+        passingScore: 65,
+        isPublished: true,
+        questions: [
+          mc("What is the main cost of end-to-end tests?", 2, [
+            ["They cannot test authentication", false],
+            ["They are slow and more prone to flake", true],
+            ["They only run on Windows", false],
+            ["They require a type checker", false],
+          ]),
+          mc("Which is the most reliable wait strategy?", 2, [
+            ["A fixed sleep of two seconds", false],
+            ["Waiting for a specific element or network state", true],
+            ["Retrying the whole suite on failure", false],
+            ["Disabling animations only", false],
+          ]),
+          tf("Every user flow deserves an end-to-end test.", 1, false),
+        ],
+      },
+    ],
+  },
+  {
+    title: "Modern CSS and Layout Systems",
+    description:
+      "Flexbox, Grid, container queries and a design-token workflow that scales past one page.",
+    category: "Web Development",
+    thumbnail: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
+    isPublished: true,
+    lessons: [
+      {
+        title: "The Box Model, Revisited",
+        description: "Sizing, spacing and why margins collapse.",
+      },
+      {
+        title: "Flexbox in Practice",
+        description: "One-dimensional layouts and the alignment properties.",
+      },
+      {
+        title: "CSS Grid",
+        description: "Two-dimensional layouts, template areas and auto-fit.",
+      },
+      {
+        title: "Responsive Without Breakpoint Soup",
+        description: "clamp(), container queries and intrinsic sizing.",
+      },
+      {
+        title: "Design Tokens and Theming",
+        description: "Custom properties, colour schemes and dark mode.",
+      },
+      {
+        title: "Animation and Motion",
+        description: "Transitions, keyframes and respecting reduced motion.",
+      },
+    ],
+    quizzes: [
+      {
+        title: "Layout Systems Quiz",
+        lessonIndex: 2,
+        timeLimit: 15,
+        passingScore: 70,
+        isPublished: true,
+        questions: [
+          mc("Which layout system is designed for two dimensions?", 2, [
+            ["Flexbox", false],
+            ["CSS Grid", true],
+            ["Floats", false],
+            ["Absolute positioning", false],
+          ]),
+          mc("What does `minmax(200px, 1fr)` express in a grid track?", 2, [
+            ["A fixed 200px column", false],
+            ["A column at least 200px wide that grows with free space", true],
+            ["A column capped at 200px", false],
+            ["A column that only applies on mobile", false],
+          ]),
+          tf("`gap` works in both Flexbox and Grid.", 1, true),
+          tf("Container queries respond to the viewport size.", 1, false),
+        ],
+      },
+    ],
+  },
+  {
+    title: "Node.js Backend Fundamentals",
+    description:
+      "The event loop, streams, error handling and the shape of a service that survives production.",
+    category: "Backend",
+    thumbnail: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31",
+    isPublished: true,
+    lessons: [
+      {
+        title: "The Event Loop and Async I/O",
+        description: "Why a single thread can serve thousands of connections.",
+      },
+      {
+        title: "Modules, Packages and the Toolchain",
+        description: "ESM, CommonJS and dependency hygiene.",
+      },
+      {
+        title: "Streams and Backpressure",
+        description: "Process data larger than memory without falling over.",
+      },
+      {
+        title: "Error Handling and Process Lifecycle",
+        description: "Graceful shutdown, unhandled rejections and health checks.",
+      },
+      {
+        title: "Logging, Metrics and Tracing",
+        description: "Make production behaviour observable before you need it.",
+      },
+    ],
+    quizzes: [
+      {
+        title: "Node Runtime Quiz",
+        lessonIndex: 0,
+        timeLimit: 15,
+        passingScore: 70,
+        isPublished: true,
+        questions: [
+          mc("What blocks the Node event loop?", 2, [
+            ["An awaited database query", false],
+            ["A long synchronous CPU-bound loop", true],
+            ["A pending timer", false],
+            ["An open socket", false],
+          ]),
+          mc("What problem does backpressure solve?", 2, [
+            ["A producer overwhelming a slower consumer", true],
+            ["Two servers sharing one port", false],
+            ["Circular imports between modules", false],
+            ["Expired TLS certificates", false],
+          ]),
+          tf("`process.exit()` waits for pending async work to finish.", 1, false),
+          tf("Unhandled promise rejections terminate the process by default in modern Node.", 1, true),
+        ],
+      },
+      {
+        title: "Production Readiness Quiz",
+        lessonIndex: 3,
+        timeLimit: 10,
+        passingScore: 60,
+        isPublished: true,
+        questions: [
+          mc("What should a readiness probe report?", 2, [
+            ["That the process is alive", false],
+            ["That the instance can serve traffic, dependencies included", true],
+            ["The current CPU temperature", false],
+            ["The last deployment author", false],
+          ]),
+          tf("Graceful shutdown should stop accepting new connections before closing the ones in flight.", 1, true),
+          tf("Logging full request bodies at info level is a good default.", 1, false),
+        ],
+      },
+    ],
+  },
+  {
+    title: "Data Structures and Algorithms",
+    description:
+      "Complexity analysis and the handful of structures that answer most interview and production questions.",
+    category: "Programming",
+    thumbnail: "https://images.unsplash.com/photo-1509228468518-180dd4864904",
+    isPublished: true,
+    lessons: [
+      {
+        title: "Big-O Without the Hand-Waving",
+        description: "Counting operations and comparing growth rates.",
+      },
+      {
+        title: "Arrays, Lists and Hash Maps",
+        description: "The trade-offs behind the everyday containers.",
+      },
+      {
+        title: "Stacks, Queues and Heaps",
+        description: "Order of access as a design decision.",
+      },
+      {
+        title: "Trees and Graphs",
+        description: "Traversals, BFS, DFS and where each one wins.",
+      },
+      {
+        title: "Sorting and Searching",
+        description: "Why the standard library sort is usually the right call.",
+      },
+      {
+        title: "Dynamic Programming Basics",
+        description: "Overlapping subproblems and memoisation.",
+      },
+    ],
+    quizzes: [
+      {
+        title: "Complexity Quiz",
+        lessonIndex: 0,
+        timeLimit: 12,
+        passingScore: 70,
+        isPublished: true,
+        questions: [
+          mc("What is the average lookup cost of a hash map?", 2, [
+            ["O(1)", true],
+            ["O(log n)", false],
+            ["O(n)", false],
+            ["O(n log n)", false],
+          ]),
+          mc("Which traversal finds the shortest path in an unweighted graph?", 2, [
+            ["Depth-first search", false],
+            ["Breadth-first search", true],
+            ["Post-order traversal", false],
+            ["Topological sort", false],
+          ]),
+          tf("Binary search requires sorted input.", 1, true),
+          tf("A heap keeps all of its elements fully sorted.", 1, false),
+        ],
+      },
+      {
+        title: "Structures in Practice Quiz",
+        lessonIndex: 3,
+        timeLimit: 15,
+        passingScore: 65,
+        isPublished: true,
+        questions: [
+          mc("Which structure fits an undo history best?", 2, [
+            ["Queue", false],
+            ["Stack", true],
+            ["Min-heap", false],
+            ["Hash set", false],
+          ]),
+          mc("What makes dynamic programming applicable?", 2, [
+            ["The input is always numeric", false],
+            ["Subproblems overlap and have optimal substructure", true],
+            ["The problem is NP-complete", false],
+            ["The recursion depth is shallow", false],
+          ]),
+          tf("Depth-first search can be written iteratively with an explicit stack.", 1, true),
+        ],
+      },
+    ],
+  },
+  {
+    title: "Kubernetes Essentials",
+    description:
+      "Pods, deployments, services and the config you actually need to ship a container to a cluster.",
+    category: "DevOps",
+    thumbnail: "https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9",
+    isPublished: true,
+    lessons: [
+      {
+        title: "Why an Orchestrator",
+        description: "The problems Kubernetes exists to solve.",
+      },
+      {
+        title: "Pods, ReplicaSets and Deployments",
+        description: "The workload objects and how rollouts happen.",
+      },
+      {
+        title: "Services and Ingress",
+        description: "Reaching your workloads from inside and outside the cluster.",
+      },
+      {
+        title: "ConfigMaps, Secrets and Volumes",
+        description: "Separating configuration from images.",
+      },
+      {
+        title: "Resource Limits and Autoscaling",
+        description: "Requests, limits and the horizontal pod autoscaler.",
+      },
+    ],
+    quizzes: [
+      {
+        title: "Kubernetes Objects Quiz",
+        lessonIndex: 1,
+        timeLimit: 15,
+        passingScore: 65,
+        isPublished: true,
+        questions: [
+          mc("What does a Deployment manage?", 2, [
+            ["Persistent volumes", false],
+            ["ReplicaSets, and through them Pods", true],
+            ["Cluster nodes", false],
+            ["Ingress controllers", false],
+          ]),
+          mc("What is a Service for?", 2, [
+            ["Building container images", false],
+            ["A stable network endpoint in front of changing Pods", true],
+            ["Storing secrets encrypted at rest", false],
+            ["Scheduling cron jobs", false],
+          ]),
+          tf("Pods are meant to be long-lived and individually managed.", 1, false),
+          tf("A container without a memory limit can be evicted under node pressure.", 1, true),
+        ],
+      },
+    ],
+  },
+  {
+    title: "Web Application Security",
+    description:
+      "The OWASP classics — how each attack works, and the defence that actually holds.",
+    category: "Security",
+    thumbnail: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b",
+    isPublished: true,
+    lessons: [
+      {
+        title: "Threat Modelling in Thirty Minutes",
+        description: "Assets, entry points and what an attacker gains.",
+      },
+      {
+        title: "Injection and Cross-Site Scripting",
+        description: "Escaping, parameterisation and content security policy.",
+      },
+      {
+        title: "Authentication and Session Handling",
+        description: "Password storage, session fixation and MFA.",
+      },
+      {
+        title: "Authorization Bugs",
+        description: "Broken object-level access control and how to test for it.",
+      },
+      {
+        title: "Dependencies and Supply Chain",
+        description: "Lockfiles, advisories and update discipline.",
+      },
+    ],
+    quizzes: [
+      {
+        title: "Web Security Quiz",
+        lessonIndex: 1,
+        timeLimit: 15,
+        passingScore: 75,
+        isPublished: true,
+        questions: [
+          mc("What prevents SQL injection most reliably?", 2, [
+            ["Escaping quotes by hand", false],
+            ["Parameterised queries", true],
+            ["Rejecting requests over HTTP", false],
+            ["Hiding error messages", false],
+          ]),
+          mc("Which storage is appropriate for user passwords?", 2, [
+            ["Reversible encryption with a shared key", false],
+            ["A slow salted hash such as argon2 or bcrypt", true],
+            ["A fast hash such as MD5", false],
+            ["Plain text behind a firewall", false],
+          ]),
+          tf("A Content Security Policy can limit the impact of a stored XSS bug.", 1, true),
+          tf("Checking the user's role in the UI is enough to enforce authorization.", 1, false),
+        ],
+      },
+      {
+        title: "Access Control Quiz",
+        lessonIndex: 3,
+        timeLimit: 10,
+        passingScore: 70,
+        isPublished: true,
+        questions: [
+          mc("What is broken object-level authorization?", 2, [
+            ["Serving an expired TLS certificate", false],
+            ["Returning a record because it exists, without checking who asked", true],
+            ["Logging a user out too early", false],
+            ["Rate limiting anonymous requests", false],
+          ]),
+          tf("Server actions must re-check permissions even when the UI hides the button.", 1, true),
+          tf("Sequential integer IDs are a vulnerability on their own.", 1, false),
+        ],
+      },
+    ],
+  },
 ];
 
 // Real videos, uploaded to this project's Cloudinary account from `assets/`.
@@ -899,7 +1317,7 @@ async function seedCatalogue(teacherIds: string[]) {
     const teacherId = teacherIds[index % teacherIds.length]!;
     const courseCreatedAt = dateBetween(
       PLATFORM_START,
-      daysAgo(index < 4 ? 150 : 60),
+      daysAgo(index < 4 ? 180 : index < 9 ? 120 : 70),
     );
 
     const course = await prisma.course.create({
@@ -1265,11 +1683,361 @@ async function seedLearningActivity(
   return { notifications, gradedAttempts };
 }
 
+type GradedAttempt = {
+  id: string;
+  userId: string;
+  studentName: string;
+  quiz: CreatedQuiz;
+  score: number;
+  passed: boolean;
+  submittedAt: Date;
+};
+
+/**
+ * One submitted attempt with its answer rows. `accuracy` is the per-question
+ * probability of picking a correct answer, so the resulting score spread stays
+ * believable instead of clustering at 100%.
+ */
+async function createGradedAttempt(
+  student: StudentUser,
+  quiz: CreatedQuiz,
+  accuracy: number,
+  startedAt: Date,
+): Promise<GradedAttempt> {
+  const totalPoints = quiz.questions.reduce(
+    (sum, question) => sum + question.points,
+    0,
+  );
+  let earnedPoints = 0;
+
+  const picks = quiz.questions.map((question) => {
+    const correct = question.answers.filter((answer) => answer.isCorrect);
+    const wrong = question.answers.filter((answer) => !answer.isCorrect);
+    const goesRight = chance(accuracy) || wrong.length === 0;
+    const chosenAnswer = goesRight ? pick(correct) : pick(wrong);
+
+    if (chosenAnswer.isCorrect) earnedPoints += question.points;
+
+    return { questionId: question.id, answerId: chosenAnswer.id };
+  });
+
+  const score =
+    totalPoints === 0 ? 0 : Math.round((earnedPoints / totalPoints) * 100);
+  const passed = score >= quiz.passingScore;
+  const submittedAt = minutesAfter(startedAt, randInt(3, quiz.timeLimit ?? 25));
+
+  const attempt = await prisma.quizAttempt.create({
+    data: {
+      userId: student.id,
+      quizId: quiz.id,
+      score,
+      passed,
+      startedAt,
+      submittedAt,
+      createdAt: startedAt,
+      updatedAt: submittedAt,
+    },
+  });
+
+  await prisma.attemptAnswer.createMany({
+    data: picks.map((choice) => ({
+      attemptId: attempt.id,
+      questionId: choice.questionId,
+      answerId: choice.answerId,
+      createdAt: submittedAt,
+      updatedAt: submittedAt,
+    })),
+  });
+
+  return {
+    id: attempt.id,
+    userId: student.id,
+    studentName: student.name ?? "A student",
+    quiz,
+    score,
+    passed,
+    submittedAt,
+  };
+}
+
+/**
+ * `count` timestamps, oldest first. Roughly a third land in the older history
+ * and the rest are spread over the last 12 weeks with deliberately uneven
+ * weekly volume — including one quiet week, because a flat chart reads as fake.
+ */
+function buildShowcaseDates(count: number): Date[] {
+  const WEEK_WEIGHTS = [4, 6, 3, 7, 5, 1, 6, 4, 8, 5, 7, 4]; // oldest → newest
+  const recentCount = Math.max(1, Math.round(count * 0.72));
+  const olderCount = Math.max(0, count - recentCount);
+  const weightSum = WEEK_WEIGHTS.reduce((sum, weight) => sum + weight, 0);
+
+  const dates: Date[] = [];
+
+  for (let i = 0; i < olderCount; i++) {
+    dates.push(dateBetween(daysAgo(215), daysAgo(88)));
+  }
+
+  const inWeek = (weeksBack: number) =>
+    notInFuture(
+      new Date(
+        daysAgo(weeksBack * 7 + randInt(0, 6)).getTime() +
+          randInt(8, 21) * 3_600_000,
+      ),
+    );
+
+  let placed = 0;
+
+  for (const [index, weight] of WEEK_WEIGHTS.entries()) {
+    const weeksBack = WEEK_WEIGHTS.length - 1 - index;
+    const isLast = index === WEEK_WEIGHTS.length - 1;
+    const target = isLast
+      ? recentCount - placed
+      : Math.round((recentCount * weight) / weightSum);
+
+    for (let i = 0; i < target && placed < recentCount; i++) {
+      dates.push(inWeek(weeksBack));
+      placed++;
+    }
+  }
+
+  while (placed < recentCount) {
+    dates.push(inWeek(randInt(0, 3)));
+    placed++;
+  }
+
+  return dates.sort((a, b) => a.getTime() - b.getTime());
+}
+
+/**
+ * student1@lms.local is the demo account, so it has to look like someone who
+ * has used the platform for months: many enrollments, a long completion history
+ * and enough recent work that the weekly activity chart has a shape.
+ *
+ * The generic per-student pass cannot produce that — it walks forward from the
+ * enrollment date, which leaves the last 12 weeks almost empty for an account
+ * that enrolled 200 days ago. Here the weekly volume is decided first and the
+ * lesson completions are laid onto it, with quiz attempts following each
+ * completion.
+ */
+async function seedShowcaseActivity(
+  student: StudentUser,
+  courses: CreatedCourse[],
+  quizzes: CreatedQuiz[],
+) {
+  const quizzesByLesson = new Map<string, CreatedQuiz[]>();
+
+  for (const quiz of quizzes) {
+    const bucket = quizzesByLesson.get(quiz.lessonId) ?? [];
+    bucket.push(quiz);
+    quizzesByLesson.set(quiz.lessonId, bucket);
+  }
+
+  const ability = 0.82;
+  const notifications: NotificationSeed[] = [];
+  const gradedAttempts: GradedAttempt[] = [];
+
+  const publishedCourses = courses.filter(
+    (course) => course.isPublished && course.createdAt < daysAgo(20),
+  );
+  const enrolled = shuffled(publishedCourses).slice(
+    0,
+    Math.min(12, publishedCourses.length),
+  );
+
+  // Finished, half-done and barely-started courses side by side, so the
+  // dashboard cards are not all at the same percentage.
+  const COMPLETION_RATIOS = [
+    1, 1, 1, 0.9, 0.85, 0.8, 0.75, 0.6, 0.5, 0.4, 0.3, 0.2,
+  ];
+
+  const queues = enrolled.map((course, index) => {
+    const lessons = course.lessons.filter((lesson) => lesson.isPublished);
+    const completedCount = Math.max(
+      1,
+      Math.round(lessons.length * (COMPLETION_RATIOS[index] ?? 0.3)),
+    );
+
+    return {
+      course,
+      completed: lessons.slice(0, completedCount),
+      next: lessons[completedCount] ?? null,
+    };
+  });
+
+  // Round-robin: several courses run in parallel, each one still in order.
+  const timeline: { course: CreatedCourse; lesson: CreatedLesson }[] = [];
+
+  for (let index = 0; ; index++) {
+    let added = false;
+
+    for (const queue of queues) {
+      const lesson = queue.completed[index];
+      if (!lesson) continue;
+
+      timeline.push({ course: queue.course, lesson });
+      added = true;
+    }
+
+    if (!added) break;
+  }
+
+  const dates = buildShowcaseDates(timeline.length);
+  const completedAtByLesson = new Map<string, Date>();
+  const firstTouchByCourse = new Map<string, Date>();
+
+  for (const [index, entry] of timeline.entries()) {
+    // A completion can never predate the course it belongs to.
+    const floor = daysAfter(entry.course.createdAt, 1);
+    const at = dates[index]! < floor ? dateBetween(floor, NOW) : dates[index]!;
+
+    completedAtByLesson.set(entry.lesson.id, at);
+
+    const known = firstTouchByCourse.get(entry.course.id);
+    if (!known || at < known) firstTouchByCourse.set(entry.course.id, at);
+  }
+
+  for (const queue of queues) {
+    const { course } = queue;
+    const floor = latest(course.createdAt, student.createdAt);
+    const firstTouch = firstTouchByCourse.get(course.id) ?? daysAgo(randInt(2, 20));
+    const enrolledAt = dateBetween(
+      floor,
+      new Date(Math.max(floor.getTime(), firstTouch.getTime() - DAY_MS)),
+    );
+
+    await prisma.enrollment.create({
+      data: {
+        userId: student.id,
+        courseId: course.id,
+        createdAt: enrolledAt,
+      },
+    });
+
+    notifications.push({
+      userId: student.id,
+      type: NOTIFICATION_TYPES.ENROLLMENT,
+      message: `You were enrolled in ${course.title}.`,
+      readAt: chance(0.8) ? hoursAfter(enrolledAt, randInt(1, 40)) : null,
+      createdAt: enrolledAt,
+    });
+
+    for (const lesson of queue.completed) {
+      const completedAt = completedAtByLesson.get(lesson.id)!;
+
+      await prisma.lessonProgress.create({
+        data: {
+          userId: student.id,
+          lessonId: lesson.id,
+          isCompleted: true,
+          completedAt,
+          createdAt: completedAt,
+          updatedAt: completedAt,
+        },
+      });
+
+      for (const quiz of quizzesByLesson.get(lesson.id) ?? []) {
+        const maxAttempts = randInt(1, 3);
+
+        for (let attemptIndex = 0; attemptIndex < maxAttempts; attemptIndex++) {
+          const attempt = await createGradedAttempt(
+            student,
+            quiz,
+            Math.min(0.97, ability + attemptIndex * 0.1),
+            dateBetween(completedAt, daysAfter(completedAt, randInt(1, 3))),
+          );
+
+          gradedAttempts.push(attempt);
+
+          if (chance(0.6)) {
+            notifications.push({
+              userId: student.id,
+              type: NOTIFICATION_TYPES.GRADE,
+              message: `Your score for ${quiz.title} is ${attempt.score}% (${
+                attempt.passed ? "passed" : "not passed"
+              }).`,
+              readAt: chance(0.7)
+                ? hoursAfter(attempt.submittedAt, randInt(1, 30))
+                : null,
+              createdAt: attempt.submittedAt,
+            });
+          }
+
+          if (attempt.passed) break;
+        }
+      }
+    }
+
+    // The lesson the student is on right now — the dashboard needs a resume
+    // target per unfinished course.
+    if (queue.next) {
+      const startedAt = daysAgo(randInt(0, 6));
+
+      await prisma.lessonProgress.create({
+        data: {
+          userId: student.id,
+          lessonId: queue.next.id,
+          isCompleted: false,
+          completedAt: null,
+          createdAt: startedAt,
+          updatedAt: startedAt,
+        },
+      });
+    }
+  }
+
+  // Recent retakes on quizzes already taken, so the quiz series in the chart
+  // stays alive in weeks where no lesson was finished.
+  const takenQuizzes = [
+    ...new Map(gradedAttempts.map((a) => [a.quiz.id, a.quiz])).values(),
+  ];
+  const retakeQuizzes = shuffled(takenQuizzes);
+
+  // Spread over distinct weeks rather than at random, so no recent week ends up
+  // with a flat zero for the quiz series.
+  for (const [index, quiz] of retakeQuizzes.entries()) {
+    const weeksBack = index % 11;
+    const attempt = await createGradedAttempt(
+      student,
+      quiz,
+      0.93,
+      notInFuture(
+        new Date(
+          daysAgo(weeksBack * 7 + randInt(0, 6)).getTime() +
+            randInt(9, 20) * 3_600_000,
+        ),
+      ),
+    );
+
+    gradedAttempts.push(attempt);
+  }
+
+  // One unsubmitted attempt so the "in progress" state shows on the demo account.
+  const openQuiz = retakeQuizzes[0];
+
+  if (openQuiz) {
+    const startedAt = hoursAfter(daysAgo(1), randInt(1, 10));
+
+    await prisma.quizAttempt.create({
+      data: {
+        userId: student.id,
+        quizId: openQuiz.id,
+        score: 0,
+        passed: false,
+        startedAt,
+        submittedAt: null,
+        createdAt: startedAt,
+        updatedAt: startedAt,
+      },
+    });
+  }
+
+  return { notifications, gradedAttempts };
+}
+
 async function seedOverrides(
-  gradedAttempts: Awaited<
-    ReturnType<typeof seedLearningActivity>
-  >["gradedAttempts"],
+  gradedAttempts: GradedAttempt[],
   adminId: string,
+  priorityUserId?: string,
 ) {
   const OVERRIDE_REASONS = [
     "Question 3 was ambiguous; regraded after review.",
@@ -1280,7 +2048,15 @@ async function seedOverrides(
   ];
 
   const failed = gradedAttempts.filter((attempt) => !attempt.passed);
-  const targets = shuffled(failed).slice(0, Math.min(5, failed.length));
+  // The demo account gets regrades of its own — the activity feed has a
+  // dedicated "regrade" event kind that would otherwise never render for it.
+  const priority = shuffled(
+    failed.filter((attempt) => attempt.userId === priorityUserId),
+  ).slice(0, 3);
+  const rest = shuffled(
+    failed.filter((attempt) => !priority.includes(attempt)),
+  ).slice(0, 6);
+  const targets = [...priority, ...rest];
   const notifications: NotificationSeed[] = [];
 
   for (const attempt of targets) {
@@ -1531,19 +2307,39 @@ async function main() {
   );
 
   console.log("Seeding enrollments, progress and quiz attempts...");
+  // The demo student is seeded separately — see seedShowcaseActivity.
+  const showcaseStudent = users.students.find(
+    (student) => student.email === `student1@${EMAIL_DOMAIN}`,
+  );
   const { notifications, gradedAttempts } = await seedLearningActivity(
-    users.students,
+    users.students.filter((student) => student.id !== showcaseStudent?.id),
     courses,
     quizzes,
   );
+
+  if (showcaseStudent) {
+    console.log("Seeding demo student history...");
+    const showcase = await seedShowcaseActivity(
+      showcaseStudent,
+      courses,
+      quizzes,
+    );
+
+    notifications.push(...showcase.notifications);
+    gradedAttempts.push(...showcase.gradedAttempts);
+  }
 
   console.log("Seeding grade overrides and role requests...");
   const overrideNotifications = await seedOverrides(
     gradedAttempts,
     primaryAdmin.id,
+    showcaseStudent?.id,
   );
   const roleRequestNotifications = await seedRoleRequests(
-    users.students,
+    // A demo account promoted to TEACHER would break the student walkthrough.
+    users.students.filter(
+      (student) => !student.email.startsWith("student"),
+    ),
     primaryAdmin.id,
   );
 
