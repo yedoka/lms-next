@@ -1,144 +1,175 @@
 import { auth } from "@/auth";
-import { getStudentCourses } from "@/features/courses/services/service";
-import Link from "next/link";
+import { withRole } from "@/features/auth/utils/with-role";
+import { ROLE } from "@/features/auth/utils/roles";
 import { ROUTES } from "@/features/auth/utils/routes";
-import { BookOpen } from "lucide-react";
+import { getStudentDashboardData } from "@/features/courses/services/progress-service";
+import {
+  applyEnrolledFilters,
+  isFiltered,
+  parseEnrolledFilters,
+  summarizeEnrolled,
+} from "@/features/courses/utils/enrolled-course-filters";
+import { EnrolledCourseFilters } from "@/features/courses/components/enrolled-course-filters";
+import { EnrolledCourseCard } from "@/features/courses/components/enrolled-course-card";
+import { BookOpen, CheckCircle2, PlayCircle, Percent, SearchX } from "lucide-react";
 import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Chip from "@mui/material/Chip";
-import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import { PageContainer, PageHeader, EmptyState } from "@/shared/components/ui";
+import Typography from "@mui/material/Typography";
+import {
+  PageContainer,
+  PageHeader,
+  EmptyState,
+  StatCard,
+} from "@/shared/components/ui";
 
-export default async function StudentCoursesPage() {
+interface StudentCoursesPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function StudentCoursesPage({
+  searchParams,
+}: StudentCoursesPageProps) {
+  await withRole([ROLE.STUDENT, ROLE.ADMIN]);
   const session = await auth();
 
   if (!session?.user?.id) {
     return null;
   }
 
-  const courses = await getStudentCourses(session.user.id);
+  const [filters, courses] = await Promise.all([
+    searchParams.then(parseEnrolledFilters),
+    getStudentDashboardData(session.user.id),
+  ]);
+
+  // Stats describe the whole enrollment set, so they stay stable while the
+  // student narrows the list below.
+  const stats = summarizeEnrolled(courses);
+  const visible = applyEnrolledFilters(courses, filters);
+  const filtering = isFiltered(filters);
 
   return (
     <PageContainer>
       <PageHeader
         title="My Courses"
-        description="Manage and continue your learning progress."
+        description={
+          stats.enrolled === 0
+            ? "Manage and continue your learning progress."
+            : `${stats.enrolled} enrolled · ${stats.inProgress} in progress · ${stats.completed} completed`
+        }
       />
 
       {courses.length === 0 ? (
         <EmptyState
           icon={<BookOpen />}
-          title="No courses found"
-          description="You are currently enrolled in 0 courses."
+          title="No courses yet"
+          description="You aren't enrolled in any courses. Browse the catalog to start learning."
           action={
             <Button variant="contained" href={ROUTES.COURSES}>
-              Browse the catalog to get started
+              Browse Catalog
             </Button>
           }
         />
       ) : (
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "1fr",
-              md: "repeat(2, 1fr)",
-              lg: "repeat(3, 1fr)",
-            },
-            gap: 3,
-          }}
-        >
-          {courses.map((course) => (
-            <Link
-              key={course.id}
-              href={ROUTES.COURSE_DETAILS(course.id)}
-              style={{ textDecoration: "none" }}
+        <>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(4, 1fr)",
+              },
+              gap: 3,
+              mb: 4,
+            }}
+          >
+            <StatCard
+              icon={<BookOpen />}
+              label="Enrolled"
+              value={stats.enrolled}
+              color="info"
+            />
+            <StatCard
+              icon={<PlayCircle />}
+              label="In Progress"
+              value={stats.inProgress}
+              color="warning"
+            />
+            <StatCard
+              icon={<CheckCircle2 />}
+              label="Completed"
+              value={stats.completed}
+              color="success"
+            />
+            <StatCard
+              icon={<Percent />}
+              label="Avg Best Score"
+              value={
+                stats.averageBestScore !== null
+                  ? `${stats.averageBestScore}%`
+                  : "—"
+              }
+              color="default"
+            />
+          </Box>
+
+          <EnrolledCourseFilters />
+
+          {filtering && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                mb: 2,
+              }}
             >
-              <Card
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  overflow: "hidden",
-                  "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.08)" },
-                }}
+              <Typography variant="body2" color="text.secondary">
+                Showing {visible.length} of {courses.length} courses
+              </Typography>
+              <Button
+                size="small"
+                href={ROUTES.DASHBOARD_STUDENT_COURSES}
+                sx={{ textTransform: "none" }}
               >
-                <Box
-                  sx={{
-                    aspectRatio: "16/9",
-                    position: "relative",
-                    bgcolor: "secondary.main",
-                    overflow: "hidden",
-                  }}
+                Clear filters
+              </Button>
+            </Box>
+          )}
+
+          {visible.length === 0 ? (
+            <EmptyState
+              icon={<SearchX />}
+              title="No courses match your filters"
+              description="Try a different tab or search term."
+              action={
+                <Button
+                  variant="outlined"
+                  href={ROUTES.DASHBOARD_STUDENT_COURSES}
                 >
-                  {course.thumbnail ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={course.thumbnail}
-                      alt={course.title}
-                      style={{
-                        objectFit: "cover",
-                        width: "100%",
-                        height: "100%",
-                      }}
-                    />
-                  ) : (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "100%",
-                        height: "100%",
-                      }}
-                    >
-                      <Typography variant="caption" color="text.secondary">
-                        No Image
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-                <CardContent sx={{ flex: "none", p: 2 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      mb: 1,
-                    }}
-                  >
-                    <Chip
-                      label={course.category || "Uncategorized"}
-                      size="small"
-                    />
-                    <Typography variant="caption" color="text.secondary">
-                      {course._count.lessons} Lessons
-                    </Typography>
-                  </Box>
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                      mb: 0.5,
-                    }}
-                  >
-                    {course.title}
-                  </Typography>
-                </CardContent>
-                <CardContent sx={{ mt: "auto", p: 2, pt: 0 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    By {course.teacher?.name || "Unknown Teacher"}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </Box>
+                  Clear filters
+                </Button>
+              }
+            />
+          ) : (
+            <Box
+              sx={{
+                display: "grid",
+                gap: 3,
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, 1fr)",
+                  lg: "repeat(3, 1fr)",
+                  xl: "repeat(4, 1fr)",
+                },
+              }}
+            >
+              {visible.map((course) => (
+                <EnrolledCourseCard key={course.courseId} {...course} />
+              ))}
+            </Box>
+          )}
+        </>
       )}
     </PageContainer>
   );
