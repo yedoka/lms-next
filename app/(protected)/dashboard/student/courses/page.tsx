@@ -45,7 +45,9 @@ export default async function StudentCoursesPage({
   // student narrows the list below.
   const stats = summarizeEnrolled(courses);
   const visible = applyEnrolledFilters(courses, filters);
-  const filtering = isFiltered(filters);
+  // Sorting alone changes no counts, so the result line only appears once the
+  // list is actually narrower than the full set.
+  const filtering = isFiltered(filters) && visible.length !== courses.length;
 
   return (
     <PageContainer>
