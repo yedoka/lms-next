@@ -1,6 +1,9 @@
 import { Suspense } from "react";
 import prisma from "@/shared/db/prisma";
 import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
+import { auth } from "@/auth";
+import { courseOrderBy } from "@/features/courses/utils/course-sort";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -13,14 +16,25 @@ import { CourseFilters } from "@/features/courses/components/course-filters";
 async function CourseList({
   searchParams,
 }: {
-  searchParams: { title?: string; category?: string };
+  searchParams: { title?: string; category?: string; sort?: string };
 }) {
-  const { title, category } = searchParams;
+  const { title, category, sort } = searchParams;
+
+  const session = await auth();
 
   const courses = await prisma.course.findMany({
     where: {
       isPublished: true,
-      ...(title ? { title: { contains: title, mode: "insensitive" } } : {}),
+      // Searching the description too, so a query like "docker" still finds a
+      // course whose title words it in another way.
+      ...(title
+        ? {
+            OR: [
+              { title: { contains: title, mode: "insensitive" as const } },
+              { description: { contains: title, mode: "insensitive" as const } },
+            ],
+          }
+        : {}),
       ...(category ? { category: { equals: category } } : {}),
     },
     include: {
@@ -29,10 +43,22 @@ async function CourseList({
         select: { lessons: true },
       },
     },
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: courseOrderBy(sort),
   });
+
+  const enrolledCourseIds = session?.user?.id
+    ? new Set(
+        (
+          await prisma.enrollment.findMany({
+            where: {
+              userId: session.user.id,
+              courseId: { in: courses.map((course) => course.id) },
+            },
+            select: { courseId: true },
+          })
+        ).map((enrollment) => enrollment.courseId),
+      )
+    : new Set<string>();
 
   if (courses.length === 0) {
     return (
@@ -51,7 +77,10 @@ async function CourseList({
         gap: 3,
       }}
     >
-      {courses.map((course) => (
+      {courses.map((course) => {
+        const isEnrolled = enrolledCourseIds.has(course.id);
+
+        return (
         <Link
           key={course.id}
           href={`/courses/${course.id}`}
@@ -104,6 +133,22 @@ async function CourseList({
                   <Typography variant="body2">No Image</Typography>
                 </Box>
               )}
+
+              {isEnrolled && (
+                <Chip
+                  icon={<CheckCircle2 size={14} />}
+                  label="Enrolled"
+                  size="small"
+                  sx={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    bgcolor: "background.paper",
+                    fontWeight: 600,
+                    "& .MuiChip-icon": { color: "success.main" },
+                  }}
+                />
+              )}
             </Box>
             <CardContent
               sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 1 }}
@@ -135,13 +180,34 @@ async function CourseList({
               >
                 {course.title}
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: "auto" }}>
-                By {course.teacher?.name || "Unknown Teacher"}
-              </Typography>
+              <Box
+                sx={{
+                  mt: "auto",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 1,
+                }}
+              >
+                <Typography variant="body2" color="text.secondary" noWrap>
+                  By {course.teacher?.name || "Unknown Teacher"}
+                </Typography>
+                {isEnrolled && (
+                  <Typography
+                    variant="body2"
+                    color="primary"
+                    fontWeight={600}
+                    sx={{ flexShrink: 0 }}
+                  >
+                    Continue →
+                  </Typography>
+                )}
+              </Box>
             </CardContent>
           </Card>
         </Link>
-      ))}
+        );
+      })}
     </Box>
   );
 }
@@ -180,7 +246,7 @@ function CourseGridSkeleton() {
 export default async function CoursesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ title?: string; category?: string }>;
+  searchParams: Promise<{ title?: string; category?: string; sort?: string }>;
 }) {
   const params = await searchParams;
 

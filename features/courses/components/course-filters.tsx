@@ -6,6 +6,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Box from "@mui/material/Box";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/shared/lib/hooks";
+import { COURSE_SORTS, DEFAULT_COURSE_SORT } from "../utils/course-sort";
 
 interface CourseFiltersProps {
   categories: string[];
@@ -36,12 +37,12 @@ export const CourseFilters = ({ categories }: CourseFiltersProps) => {
     router.push(`${pathname}?${params.toString()}`);
   }, [debouncedTitle, pathname, router]);
 
-  const onCategoryChange = (value: string) => {
+  const setParam = (key: string, value: string, clearWhen: string) => {
     const params = new URLSearchParams(searchParams);
-    if (value && value !== "all") {
-      params.set("category", value);
+    if (value && value !== clearWhen) {
+      params.set(key, value);
     } else {
-      params.delete("category");
+      params.delete(key);
     }
     router.push(`${pathname}?${params.toString()}`);
   };
@@ -59,13 +60,26 @@ export const CourseFilters = ({ categories }: CourseFiltersProps) => {
         select
         size="small"
         value={searchParams.get("category") || "all"}
-        onChange={(e) => onCategoryChange(e.target.value)}
+        onChange={(e) => setParam("category", e.target.value, "all")}
         sx={{ minWidth: 180 }}
       >
         <MenuItem value="all">All Categories</MenuItem>
         {categories.map((category) => (
           <MenuItem key={category} value={category}>
             {category}
+          </MenuItem>
+        ))}
+      </TextField>
+      <TextField
+        select
+        size="small"
+        value={searchParams.get("sort") || DEFAULT_COURSE_SORT}
+        onChange={(e) => setParam("sort", e.target.value, DEFAULT_COURSE_SORT)}
+        sx={{ minWidth: 170 }}
+      >
+        {COURSE_SORTS.map((sort) => (
+          <MenuItem key={sort.value} value={sort.value}>
+            {sort.label}
           </MenuItem>
         ))}
       </TextField>
