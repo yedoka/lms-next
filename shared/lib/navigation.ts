@@ -9,6 +9,7 @@ import {
   Library,
   ShieldCheck,
   UserCog,
+  ClipboardList,
 } from "lucide-react";
 import type { UserRole } from "@prisma/client";
 import type { LucideIcon } from "lucide-react";
@@ -42,6 +43,11 @@ export const DASHBOARD_NAV: Record<UserRole, NavSection[]> = {
           title: "My Courses",
           href: ROUTES.DASHBOARD_STUDENT_COURSES,
           icon: BookOpen,
+        },
+        {
+          title: "My Grades",
+          href: ROUTES.DASHBOARD_STUDENT_GRADES,
+          icon: ClipboardList,
         },
         {
           title: "All Courses",
