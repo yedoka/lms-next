@@ -51,7 +51,7 @@ export const LessonForm = ({ courseId, initialData, onSuccess }: LessonFormProps
     startTransition(async () => {
       try {
         if (initialData?.id) {
-          await updateLessonAction(courseId, initialData.id, data);
+          await updateLessonAction(initialData.id, data);
           toast.success("Lesson updated");
         } else {
           await createLessonAction(courseId, data);
@@ -73,7 +73,7 @@ export const LessonForm = ({ courseId, initialData, onSuccess }: LessonFormProps
 
     startTransition(async () => {
       try {
-        await createLessonAttachmentAction(courseId, initialData.id, result.name, result.url, result.size);
+        await createLessonAttachmentAction(initialData.id, result.name, result.url, result.size);
         toast.success("Attachment uploaded");
       } catch (error) {
         toast.error("Failed to upload attachment");
@@ -84,7 +84,7 @@ export const LessonForm = ({ courseId, initialData, onSuccess }: LessonFormProps
   const handleDeleteAttachment = (attachmentId: string) => {
     startTransition(async () => {
       try {
-        await deleteLessonAttachmentAction(courseId, attachmentId);
+        await deleteLessonAttachmentAction(attachmentId);
         toast.success("Attachment deleted");
       } catch (error) {
         toast.error("Failed to delete attachment");
@@ -97,7 +97,7 @@ export const LessonForm = ({ courseId, initialData, onSuccess }: LessonFormProps
 
     startTransition(async () => {
       try {
-        await createQuizAction(courseId, initialData.id, {
+        await createQuizAction(initialData.id, {
           title: "New Quiz",
           timeLimit: null,
           passingScore: 70,
@@ -115,7 +115,7 @@ export const LessonForm = ({ courseId, initialData, onSuccess }: LessonFormProps
 
     startTransition(async () => {
       try {
-        await deleteQuizAction(courseId, initialData.id, quizId);
+        await deleteQuizAction(quizId);
         toast.success("Quiz deleted");
       } catch (error) {
         toast.error("Failed to delete quiz");

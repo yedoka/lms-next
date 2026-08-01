@@ -49,7 +49,7 @@ export function SignupForm() {
     defaultValues: {
       name: "",
       email: "",
-      role: undefined,
+      requestedRole: undefined,
       password: "",
       passwordConfirmation: "",
     },
@@ -129,7 +129,7 @@ export function SignupForm() {
             }}
           />
 
-          <FormControl error={!!errors.role} component="fieldset">
+          <FormControl error={!!errors.requestedRole} component="fieldset">
             <FormLabel
               component="legend"
               sx={{ typography: "body2", fontWeight: 500, mb: 1, color: "text.primary" }}
@@ -139,18 +139,19 @@ export function SignupForm() {
             <RadioGroup row>
               <FormControlLabel
                 value={ROLE.STUDENT}
-                control={<Radio size="medium" {...register("role")} />}
+                control={<Radio size="medium" {...register("requestedRole")} />}
                 label={<Typography variant="body2">Student</Typography>}
               />
               <FormControlLabel
                 value={ROLE.TEACHER}
-                control={<Radio size="medium" {...register("role")} />}
+                control={<Radio size="medium" {...register("requestedRole")} />}
                 label={<Typography variant="body2">Teacher</Typography>}
               />
             </RadioGroup>
-            {errors.role && (
-              <FormHelperText>{errors.role.message}</FormHelperText>
-            )}
+            <FormHelperText>
+              {errors.requestedRole?.message ??
+                "Every account starts as a student. Choosing Teacher sends a request to an administrator for approval."}
+            </FormHelperText>
           </FormControl>
 
           <TextField

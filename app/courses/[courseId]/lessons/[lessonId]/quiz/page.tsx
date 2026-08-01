@@ -3,6 +3,7 @@ import prisma from "@/shared/db/prisma";
 import { notFound, redirect } from "next/navigation";
 import { QuizPlayer } from "@/features/courses/components/quiz-player";
 import { PageContainer } from "@/shared/components/ui";
+import { startAttemptWindow } from "@/features/courses/services/quiz-attempt-window";
 
 type QuizData = {
   id: string;
@@ -65,12 +66,21 @@ export default async function StudentQuizPage({
     redirect(`/courses/${courseId}`);
   }
 
+  // Serving this page is what starts the attempt. The call is idempotent, so a
+  // reload resumes the same countdown instead of restarting it, and the client
+  // timer is driven by this server deadline rather than its own fresh clock.
+  const startedAt = await startAttemptWindow(session.user.id, quiz.id, quiz.timeLimit);
+  const deadline = quiz.timeLimit
+    ? startedAt + quiz.timeLimit * 60 * 1000
+    : null;
+
   return (
     <PageContainer maxWidth="md">
       <QuizPlayer
         courseId={courseId}
         lessonId={lessonId}
         quiz={quiz as QuizData}
+        deadline={deadline}
       />
     </PageContainer>
   );

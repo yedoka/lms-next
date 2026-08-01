@@ -54,7 +54,7 @@ export default async function Page({ searchParams }: PageProps) {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 This password reset link is missing a token or is invalid. Please request a new link.
               </Typography>
-              <Link href={ROUTES.AUTH_FORGOT_PASSWORD} passHref style={{ textDecoration: "none" }}>
+              <Link href={ROUTES.AUTH_FORGOT_PASSWORD} style={{ textDecoration: "none" }}>
                 <Button variant="contained" fullWidth>
                   Request New Link
                 </Button>

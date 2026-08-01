@@ -44,7 +44,7 @@ export const LessonItem = ({ lesson, courseId, disabled }: LessonItemProps) => {
   const onDelete = () => {
     startDeleteTransition(async () => {
       try {
-        await deleteLessonAction(courseId, lesson.id);
+        await deleteLessonAction(lesson.id);
         toast.success("Lesson deleted");
       } catch {
         toast.error("Something went wrong");

@@ -12,6 +12,7 @@ import {
 } from "@/features/auth/utils/config";
 import { normalizeRole } from "@/features/auth/utils/rbac";
 import { getSettings } from "@/features/admin/services/settings-service";
+import { isSessionRevoked } from "@/features/auth/services/session-revocation";
 import type { JWT } from "next-auth/jwt";
 
 const nowInSeconds = () => Math.floor(Date.now() / 1000);
@@ -178,6 +179,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       const authTime = getTokenAuthTime(token);
+
+      // A password change or reset revokes every session issued before it.
+      // Checked on every call rather than on the throttled role-sync interval:
+      // the point of revoking is to evict an attacker now, not within 30s.
+      if (!user) {
+        const userId = resolveUserIdFromToken(token);
+        if (userId && (await isSessionRevoked(userId, authTime))) {
+          return null;
+        }
+      }
       const ttl = getTokenTTL(token);
 
       token.authTime = authTime;

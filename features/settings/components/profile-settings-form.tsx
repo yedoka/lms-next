@@ -153,7 +153,7 @@ function AvatarUpload({ value, onChange }: { value: string; onChange: (url: stri
           onChange(result.info.secure_url);
         }}
         uploadPreset={CLOUDINARY_CONFIG.PRESETS.THUMBNAILS}
-        signatureEndpoint="/api/sign-image"
+        signatureEndpoint="/api/sign-avatar"
         options={{ maxFiles: 1, cropping: true, croppingAspectRatio: 1 }}
       >
         {({ open }: { open: () => void }) => (

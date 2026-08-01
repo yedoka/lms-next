@@ -18,12 +18,9 @@ import { deleteQuestionAction } from "../actions/quiz-actions";
 
 interface QuestionItemProps {
   question: Question & { answers: Answer[] };
-  courseId: string;
-  lessonId: string;
-  quizId: string;
 }
 
-export const QuestionItem = ({ question, courseId, lessonId, quizId }: QuestionItemProps) => {
+export const QuestionItem = ({ question }: QuestionItemProps) => {
   const [isDeleting, startDeleteTransition] = useTransition();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -45,7 +42,7 @@ export const QuestionItem = ({ question, courseId, lessonId, quizId }: QuestionI
   const onDelete = () => {
     startDeleteTransition(async () => {
       try {
-        await deleteQuestionAction(courseId, lessonId, question.id);
+        await deleteQuestionAction(question.id);
         toast.success("Question deleted");
       } catch {
         toast.error("Something went wrong");
@@ -140,8 +137,6 @@ export const QuestionItem = ({ question, courseId, lessonId, quizId }: QuestionI
         <DialogTitle>Edit Question</DialogTitle>
         <DialogContent dividers sx={{ p: 3 }}>
           <QuestionForm
-            courseId={courseId}
-            lessonId={lessonId}
             question={question}
             onSuccess={() => setIsEditing(false)}
           />

@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTransition, useState } from "react";
 import { toast } from "sonner";
+import { signOut } from "next-auth/react";
+import { ROUTES } from "@/features/auth/utils/routes";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
@@ -38,8 +40,12 @@ export function PasswordSettingsForm() {
         toast.error(result.message);
         return;
       }
-      toast.success("Password changed successfully");
+      toast.success("Password changed. Please sign in again.");
       reset();
+      // Changing the password revoked every session, this one included.
+      // Sign out explicitly so the UI does not sit on a session the server
+      // will now reject on the next request.
+      await signOut({ callbackUrl: ROUTES.AUTH_LOGIN });
     });
   };
 

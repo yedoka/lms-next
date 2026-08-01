@@ -11,6 +11,7 @@ import {
   UserCog,
   ClipboardList,
   Bell,
+  Radio,
 } from "lucide-react";
 import type { UserRole } from "@prisma/client";
 import type { LucideIcon } from "lucide-react";
@@ -49,6 +50,12 @@ export const DASHBOARD_NAV: Record<UserRole, NavSection[]> = {
           title: "My Grades",
           href: ROUTES.DASHBOARD_STUDENT_GRADES,
           icon: ClipboardList,
+        },
+        {
+          title: "Join Live Quiz",
+          href: ROUTES.LIVE,
+          icon: Radio,
+          description: "Enter a session code from your teacher",
         },
         {
           title: "Notifications",

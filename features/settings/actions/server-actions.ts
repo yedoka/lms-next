@@ -9,6 +9,7 @@ import {
   updateUserPassword,
 } from "@/features/settings/services/service";
 import { requireAuth } from "@/features/auth/utils/with-role";
+import { revokeSessionsFor } from "@/features/auth/services/session-revocation";
 import type { ProfileFormData, PasswordFormData } from "@/features/settings/schemas/schema";
 
 type ActionResult<T = undefined> =
@@ -60,6 +61,11 @@ export const changePassword = async (
 
     const hashedPassword = await argon2.hash(newPassword);
     await updateUserPassword(session.user.id, hashedPassword);
+
+    // Sessions are stateless JWTs, so the old password's tokens stay valid
+    // until they expire unless a cutoff is recorded. This evicts every session
+    // including the caller's; the form sends them back to the login page.
+    await revokeSessionsFor(session.user.id);
 
     return { ok: true };
   } catch (error) {

@@ -5,12 +5,18 @@ import { Clock } from "lucide-react";
 import Box from "@mui/material/Box";
 
 interface QuizTimerProps {
-  timeLimitMinutes: number;
+  /** Server-issued deadline, epoch milliseconds. */
+  deadline: number;
   onExpire: () => void;
 }
 
-export function QuizTimer({ timeLimitMinutes, onExpire }: QuizTimerProps) {
-  const [timeLeft, setTimeLeft] = useState(timeLimitMinutes * 60);
+const remainingSeconds = (deadline: number) =>
+  Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+
+export function QuizTimer({ deadline, onExpire }: QuizTimerProps) {
+  // Derived from the deadline rather than counted down from the time limit, so
+  // a reload resumes where the server says the attempt actually stands.
+  const [timeLeft, setTimeLeft] = useState(() => remainingSeconds(deadline));
   const hasExpired = useRef(false);
 
   useEffect(() => {
@@ -23,11 +29,11 @@ export function QuizTimer({ timeLimitMinutes, onExpire }: QuizTimerProps) {
     }
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft(remainingSeconds(deadline));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, onExpire]);
+  }, [timeLeft, deadline, onExpire]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;

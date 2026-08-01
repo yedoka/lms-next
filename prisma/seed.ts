@@ -54,7 +54,8 @@ const randInt = (min: number, max: number) =>
   Math.floor(rng() * (max - min + 1)) + min;
 const randFloat = (min: number, max: number) => rng() * (max - min) + min;
 const chance = (probability: number) => rng() < probability;
-const pick = <T>(items: readonly T[]): T => items[randInt(0, items.length - 1)]!;
+const pick = <T>(items: readonly T[]): T =>
+  items[randInt(0, items.length - 1)]!;
 
 function shuffled<T>(items: readonly T[]): T[] {
   const copy = [...items];
@@ -102,22 +103,93 @@ const DEFAULT_PASSWORD = "changeme123";
 const EMAIL_DOMAIN = "demo.local";
 
 const FIRST_NAMES = [
-  "Ava", "Noah", "Mia", "Liam", "Emma", "Ethan", "Olivia", "Lucas",
-  "Sophia", "Mason", "Isabella", "Logan", "Amelia", "James", "Harper",
-  "Benjamin", "Evelyn", "Henry", "Abigail", "Daniel", "Ella", "Samuel",
-  "Grace", "Owen", "Chloe", "Jack", "Zoe", "Leo", "Nora", "Adam",
-  "Lily", "Victor", "Ruby", "Oscar", "Hannah", "Felix", "Iris", "Theo",
-  "Maya", "Caleb", "Nina", "Elias",
+  "Ava",
+  "Noah",
+  "Mia",
+  "Liam",
+  "Emma",
+  "Ethan",
+  "Olivia",
+  "Lucas",
+  "Sophia",
+  "Mason",
+  "Isabella",
+  "Logan",
+  "Amelia",
+  "James",
+  "Harper",
+  "Benjamin",
+  "Evelyn",
+  "Henry",
+  "Abigail",
+  "Daniel",
+  "Ella",
+  "Samuel",
+  "Grace",
+  "Owen",
+  "Chloe",
+  "Jack",
+  "Zoe",
+  "Leo",
+  "Nora",
+  "Adam",
+  "Lily",
+  "Victor",
+  "Ruby",
+  "Oscar",
+  "Hannah",
+  "Felix",
+  "Iris",
+  "Theo",
+  "Maya",
+  "Caleb",
+  "Nina",
+  "Elias",
 ] as const;
 
 const LAST_NAMES = [
-  "Bennett", "Carter", "Dawson", "Ellis", "Fletcher", "Grant", "Hayes",
-  "Ingram", "Jensen", "Keller", "Lawson", "Mercer", "Novak", "Osborne",
-  "Palmer", "Quinn", "Reyes", "Sutton", "Turner", "Underwood", "Vance",
-  "Whitaker", "Yates", "Zimmer", "Ashford", "Blake", "Cormac", "Delgado",
-  "Everett", "Foster", "Gallagher", "Holloway", "Iverson", "Jarvis",
-  "Kowalski", "Lindqvist", "Moreau", "Nakamura", "Okafor", "Petrov",
-  "Rossi", "Sandoval",
+  "Bennett",
+  "Carter",
+  "Dawson",
+  "Ellis",
+  "Fletcher",
+  "Grant",
+  "Hayes",
+  "Ingram",
+  "Jensen",
+  "Keller",
+  "Lawson",
+  "Mercer",
+  "Novak",
+  "Osborne",
+  "Palmer",
+  "Quinn",
+  "Reyes",
+  "Sutton",
+  "Turner",
+  "Underwood",
+  "Vance",
+  "Whitaker",
+  "Yates",
+  "Zimmer",
+  "Ashford",
+  "Blake",
+  "Cormac",
+  "Delgado",
+  "Everett",
+  "Foster",
+  "Gallagher",
+  "Holloway",
+  "Iverson",
+  "Jarvis",
+  "Kowalski",
+  "Lindqvist",
+  "Moreau",
+  "Nakamura",
+  "Okafor",
+  "Petrov",
+  "Rossi",
+  "Sandoval",
 ] as const;
 
 type PersonSeed = {
@@ -153,7 +225,12 @@ function buildPeople(): PersonSeed[] {
   };
 
   // Stable demo accounts. Keep these emails — docs and manual QA rely on them.
-  addPerson("Admin User", `admin@${EMAIL_DOMAIN}`, UserRole.ADMIN, PLATFORM_START);
+  addPerson(
+    "Admin User",
+    `admin@${EMAIL_DOMAIN}`,
+    UserRole.ADMIN,
+    PLATFORM_START,
+  );
   addPerson(
     "Ava Teacher",
     `teacher@${EMAIL_DOMAIN}`,
@@ -174,7 +251,9 @@ function buildPeople(): PersonSeed[] {
   );
 
   const namePool = shuffled(
-    FIRST_NAMES.flatMap((first) => LAST_NAMES.map((last) => `${first} ${last}`)),
+    FIRST_NAMES.flatMap((first) =>
+      LAST_NAMES.map((last) => `${first} ${last}`),
+    ),
   );
   let nameCursor = 0;
   const nextName = () => namePool[nameCursor++]!;
@@ -331,20 +410,31 @@ const COURSES: CourseSeed[] = [
         passingScore: 70,
         isPublished: true,
         questions: [
-          mc("Which file defines the UI for a route segment in the App Router?", 2, [
-            ["route.ts", false],
-            ["page.tsx", true],
-            ["index.tsx", false],
-            ["app.tsx", false],
-          ]),
+          mc(
+            "Which file defines the UI for a route segment in the App Router?",
+            2,
+            [
+              ["route.ts", false],
+              ["page.tsx", true],
+              ["index.tsx", false],
+              ["app.tsx", false],
+            ],
+          ),
           mc("What is the purpose of layout.tsx?", 2, [
             ["It replaces the page on every navigation", false],
-            ["It wraps child segments and preserves state across navigation", true],
+            [
+              "It wraps child segments and preserves state across navigation",
+              true,
+            ],
             ["It configures the build output", false],
             ["It defines API endpoints", false],
           ]),
           tf("Server Components can query the database directly.", 1, true),
-          tf("Every component in the App Router is a Client Component by default.", 1, false),
+          tf(
+            "Every component in the App Router is a Client Component by default.",
+            1,
+            false,
+          ),
           mc("Which directive marks a Client Component?", 1, [
             ['"use client"', true],
             ['"use server"', false],
@@ -372,8 +462,16 @@ const COURSES: CourseSeed[] = [
             ["In localStorage", false],
             ["Hardcoded in the component", false],
           ]),
-          tf("A fetch inside a Server Component runs in the browser.", 1, false),
-          tf("Streaming lets you send parts of a page before all data is ready.", 1, true),
+          tf(
+            "A fetch inside a Server Component runs in the browser.",
+            1,
+            false,
+          ),
+          tf(
+            "Streaming lets you send parts of a page before all data is ready.",
+            1,
+            true,
+          ),
         ],
       },
     ],
@@ -388,7 +486,8 @@ const COURSES: CourseSeed[] = [
     lessons: [
       {
         title: "Relational Modelling Basics",
-        description: "Normalisation, keys and when denormalising is the right call.",
+        description:
+          "Normalisation, keys and when denormalising is the right call.",
       },
       {
         title: "SQL Joins in Practice",
@@ -396,11 +495,13 @@ const COURSES: CourseSeed[] = [
       },
       {
         title: "Indexes and Query Plans",
-        description: "Read EXPLAIN ANALYZE output and pick the right index type.",
+        description:
+          "Read EXPLAIN ANALYZE output and pick the right index type.",
       },
       {
         title: "Transactions and Isolation Levels",
-        description: "ACID guarantees, locking and how anomalies actually appear.",
+        description:
+          "ACID guarantees, locking and how anomalies actually appear.",
       },
       {
         title: "Migrations and Schema Evolution",
@@ -434,7 +535,11 @@ const COURSES: CourseSeed[] = [
             ["Only rows missing on the right", false],
           ]),
           tf("Every index makes writes cheaper.", 1, false),
-          tf("The default isolation level in PostgreSQL is READ COMMITTED.", 1, true),
+          tf(
+            "The default isolation level in PostgreSQL is READ COMMITTED.",
+            1,
+            true,
+          ),
         ],
       },
     ],
@@ -457,19 +562,23 @@ const COURSES: CourseSeed[] = [
       },
       {
         title: "Union and Discriminated Types",
-        description: "Model state machines so impossible states do not compile.",
+        description:
+          "Model state machines so impossible states do not compile.",
       },
       {
         title: "Conditional and Mapped Types",
-        description: "Transform types programmatically without losing readability.",
+        description:
+          "Transform types programmatically without losing readability.",
       },
       {
         title: "Runtime Validation with Zod",
-        description: "Bridge the gap between compile-time types and untrusted input.",
+        description:
+          "Bridge the gap between compile-time types and untrusted input.",
       },
       {
         title: "Strict Mode Migration",
-        description: "Turn on strict flags in an existing codebase incrementally.",
+        description:
+          "Turn on strict flags in an existing codebase incrementally.",
         isPublished: false,
       },
     ],
@@ -500,7 +609,11 @@ const COURSES: CourseSeed[] = [
             ["Type assertions only", false],
           ]),
           tf("TypeScript types exist at runtime.", 1, false),
-          tf("`satisfies` checks a value against a type without widening it.", 1, true),
+          tf(
+            "`satisfies` checks a value against a type without widening it.",
+            1,
+            true,
+          ),
         ],
       },
     ],
@@ -515,7 +628,8 @@ const COURSES: CourseSeed[] = [
     lessons: [
       {
         title: "How React Renders",
-        description: "Reconciliation, commit phases and what triggers re-renders.",
+        description:
+          "Reconciliation, commit phases and what triggers re-renders.",
       },
       {
         title: "Profiling with React DevTools",
@@ -531,7 +645,8 @@ const COURSES: CourseSeed[] = [
       },
       {
         title: "Bundle Size and Code Splitting",
-        description: "Ship less JavaScript with dynamic imports and route splitting.",
+        description:
+          "Ship less JavaScript with dynamic imports and route splitting.",
       },
     ],
     quizzes: [
@@ -554,7 +669,11 @@ const COURSES: CourseSeed[] = [
             ["Freezes component state", false],
             ["Defers the component to the server", false],
           ]),
-          tf("Virtualisation reduces the number of mounted DOM nodes.", 1, true),
+          tf(
+            "Virtualisation reduces the number of mounted DOM nodes.",
+            1,
+            true,
+          ),
           tf("useCallback makes a function run faster.", 1, false),
         ],
       },
@@ -570,7 +689,8 @@ const COURSES: CourseSeed[] = [
     lessons: [
       {
         title: "Resources, Verbs and Status Codes",
-        description: "Get the HTTP fundamentals right before adding anything clever.",
+        description:
+          "Get the HTTP fundamentals right before adding anything clever.",
       },
       {
         title: "Pagination, Filtering and Sorting",
@@ -601,12 +721,16 @@ const COURSES: CourseSeed[] = [
         passingScore: 70,
         isPublished: true,
         questions: [
-          mc("Which status code means the request succeeded and created a resource?", 2, [
-            ["200", false],
-            ["201", true],
-            ["204", false],
-            ["302", false],
-          ]),
+          mc(
+            "Which status code means the request succeeded and created a resource?",
+            2,
+            [
+              ["200", false],
+              ["201", true],
+              ["204", false],
+              ["302", false],
+            ],
+          ),
           mc("Which HTTP method is expected to be idempotent?", 2, [
             ["POST", false],
             ["PUT", true],
@@ -619,7 +743,11 @@ const COURSES: CourseSeed[] = [
             ["It always returns fewer rows", false],
             ["It removes the need for indexes", false],
           ]),
-          tf("A 401 means the server understood the request but refuses to authorise it for the current user.", 1, false),
+          tf(
+            "A 401 means the server understood the request but refuses to authorise it for the current user.",
+            1,
+            false,
+          ),
           tf("The N+1 problem can appear in GraphQL resolvers.", 1, true),
         ],
       },
@@ -670,8 +798,16 @@ const COURSES: CourseSeed[] = [
             ["To skip the build cache", false],
             ["To support multiple architectures automatically", false],
           ]),
-          tf("Data written inside a container survives its removal by default.", 1, false),
-          tf("Reordering Dockerfile instructions can change cache hit rates.", 1, true),
+          tf(
+            "Data written inside a container survives its removal by default.",
+            1,
+            false,
+          ),
+          tf(
+            "Reordering Dockerfile instructions can change cache hit rates.",
+            1,
+            true,
+          ),
         ],
       },
     ],
@@ -694,7 +830,8 @@ const COURSES: CourseSeed[] = [
       },
       {
         title: "Pull Requests That Get Reviewed",
-        description: "Small diffs, clear descriptions and useful commit messages.",
+        description:
+          "Small diffs, clear descriptions and useful commit messages.",
       },
       {
         title: "Undoing Mistakes",
@@ -713,12 +850,16 @@ const COURSES: CourseSeed[] = [
         passingScore: 70,
         isPublished: true,
         questions: [
-          mc("Which command creates a new commit that undoes an earlier one?", 2, [
-            ["git reset --hard", false],
-            ["git revert", true],
-            ["git checkout --", false],
-            ["git clean -fd", false],
-          ]),
+          mc(
+            "Which command creates a new commit that undoes an earlier one?",
+            2,
+            [
+              ["git reset --hard", false],
+              ["git revert", true],
+              ["git checkout --", false],
+              ["git clean -fd", false],
+            ],
+          ),
           mc("What does git reflog help you recover?", 2, [
             ["Deleted remote branches on the server", false],
             ["Commits no longer reachable from any branch", true],
@@ -773,8 +914,7 @@ const COURSES: CourseSeed[] = [
     lessons: [
       {
         title: "What to Test and What to Skip",
-        description:
-          "Pick assertions by risk, not by coverage percentage.",
+        description: "Pick assertions by risk, not by coverage percentage.",
       },
       {
         title: "Unit Tests with Vitest",
@@ -815,7 +955,11 @@ const COURSES: CourseSeed[] = [
             ["They disable React strict mode", false],
           ]),
           tf("100% line coverage proves the code is correct.", 1, false),
-          tf("A flaky test is worse than no test if it is always ignored.", 1, true),
+          tf(
+            "A flaky test is worse than no test if it is always ignored.",
+            1,
+            true,
+          ),
         ],
       },
       {
@@ -923,7 +1067,8 @@ const COURSES: CourseSeed[] = [
       },
       {
         title: "Error Handling and Process Lifecycle",
-        description: "Graceful shutdown, unhandled rejections and health checks.",
+        description:
+          "Graceful shutdown, unhandled rejections and health checks.",
       },
       {
         title: "Logging, Metrics and Tracing",
@@ -950,8 +1095,16 @@ const COURSES: CourseSeed[] = [
             ["Circular imports between modules", false],
             ["Expired TLS certificates", false],
           ]),
-          tf("`process.exit()` waits for pending async work to finish.", 1, false),
-          tf("Unhandled promise rejections terminate the process by default in modern Node.", 1, true),
+          tf(
+            "`process.exit()` waits for pending async work to finish.",
+            1,
+            false,
+          ),
+          tf(
+            "Unhandled promise rejections terminate the process by default in modern Node.",
+            1,
+            true,
+          ),
         ],
       },
       {
@@ -963,12 +1116,23 @@ const COURSES: CourseSeed[] = [
         questions: [
           mc("What should a readiness probe report?", 2, [
             ["That the process is alive", false],
-            ["That the instance can serve traffic, dependencies included", true],
+            [
+              "That the instance can serve traffic, dependencies included",
+              true,
+            ],
             ["The current CPU temperature", false],
             ["The last deployment author", false],
           ]),
-          tf("Graceful shutdown should stop accepting new connections before closing the ones in flight.", 1, true),
-          tf("Logging full request bodies at info level is a good default.", 1, false),
+          tf(
+            "Graceful shutdown should stop accepting new connections before closing the ones in flight.",
+            1,
+            true,
+          ),
+          tf(
+            "Logging full request bodies at info level is a good default.",
+            1,
+            false,
+          ),
         ],
       },
     ],
@@ -1020,12 +1184,16 @@ const COURSES: CourseSeed[] = [
             ["O(n)", false],
             ["O(n log n)", false],
           ]),
-          mc("Which traversal finds the shortest path in an unweighted graph?", 2, [
-            ["Depth-first search", false],
-            ["Breadth-first search", true],
-            ["Post-order traversal", false],
-            ["Topological sort", false],
-          ]),
+          mc(
+            "Which traversal finds the shortest path in an unweighted graph?",
+            2,
+            [
+              ["Depth-first search", false],
+              ["Breadth-first search", true],
+              ["Post-order traversal", false],
+              ["Topological sort", false],
+            ],
+          ),
           tf("Binary search requires sorted input.", 1, true),
           tf("A heap keeps all of its elements fully sorted.", 1, false),
         ],
@@ -1049,7 +1217,11 @@ const COURSES: CourseSeed[] = [
             ["The problem is NP-complete", false],
             ["The recursion depth is shallow", false],
           ]),
-          tf("Depth-first search can be written iteratively with an explicit stack.", 1, true),
+          tf(
+            "Depth-first search can be written iteratively with an explicit stack.",
+            1,
+            true,
+          ),
         ],
       },
     ],
@@ -1072,7 +1244,8 @@ const COURSES: CourseSeed[] = [
       },
       {
         title: "Services and Ingress",
-        description: "Reaching your workloads from inside and outside the cluster.",
+        description:
+          "Reaching your workloads from inside and outside the cluster.",
       },
       {
         title: "ConfigMaps, Secrets and Volumes",
@@ -1103,8 +1276,16 @@ const COURSES: CourseSeed[] = [
             ["Storing secrets encrypted at rest", false],
             ["Scheduling cron jobs", false],
           ]),
-          tf("Pods are meant to be long-lived and individually managed.", 1, false),
-          tf("A container without a memory limit can be evicted under node pressure.", 1, true),
+          tf(
+            "Pods are meant to be long-lived and individually managed.",
+            1,
+            false,
+          ),
+          tf(
+            "A container without a memory limit can be evicted under node pressure.",
+            1,
+            true,
+          ),
         ],
       },
     ],
@@ -1131,7 +1312,8 @@ const COURSES: CourseSeed[] = [
       },
       {
         title: "Authorization Bugs",
-        description: "Broken object-level access control and how to test for it.",
+        description:
+          "Broken object-level access control and how to test for it.",
       },
       {
         title: "Dependencies and Supply Chain",
@@ -1158,8 +1340,16 @@ const COURSES: CourseSeed[] = [
             ["A fast hash such as MD5", false],
             ["Plain text behind a firewall", false],
           ]),
-          tf("A Content Security Policy can limit the impact of a stored XSS bug.", 1, true),
-          tf("Checking the user's role in the UI is enough to enforce authorization.", 1, false),
+          tf(
+            "A Content Security Policy can limit the impact of a stored XSS bug.",
+            1,
+            true,
+          ),
+          tf(
+            "Checking the user's role in the UI is enough to enforce authorization.",
+            1,
+            false,
+          ),
         ],
       },
       {
@@ -1171,12 +1361,23 @@ const COURSES: CourseSeed[] = [
         questions: [
           mc("What is broken object-level authorization?", 2, [
             ["Serving an expired TLS certificate", false],
-            ["Returning a record because it exists, without checking who asked", true],
+            [
+              "Returning a record because it exists, without checking who asked",
+              true,
+            ],
             ["Logging a user out too early", false],
             ["Rate limiting anonymous requests", false],
           ]),
-          tf("Server actions must re-check permissions even when the UI hides the button.", 1, true),
-          tf("Sequential integer IDs are a vulnerability on their own.", 1, false),
+          tf(
+            "Server actions must re-check permissions even when the UI hides the button.",
+            1,
+            true,
+          ),
+          tf(
+            "Sequential integer IDs are a vulnerability on their own.",
+            1,
+            false,
+          ),
         ],
       },
     ],
@@ -1336,7 +1537,10 @@ async function seedCatalogue(teacherIds: string[]) {
     const createdLessons: CreatedLesson[] = [];
 
     for (const [position, lessonSeed] of seed.lessons.entries()) {
-      const lessonCreatedAt = daysAfter(courseCreatedAt, position * randInt(2, 6));
+      const lessonCreatedAt = daysAfter(
+        courseCreatedAt,
+        position * randInt(2, 6),
+      );
       const isPublished = lessonSeed.isPublished ?? seed.isPublished;
 
       const lesson = await prisma.lesson.create({
@@ -1563,7 +1767,11 @@ async function seedLearningActivity(
         for (const quiz of quizzesByLesson.get(lesson.id) ?? []) {
           const maxAttempts = randInt(1, 3);
 
-          for (let attemptIndex = 0; attemptIndex < maxAttempts; attemptIndex++) {
+          for (
+            let attemptIndex = 0;
+            attemptIndex < maxAttempts;
+            attemptIndex++
+          ) {
             // Retakes are informed by the previous try.
             const accuracy = Math.min(0.98, ability + attemptIndex * 0.12);
             const startedAt = dateBetween(
@@ -1899,7 +2107,8 @@ async function seedShowcaseActivity(
   for (const queue of queues) {
     const { course } = queue;
     const floor = latest(course.createdAt, student.createdAt);
-    const firstTouch = firstTouchByCourse.get(course.id) ?? daysAgo(randInt(2, 20));
+    const firstTouch =
+      firstTouchByCourse.get(course.id) ?? daysAgo(randInt(2, 20));
     const enrolledAt = dateBetween(
       floor,
       new Date(Math.max(floor.getTime(), firstTouch.getTime() - DAY_MS)),
@@ -2060,10 +2269,7 @@ async function seedOverrides(
   const notifications: NotificationSeed[] = [];
 
   for (const attempt of targets) {
-    const newScore = Math.min(
-      100,
-      attempt.quiz.passingScore + randInt(0, 12),
-    );
+    const newScore = Math.min(100, attempt.quiz.passingScore + randInt(0, 12));
     const createdAt = hoursAfter(attempt.submittedAt, randInt(6, 96));
     const updatedByAdmin = chance(0.3);
 
@@ -2076,7 +2282,9 @@ async function seedOverrides(
         createdBy: attempt.quiz.teacherId,
         updatedBy: updatedByAdmin ? adminId : null,
         createdAt,
-        updatedAt: updatedByAdmin ? hoursAfter(createdAt, randInt(1, 48)) : createdAt,
+        updatedAt: updatedByAdmin
+          ? hoursAfter(createdAt, randInt(1, 48))
+          : createdAt,
       },
     });
 
@@ -2116,7 +2324,10 @@ async function seedRoleRequests(students: StudentUser[], adminId: string) {
           ? RequestStatus.APPROVED
           : RequestStatus.REJECTED;
 
-    const createdAt = dateBetween(latest(applicant.createdAt, daysAgo(90)), daysAgo(2));
+    const createdAt = dateBetween(
+      latest(applicant.createdAt, daysAgo(90)),
+      daysAgo(2),
+    );
     const reviewedAt =
       status === RequestStatus.PENDING
         ? null
@@ -2162,7 +2373,7 @@ async function seedRoleRequests(students: StudentUser[], adminId: string) {
 async function seedSystemSettings() {
   await prisma.systemSetting.createMany({
     data: [
-      { key: "platformName", value: "Acme Learning Platform" },
+      { key: "platformName", value: "Skillbase" },
       { key: "allowSelfRegistration", value: "true" },
       { key: "maintenanceMode", value: "false" },
     ],
@@ -2337,9 +2548,7 @@ async function main() {
   );
   const roleRequestNotifications = await seedRoleRequests(
     // A demo account promoted to TEACHER would break the student walkthrough.
-    users.students.filter(
-      (student) => !student.email.startsWith("student"),
-    ),
+    users.students.filter((student) => !student.email.startsWith("student")),
     primaryAdmin.id,
   );
 

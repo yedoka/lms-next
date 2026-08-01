@@ -9,6 +9,8 @@ import { publishAdminEvent } from "@/shared/lib/publish-admin-event";
 import { ForgotPasswordSchema, ResetPasswordSchema } from "@/features/auth/schemas/reset-password";
 import { createPasswordResetToken, getPasswordResetTokenByToken, deletePasswordResetToken, checkPasswordResetRateLimit } from "@/features/auth/services/password-reset-service";
 import { sendPasswordResetEmail } from "@/features/auth/services/email-service";
+import { revokeSessionsFor } from "@/features/auth/services/session-revocation";
+import { DEFAULT_ROLE, ROLE } from "@/features/auth/utils/roles";
 
 export const executeSignup = async (
   input: SignupActionInput
@@ -25,7 +27,7 @@ export const executeSignup = async (
       return { ok: false, message };
     }
 
-    const { email, name, password, role } = data.data;
+    const { email, name, password, requestedRole } = data.data;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
@@ -35,13 +37,31 @@ export const executeSignup = async (
 
     const hashedPassword = await argon2.hash(password);
 
-    await prisma.user.create({
-      data: { email, name, password: hashedPassword, role },
+    // Self-registration always creates a STUDENT. `requestedRole` is an intent,
+    // not an assignment: granting TEACHER here would let anyone author courses
+    // and read every enrolled student's attempts by ticking a radio button,
+    // bypassing the RoleRequest review the admin dashboard exists to perform.
+    const user = await prisma.user.create({
+      data: { email, name, password: hashedPassword, role: DEFAULT_ROLE },
     });
+
+    const wantsTeacher = requestedRole === ROLE.TEACHER;
+
+    if (wantsTeacher) {
+      await prisma.roleRequest.create({
+        data: {
+          userId: user.id,
+          requestedRole: ROLE.TEACHER,
+          reason: "Requested during signup",
+        },
+      });
+    }
 
     await publishAdminEvent({
       kind: "signup",
-      label: `${name || email} signed up as ${role}`,
+      label: wantsTeacher
+        ? `${name || email} signed up and requested the TEACHER role`
+        : `${name || email} signed up as ${DEFAULT_ROLE}`,
     });
 
     return { ok: true };
@@ -147,6 +167,10 @@ export const executePasswordReset = async (
       where: { id: user.id },
       data: { password: hashedPassword },
     });
+
+    // A reset is the recovery path for a compromised account, so it must evict
+    // sessions the attacker already holds — the JWT stays valid on its own.
+    await revokeSessionsFor(user.id);
 
     // Delete used token
     await deletePasswordResetToken(tokenRecord.id);

@@ -10,6 +10,14 @@ export const lessonSchema = z.object({
 
 export type LessonFormData = z.infer<typeof lessonSchema>;
 
+export const attachmentSchema = z.object({
+  name: z.string().min(1, "Name is required").max(255),
+  url: z.string().url("Must be a valid URL"),
+  size: z.number().int().nonnegative(),
+});
+
+export type AttachmentFormData = z.infer<typeof attachmentSchema>;
+
 export const reorderLessonsSchema = z.object({
   lessons: z.array(
     z.object({

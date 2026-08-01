@@ -6,6 +6,8 @@ import prisma from "@/shared/db/prisma";
 import * as quizService from "../services/quiz-service";
 import {
   quizSchema,
+  questionSchema,
+  answerSchema,
   QuizFormData,
   QuestionFormData,
   AnswerFormData,
@@ -13,16 +15,22 @@ import {
   submitQuizSchema,
   SubmitQuizData,
 } from "../schemas/quiz";
-import { validateCourseOwnership } from "../utils/auth";
+import {
+  validateLessonOwnership,
+  validateQuizOwnership,
+  validateQuestionOwnership,
+  validateAnswerOwnership,
+} from "../utils/auth";
 import { publishAdminEvent } from "@/shared/lib/publish-admin-event";
+import {
+  getAttemptWindowStart,
+  clearAttemptWindow,
+  SUBMIT_GRACE_SECONDS,
+} from "../services/quiz-attempt-window";
 
-export async function createQuizAction(
-  courseId: string,
-  lessonId: string,
-  data: QuizFormData,
-) {
+export async function createQuizAction(lessonId: string, data: QuizFormData) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId } = await validateLessonOwnership(lessonId, session.user.id!, session.user.role!);
 
   const parsed = quizSchema.safeParse(data);
   if (!parsed.success) {
@@ -34,40 +42,34 @@ export async function createQuizAction(
   return quiz;
 }
 
-export async function updateQuizAction(
-  courseId: string,
-  lessonId: string,
-  quizId: string,
-  data: Partial<QuizFormData>,
-) {
+export async function updateQuizAction(quizId: string, data: Partial<QuizFormData>) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId, lessonId } = await validateQuizOwnership(quizId, session.user.id!, session.user.role!);
 
-  const quiz = await quizService.updateQuiz(quizId, data);
+  const parsed = quizSchema.partial().safeParse(data);
+  if (!parsed.success) {
+    throw new Error("Invalid form data");
+  }
+
+  const quiz = await quizService.updateQuiz(quizId, parsed.data);
   revalidatePath(`/dashboard/teacher/courses/${courseId}/lessons/${lessonId}`);
   return quiz;
 }
 
-export async function deleteQuizAction(
-  courseId: string,
-  lessonId: string,
-  quizId: string,
-) {
+export async function deleteQuizAction(quizId: string) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId, lessonId } = await validateQuizOwnership(quizId, session.user.id!, session.user.role!);
 
   await quizService.deleteQuiz(quizId);
   revalidatePath(`/dashboard/teacher/courses/${courseId}/lessons/${lessonId}`);
 }
 
 export async function createQuestionAction(
-  courseId: string,
-  lessonId: string,
   quizId: string,
   type: "MULTIPLE_CHOICE" | "BOOLEAN",
 ) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId, lessonId } = await validateQuizOwnership(quizId, session.user.id!, session.user.role!);
 
   const question = await quizService.createQuestion(quizId, {
     text: "New Question",
@@ -79,39 +81,36 @@ export async function createQuestionAction(
 }
 
 export async function updateQuestionAction(
-  courseId: string,
-  lessonId: string,
   questionId: string,
   data: Partial<QuestionFormData>,
 ) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId, lessonId } = await validateQuestionOwnership(questionId, session.user.id!, session.user.role!);
 
-  const question = await quizService.updateQuestion(questionId, data);
+  const parsed = questionSchema.partial().safeParse(data);
+  if (!parsed.success) {
+    throw new Error("Invalid form data");
+  }
+
+  const question = await quizService.updateQuestion(questionId, parsed.data);
   revalidatePath(`/dashboard/teacher/courses/${courseId}/lessons/${lessonId}`);
   return question;
 }
 
-export async function deleteQuestionAction(
-  courseId: string,
-  lessonId: string,
-  questionId: string,
-) {
+export async function deleteQuestionAction(questionId: string) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId, lessonId } = await validateQuestionOwnership(questionId, session.user.id!, session.user.role!);
 
   await quizService.deleteQuestion(questionId);
   revalidatePath(`/dashboard/teacher/courses/${courseId}/lessons/${lessonId}`);
 }
 
 export async function reorderQuestionsAction(
-  courseId: string,
-  lessonId: string,
   quizId: string,
   updates: { id: string; position: number }[],
 ) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId, lessonId } = await validateQuizOwnership(quizId, session.user.id!, session.user.role!);
 
   const parsed = reorderQuestionsSchema.safeParse({ questions: updates });
   if (!parsed.success) {
@@ -122,13 +121,9 @@ export async function reorderQuestionsAction(
   revalidatePath(`/dashboard/teacher/courses/${courseId}/lessons/${lessonId}`);
 }
 
-export async function createAnswerAction(
-  courseId: string,
-  lessonId: string,
-  questionId: string,
-) {
+export async function createAnswerAction(questionId: string) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId, lessonId } = await validateQuestionOwnership(questionId, session.user.id!, session.user.role!);
 
   const answer = await quizService.createAnswer(questionId, {
     text: "New Answer",
@@ -139,46 +134,46 @@ export async function createAnswerAction(
 }
 
 export async function updateAnswerAction(
-  courseId: string,
-  lessonId: string,
   answerId: string,
   data: Partial<AnswerFormData>,
 ) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId, lessonId } = await validateAnswerOwnership(answerId, session.user.id!, session.user.role!);
 
-  const answer = await quizService.updateAnswer(answerId, data);
+  const parsed = answerSchema.partial().safeParse(data);
+  if (!parsed.success) {
+    throw new Error("Invalid form data");
+  }
+
+  const answer = await quizService.updateAnswer(answerId, parsed.data);
   revalidatePath(`/dashboard/teacher/courses/${courseId}/lessons/${lessonId}`);
   return answer;
 }
 
-export async function deleteAnswerAction(
-  courseId: string,
-  lessonId: string,
-  answerId: string,
-) {
+export async function deleteAnswerAction(answerId: string) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId, lessonId } = await validateAnswerOwnership(answerId, session.user.id!, session.user.role!);
 
   await quizService.deleteAnswer(answerId);
   revalidatePath(`/dashboard/teacher/courses/${courseId}/lessons/${lessonId}`);
 }
 
-export async function setCorrectAnswerAction(
-  courseId: string,
-  lessonId: string,
-  questionId: string,
-  answerId: string,
-) {
+export async function setCorrectAnswerAction(questionId: string, answerId: string) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId, lessonId } = await validateQuestionOwnership(questionId, session.user.id!, session.user.role!);
 
-  // If it's multiple choice or boolean, we need to make sure only ONE answer is correct
-  // We can do this safely inside the service, but since we are writing an action let's do it in a tx if needed,
-  // or just handle it here: find all answers for question, set them to false, set this one to true.
+  // The answer must belong to the same question, otherwise a caller could flip
+  // the key on a question they do not own by pairing it with one they do.
+  const { questionId: answerQuestionId } = await validateAnswerOwnership(
+    answerId,
+    session.user.id!,
+    session.user.role!,
+  );
 
-  // To avoid circular dependencies let's import prisma here, or add a method to quiz-service.
-  // We'll add setCorrectAnswer to quizService and call it here.
+  if (answerQuestionId !== questionId) {
+    throw new Error("Answer does not belong to this question");
+  }
+
   await quizService.setCorrectAnswer(questionId, answerId);
   revalidatePath(`/dashboard/teacher/courses/${courseId}/lessons/${lessonId}`);
 }
@@ -231,11 +226,29 @@ export async function submitQuizAction(
     throw new Error("You are not authorized to submit this quiz");
   }
 
+  // Enforce the time limit on the server. The client timer is a display; it
+  // resets on reload and can simply be ignored by a direct call to this action.
+  if (quiz.timeLimit) {
+    const startedAt = await getAttemptWindowStart(session.user.id, quiz.id);
+
+    if (startedAt === null) {
+      throw new Error("Your time for this quiz has expired");
+    }
+
+    const elapsedSeconds = (Date.now() - startedAt) / 1000;
+    if (elapsedSeconds > quiz.timeLimit * 60 + SUBMIT_GRACE_SECONDS) {
+      throw new Error("Your time for this quiz has expired");
+    }
+  }
+
   const attempt = await quizService.gradeQuizAttempt(
     session.user.id,
     parsed.data.quizId,
     parsed.data.answers,
   );
+
+  // The attempt is recorded; a retake must get a fresh countdown.
+  await clearAttemptWindow(session.user.id, quiz.id);
 
   await publishAdminEvent({
     kind: "quiz_completed",

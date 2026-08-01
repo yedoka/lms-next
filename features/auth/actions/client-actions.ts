@@ -25,7 +25,7 @@ export type LoginActionInput = {
 export type SignupActionInput = {
   name: string;
   email: string;
-  role: (typeof SIGNUP_ROLES)[number];
+  requestedRole: (typeof SIGNUP_ROLES)[number];
   password: string;
   passwordConfirmation: string;
 };

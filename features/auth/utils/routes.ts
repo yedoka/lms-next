@@ -4,6 +4,7 @@ export const ROUTES = {
   COURSE_DETAILS: (id: string) => `/courses/${id}`,
   COURSE_LESSON: (courseId: string, lessonId: string) =>
     `/courses/${courseId}/lessons/${lessonId}`,
+  LIVE: "/live",
   DASHBOARD: "/dashboard",
   DASHBOARD_STUDENT: "/dashboard/student",
   DASHBOARD_STUDENT_COURSES: "/dashboard/student/courses",
@@ -28,7 +29,11 @@ export const ROUTES = {
   FORBIDDEN: "/forbidden",
 } as const;
 
-export const PROTECTED_ROUTES: ReadonlyArray<string> = [ROUTES.HOME, ROUTES.DASHBOARD_SETTINGS];
+export const PROTECTED_ROUTES: ReadonlyArray<string> = [
+  ROUTES.HOME,
+  ROUTES.DASHBOARD_SETTINGS,
+  ROUTES.LIVE,
+];
 export const PROTECTED_ROUTE_PREFIXES: ReadonlyArray<string> = [ROUTES.DASHBOARD];
 // Routes that redirect an already-logged-in user to HOME. AUTH_RESET_PASSWORD
 // is intentionally excluded: it carries a one-time token in the query string

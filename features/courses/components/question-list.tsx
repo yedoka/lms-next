@@ -24,17 +24,11 @@ import Typography from "@mui/material/Typography";
 
 interface QuestionListProps {
   items: (Question & { answers: Answer[] })[];
-  courseId: string;
-  lessonId: string;
-  quizId: string;
   onReorder: (updates: { id: string; position: number }[]) => void;
 }
 
 export const QuestionList = ({
   items,
-  courseId,
-  lessonId,
-  quizId,
   onReorder,
 }: QuestionListProps) => {
   const [isMounted, setIsMounted] = useState(false);
@@ -88,9 +82,6 @@ export const QuestionList = ({
             <QuestionItem
               key={question.id}
               question={question}
-              courseId={courseId}
-              lessonId={lessonId}
-              quizId={quizId}
             />
           ))}
           {questions.length === 0 && (

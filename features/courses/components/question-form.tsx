@@ -23,15 +23,11 @@ import IconButton from "@mui/material/IconButton";
 
 interface QuestionFormProps {
   question: Question & { answers: Answer[] };
-  courseId: string;
-  lessonId: string;
   onSuccess?: () => void;
 }
 
 export const QuestionForm = ({
   question,
-  courseId,
-  lessonId,
   onSuccess,
 }: QuestionFormProps) => {
   const [isPending, startTransition] = useTransition();
@@ -52,7 +48,7 @@ export const QuestionForm = ({
   const onSubmit = (data: QuestionFormData) => {
     startTransition(async () => {
       try {
-        await updateQuestionAction(courseId, lessonId, question.id, data);
+        await updateQuestionAction(question.id, data);
         toast.success("Question updated");
         onSuccess?.();
       } catch (error) {
@@ -64,7 +60,7 @@ export const QuestionForm = ({
   const handleAddAnswer = () => {
     startTransition(async () => {
       try {
-        await createAnswerAction(courseId, lessonId, question.id);
+        await createAnswerAction(question.id);
       } catch (error) {
         toast.error("Failed to add answer");
       }
@@ -74,7 +70,7 @@ export const QuestionForm = ({
   const handleUpdateAnswerText = (answerId: string, text: string) => {
     startTransition(async () => {
       try {
-        await updateAnswerAction(courseId, lessonId, answerId, { text });
+        await updateAnswerAction(answerId, { text });
       } catch (error) {
         toast.error("Failed to update answer");
       }
@@ -84,7 +80,7 @@ export const QuestionForm = ({
   const handleDeleteAnswer = (answerId: string) => {
     startTransition(async () => {
       try {
-        await deleteAnswerAction(courseId, lessonId, answerId);
+        await deleteAnswerAction(answerId);
       } catch (error) {
         toast.error("Failed to delete answer");
       }
@@ -94,7 +90,7 @@ export const QuestionForm = ({
   const handleSetCorrect = (answerId: string) => {
     startTransition(async () => {
       try {
-        await setCorrectAnswerAction(courseId, lessonId, question.id, answerId);
+        await setCorrectAnswerAction(question.id, answerId);
       } catch (error) {
         toast.error("Failed to set correct answer");
       }

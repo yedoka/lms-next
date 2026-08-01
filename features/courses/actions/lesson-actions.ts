@@ -3,8 +3,12 @@
 import { requireAuth } from "@/features/auth/utils/with-role";
 import { revalidatePath } from "next/cache";
 import * as lessonService from "../services/lesson-service";
-import { lessonSchema, LessonFormData, reorderLessonsSchema } from "../schemas/lesson";
-import { validateCourseOwnership } from "../utils/auth";
+import { lessonSchema, LessonFormData, reorderLessonsSchema, attachmentSchema } from "../schemas/lesson";
+import {
+  validateCourseOwnership,
+  validateLessonOwnership,
+  validateAttachmentOwnership,
+} from "../utils/auth";
 import prisma from "@/shared/db/prisma";
 import { publishNotification } from "@/shared/lib/publish-notification";
 
@@ -22,9 +26,15 @@ export async function createLessonAction(courseId: string, data: LessonFormData)
   return lesson;
 }
 
-export async function updateLessonAction(courseId: string, lessonId: string, data: Partial<LessonFormData>) {
+export async function updateLessonAction(lessonId: string, data: Partial<LessonFormData>) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId } = await validateLessonOwnership(lessonId, session.user.id!, session.user.role!);
+
+  const parsed = lessonSchema.partial().safeParse(data);
+  if (!parsed.success) {
+    throw new Error("Invalid form data");
+  }
+  data = parsed.data;
 
   // Check current publish state before updating
   const currentLesson = data.isPublished
@@ -56,9 +66,9 @@ export async function updateLessonAction(courseId: string, lessonId: string, dat
   return lesson;
 }
 
-export async function deleteLessonAction(courseId: string, lessonId: string) {
+export async function deleteLessonAction(lessonId: string) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId } = await validateLessonOwnership(lessonId, session.user.id!, session.user.role!);
 
   await lessonService.deleteLesson(lessonId);
   revalidatePath(`/dashboard/teacher/courses/${courseId}/edit`);
@@ -77,18 +87,28 @@ export async function reorderLessonsAction(courseId: string, updates: { id: stri
   revalidatePath(`/dashboard/teacher/courses/${courseId}/edit`);
 }
 
-export async function createLessonAttachmentAction(courseId: string, lessonId: string, name: string, url: string, size: number) {
+export async function createLessonAttachmentAction(lessonId: string, name: string, url: string, size: number) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId } = await validateLessonOwnership(lessonId, session.user.id!, session.user.role!);
 
-  const attachment = await lessonService.addLessonAttachment(lessonId, name, url, size);
+  const parsed = attachmentSchema.safeParse({ name, url, size });
+  if (!parsed.success) {
+    throw new Error("Invalid attachment data");
+  }
+
+  const attachment = await lessonService.addLessonAttachment(
+    lessonId,
+    parsed.data.name,
+    parsed.data.url,
+    parsed.data.size,
+  );
   revalidatePath(`/dashboard/teacher/courses/${courseId}/edit`);
   return attachment;
 }
 
-export async function deleteLessonAttachmentAction(courseId: string, attachmentId: string) {
+export async function deleteLessonAttachmentAction(attachmentId: string) {
   const session = await requireAuth();
-  await validateCourseOwnership(courseId, session.user.id!, session.user.role!);
+  const { courseId } = await validateAttachmentOwnership(attachmentId, session.user.id!, session.user.role!);
 
   await lessonService.deleteLessonAttachment(attachmentId);
   revalidatePath(`/dashboard/teacher/courses/${courseId}/edit`);

@@ -26,10 +26,9 @@ import Typography from "@mui/material/Typography";
 interface QuizBuilderProps {
   quiz: Quiz & { questions: (Question & { answers: Answer[] })[] };
   courseId: string;
-  lessonId: string;
 }
 
-export const QuizBuilder = ({ quiz, courseId, lessonId }: QuizBuilderProps) => {
+export const QuizBuilder = ({ quiz, courseId }: QuizBuilderProps) => {
   const [activeTab, setActiveTab] = useState<"settings" | "questions">("settings");
   const [isPending, startTransition] = useTransition();
 
@@ -50,7 +49,7 @@ export const QuizBuilder = ({ quiz, courseId, lessonId }: QuizBuilderProps) => {
   const onSubmit = (data: QuizFormData) => {
     startTransition(async () => {
       try {
-        await updateQuizAction(courseId, lessonId, quiz.id, data);
+        await updateQuizAction(quiz.id, data);
         toast.success("Quiz updated");
       } catch (error) {
         toast.error("Failed to update quiz");
@@ -61,7 +60,7 @@ export const QuizBuilder = ({ quiz, courseId, lessonId }: QuizBuilderProps) => {
   const handleAddQuestion = (type: "MULTIPLE_CHOICE" | "BOOLEAN") => {
     startTransition(async () => {
       try {
-        await createQuestionAction(courseId, lessonId, quiz.id, type);
+        await createQuestionAction(quiz.id, type);
         toast.success("Question created");
         setActiveTab("questions");
       } catch (error) {
@@ -73,7 +72,7 @@ export const QuizBuilder = ({ quiz, courseId, lessonId }: QuizBuilderProps) => {
   const handleReorder = (updates: { id: string; position: number }[]) => {
     startTransition(async () => {
       try {
-        await reorderQuestionsAction(courseId, lessonId, quiz.id, updates);
+        await reorderQuestionsAction(quiz.id, updates);
         toast.success("Questions reordered");
       } catch (error) {
         toast.error("Failed to reorder questions");
@@ -245,9 +244,6 @@ export const QuizBuilder = ({ quiz, courseId, lessonId }: QuizBuilderProps) => {
 
           <QuestionList
             items={quiz.questions}
-            courseId={courseId}
-            lessonId={lessonId}
-            quizId={quiz.id}
             onReorder={handleReorder}
           />
         </Stack>

@@ -32,10 +32,13 @@ export function QuizPlayer({
   courseId,
   lessonId,
   quiz,
+  deadline,
 }: {
   courseId: string;
   lessonId: string;
   quiz: QuizData;
+  /** Server-issued deadline in epoch milliseconds; null when untimed. */
+  deadline: number | null;
 }) {
   const router = useRouter();
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -132,11 +135,8 @@ export function QuizPlayer({
         <Typography variant="h5" component="h1" fontWeight={700}>
           {quiz.title}
         </Typography>
-        {quiz.timeLimit && (
-          <QuizTimer
-            timeLimitMinutes={quiz.timeLimit}
-            onExpire={handleSubmit}
-          />
+        {deadline !== null && (
+          <QuizTimer deadline={deadline} onExpire={handleSubmit} />
         )}
       </Box>
 
