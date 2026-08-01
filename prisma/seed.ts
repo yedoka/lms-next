@@ -99,7 +99,7 @@ const dateBetween = (from: Date, to: Date) => {
 /* -------------------------------------------------------------------------- */
 
 const DEFAULT_PASSWORD = "changeme123";
-const EMAIL_DOMAIN = "lms.local";
+const EMAIL_DOMAIN = "demo.local";
 
 const FIRST_NAMES = [
   "Ava", "Noah", "Mia", "Liam", "Emma", "Ethan", "Olivia", "Lucas",
@@ -1809,7 +1809,7 @@ function buildShowcaseDates(count: number): Date[] {
 }
 
 /**
- * student1@lms.local is the demo account, so it has to look like someone who
+ * student1@demo.local is the demo account, so it has to look like someone who
  * has used the platform for months: many enrollments, a long completion history
  * and enough recent work that the weekly activity chart has a shape.
  *

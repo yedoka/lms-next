@@ -63,7 +63,7 @@ export default function SocketTestPage() {
             component="code"
             sx={{ bgcolor: "action.hover", px: 0.75, py: 0.25, borderRadius: 1, fontFamily: "monospace", fontSize: "0.8em" }}
           >
-            lms-express
+            skillbase-express
           </Box>{" "}
           backend.
         </Typography>
@@ -167,7 +167,7 @@ export default function SocketTestPage() {
         </Typography>
         <Box component="ul" sx={{ m: 0, pl: 2.5, display: "flex", flexDirection: "column", gap: 0.5 }}>
           {[
-            <>Ensure <InlineCode>lms-express</InlineCode> is running.</>,
+            <>Ensure <InlineCode>skillbase-express</InlineCode> is running.</>,
             <>Check if CORS is allowed for <InlineCode>localhost:3000</InlineCode>.</>,
             <>Verify <InlineCode>NEXT_PUBLIC_SOCKET_URL</InlineCode> in <InlineCode>.env</InlineCode>.</>,
           ].map((item, i) => (

@@ -52,7 +52,7 @@ function buildPdf(lines: PdfLine[], title: string): Buffer {
     `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 ${PDF_PAGE_HEIGHT}] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>`,
     `<< /Length ${Buffer.byteLength(content, "latin1")} >>\nstream\n${content}\nendstream`,
     "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>",
-    `<< /Title (${escapePdfString(toPdfText(title))}) /Producer (LMS seed) >>`,
+    `<< /Title (${escapePdfString(toPdfText(title))}) /Producer (Skillbase seed) >>`,
   ];
 
   let pdf = "%PDF-1.4\n";
@@ -236,7 +236,7 @@ function slidesPdf(context: LessonContext): Buffer {
     { text: "4.  Quiz and wrap-up", size: 11, gapAfter: 8 },
     { text: "", size: 11, gapAfter: 24 },
     {
-      text: `${context.courseCategory} track - generated for the LMS demo dataset.`,
+      text: `${context.courseCategory} track - generated for the Skillbase demo dataset.`,
       size: 9,
       gapAfter: 0,
     },

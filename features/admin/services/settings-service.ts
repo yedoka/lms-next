@@ -5,7 +5,7 @@ import type { SystemSettingsData } from "@/features/admin/schemas/schema";
 export const SYSTEM_SETTINGS_TAG = "system-settings";
 
 const DEFAULTS: SystemSettingsData = {
-  platformName: "LMS",
+  platformName: "Skillbase",
   allowSelfRegistration: true,
   maintenanceMode: false,
 };

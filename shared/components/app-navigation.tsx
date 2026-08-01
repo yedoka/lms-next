@@ -97,7 +97,7 @@ export function AppNavigation({
         >
           <GraduationCap size={24} />
           <Typography variant="subtitle1" fontWeight={700} color="primary">
-            {platformName ?? "LMS Platform"}
+            {platformName ?? "Skillbase"}
           </Typography>
         </Box>
       </Box>
@@ -247,7 +247,7 @@ export function AppNavigation({
               color="primary"
               sx={{ display: { lg: "none" } }}
             >
-              {platformName ?? "LMS"}
+              {platformName ?? "Skillbase"}
             </Typography>
           </Box>
 

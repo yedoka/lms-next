@@ -54,7 +54,7 @@ A modern, full-stack Learning Management System (LMS) built with Next.js 16.2, T
 This repository follows a **Feature-Sliced Architecture** to maintain modularity and scalability.
 
 ```text
-lms-next/
+skillbase-next/
 ├── app/                  # Next.js App Router (Pages, Layouts, API Routes)
 ├── features/             # Domain-specific logic
 │   ├── auth/             # Authentication feature (actions, components, services...)
@@ -79,7 +79,7 @@ lms-next/
 1. **Clone the repository:**
    ```bash
    git clone <repository-url>
-   cd lms-next
+   cd skillbase-next
    ```
 
 2. **Install dependencies:**

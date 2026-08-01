@@ -20,7 +20,7 @@ export async function sendPasswordResetEmail(email: string, resetLink: string): 
     const { Resend } = await import("resend");
     const resend = new Resend(resendApiKey);
 
-    const platformName = process.env.NEXT_PUBLIC_PLATFORM_NAME || "LMS Platform";
+    const platformName = process.env.NEXT_PUBLIC_PLATFORM_NAME || "Skillbase";
 
     await resend.emails.send({
       from: `${platformName} <noreply@resend.dev>`, // Resend testing domain default, change for custom domain
