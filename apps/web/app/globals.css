@@ -1,0 +1,37 @@
+/* TipTap editor prose styles (replaces Tailwind Typography) */
+.tiptap-content {
+  outline: none;
+  min-height: 150px;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+.tiptap-content h1 { font-size: 1.75rem; font-weight: 700; margin: 1em 0 0.5em; }
+.tiptap-content h2 { font-size: 1.4rem; font-weight: 600; margin: 1em 0 0.5em; }
+.tiptap-content h3 { font-size: 1.15rem; font-weight: 600; margin: 0.8em 0 0.4em; }
+.tiptap-content p { margin: 0.5em 0; }
+.tiptap-content ul, .tiptap-content ol { padding-left: 1.5em; margin: 0.5em 0; }
+.tiptap-content li { margin: 0.25em 0; }
+.tiptap-content blockquote { border-left: 4px solid #ccc; padding-left: 1em; color: #666; margin: 0.5em 0; }
+.tiptap-content code { background: #f4f4f4; border-radius: 4px; padding: 0.1em 0.3em; font-family: monospace; }
+.tiptap-content pre { background: #1e1e1e; color: #d4d4d4; padding: 1em; border-radius: 8px; overflow-x: auto; }
+.tiptap-content strong { font-weight: 700; }
+.tiptap-content em { font-style: italic; }
+
+/* Keep the .dark class for next-themes dark mode integration */
+.dark { color-scheme: dark; }
+
+/* Global box-sizing reset */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Spin animation for loading icons */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
+
+/* Override autofill background and text color to match theme colors */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--mui-palette-background-paper, #ffffff) inset !important;
+  -webkit-text-fill-color: var(--mui-palette-text-primary, #000000) !important;
+}

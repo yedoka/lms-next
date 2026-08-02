@@ -1,0 +1,174 @@
+"use server";
+
+import prisma from "@/shared/db/prisma";
+import { requireAuth } from "@/features/auth/utils/with-role";
+import { ROLE } from "@/features/auth/utils/roles";
+import { revalidateTag } from "next/cache";
+import { redirect } from "next/navigation";
+import { courseSchema, CourseFormData } from "@/features/courses/schemas/schema";
+import { v2 as cloudinary } from "cloudinary";
+import { validateCourseOwnership } from "../utils/auth";
+import { publishNotification } from "@/shared/lib/publish-notification";
+import { publishAdminEvent } from "@/shared/lib/publish-admin-event";
+
+cloudinary.config({
+  secure: true,
+});
+
+export async function createCourse(data: CourseFormData) {
+  const session = await requireAuth();
+
+  // Only teachers and admins can create courses
+  if (session.user.role !== ROLE.TEACHER && session.user.role !== ROLE.ADMIN) {
+    throw new Error("Unauthorized");
+  }
+
+  if (!session.user.id) {
+    throw new Error("Unauthorized: No user ID");
+  }
+
+  const parsed = courseSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error("Invalid form data");
+  }
+
+  const course = await prisma.course.create({
+    data: {
+      title: parsed.data.title,
+      description: parsed.data.description,
+      category: parsed.data.category,
+      thumbnail: parsed.data.thumbnail,
+      isPublished: parsed.data.isPublished ?? false,
+      teacherId: session.user.id,
+    },
+  });
+
+  if (course.isPublished) {
+    revalidateTag("courses", "max");
+  }
+
+  redirect("/dashboard/teacher");
+}
+
+export async function updateCourse(id: string, data: CourseFormData) {
+  const session = await requireAuth();
+
+  if (!session.user.id) {
+    throw new Error("Unauthorized: No user ID");
+  }
+
+  const course = await validateCourseOwnership(id, session.user.id, session.user.role!);
+
+  const parsed = courseSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error("Invalid form data");
+  }
+
+  const updatedCourse = await prisma.course.update({
+    where: { id },
+    data: {
+      title: parsed.data.title,
+      description: parsed.data.description,
+      category: parsed.data.category,
+      thumbnail: parsed.data.thumbnail,
+      isPublished: parsed.data.isPublished ?? false,
+    },
+  });
+
+  // Revalidate cache if status changed or it is published
+  if (course.isPublished !== updatedCourse.isPublished || updatedCourse.isPublished) {
+    revalidateTag("courses", "max");
+  }
+
+  redirect("/dashboard/teacher");
+}
+
+export async function deleteCourse(id: string) {
+  const session = await requireAuth();
+
+  if (!session.user.id) {
+    throw new Error("Unauthorized: No user ID");
+  }
+
+  const course = await validateCourseOwnership(id, session.user.id, session.user.role!);
+
+  await prisma.course.delete({
+    where: { id },
+  });
+
+  if (course.isPublished) {
+    revalidateTag("courses", "max");
+  }
+
+  return { success: true };
+}
+
+export async function enrollInCourse(courseId: string) {
+  const session = await requireAuth();
+
+  if (!session.user.id) {
+    throw new Error("Unauthorized: No user ID");
+  }
+
+  // Check if already enrolled
+  const existingEnrollment = await prisma.enrollment.findUnique({
+    where: {
+      userId_courseId: {
+        userId: session.user.id,
+        courseId,
+      },
+    },
+  });
+
+  if (existingEnrollment) {
+    // Already enrolled, just redirect to the first lesson
+    return await redirectToFirstLesson(courseId);
+  }
+
+  // Create enrollment
+  await prisma.enrollment.create({
+    data: {
+      userId: session.user.id,
+      courseId,
+    },
+  });
+
+  // Notify the student of confirmed enrollment
+  const course = await prisma.course.findUnique({ where: { id: courseId }, select: { title: true } });
+  if (course) {
+    await publishNotification({
+      userId: session.user.id,
+      type: "ENROLLMENT",
+      message: `You have successfully enrolled in "${course.title}"`,
+    });
+    await publishAdminEvent({
+      kind: "enrollment",
+      label: `${session.user.name ?? "A student"} enrolled in "${course.title}"`,
+    });
+  }
+
+  // Revalidate to show "Continue" instead of "Enroll" on details/catalog pages
+  revalidateTag(`enrollment:${session.user.id}:${courseId}`, "max");
+  revalidateTag("courses", "max");
+
+  return await redirectToFirstLesson(courseId);
+}
+
+async function redirectToFirstLesson(courseId: string) {
+  const firstLesson = await prisma.lesson.findFirst({
+    where: {
+      courseId,
+      isPublished: true,
+    },
+    orderBy: {
+      position: "asc",
+    },
+  });
+
+  if (!firstLesson) {
+    // If no lessons, just redirect back to course page or dashboard
+    redirect(`/courses/${courseId}`);
+  }
+
+  redirect(`/courses/${courseId}/lessons/${firstLesson.id}`);
+}
