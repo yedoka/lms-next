@@ -2,44 +2,47 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Two Repos, One System
+## Where this app sits
 
-This LMS is split across two repositories that must be run together:
+This is `apps/web` in the Skillbase monorepo. Two apps must run together:
 
-- **`skillbase-next/`** — Next.js 16 frontend + API (this repo)
-- **`skillbase-express/`** — Node.js/Bun Socket.IO server (`../skillbase-express`)
+- **`apps/web/`** — Next.js 16 frontend + API (this package)
+- **`apps/realtime/`** — Bun/Express Socket.IO server
+- **`packages/db/`** — the Prisma schema, migrations, seed, and the shared `PrismaClient`
 
-The express server handles real-time: Socket.IO for live quiz sessions and a Redis pub/sub bridge for push notifications. The Next.js app connects to it via `NEXT_PUBLIC_SOCKET_URL`.
+The realtime server handles Socket.IO for live quiz sessions and a Redis pub/sub bridge for push notifications. This app connects to it via `NEXT_PUBLIC_SOCKET_URL`.
 
-> **The two repos share one Postgres database through two separate, drifting Prisma setups.** `skillbase-next` is on `@prisma/client` 7.6, `skillbase-express` on 6.9, and `skillbase-express/prisma/schema.prisma` is missing `RoleRequest`, `SystemSetting` and `PasswordResetToken`. Express **writes** `QuizAttempt` and `AttemptAnswer` rows when a live session ends. Any migration touching those tables must be applied to both schemas, or the live-quiz grader fails — and it swallows per-player errors, so the failure is silent. See `brain/02-data-model/schema-divergence.md`.
+> **Both apps share one Postgres database through one Prisma schema** — `packages/db/prisma/schema.prisma`. `shared/db/prisma.ts` is a re-export of `@skillbase/db`; do not construct a `PrismaClient` here. Migrations live in `packages/db/prisma/migrations/` and are run from the repo root. This used to be two drifting schemas a major version apart; see `brain/02-data-model/schema-divergence.md` for what that cost.
 
 ## Commands
 
-### skillbase-next (this repo) — uses Yarn
+Run these from the **repo root**, not from this directory. Yarn is the only package manager; bun is the realtime runtime.
 
 ```bash
-yarn dev          # start dev server
-yarn build        # db:generate + next build
-yarn lint         # eslint
+yarn dev           # both apps
+yarn dev:web       # this app only
+yarn build         # db:generate + next build
+yarn lint          # eslint
+yarn typecheck     # tsc --noEmit in every workspace
 ```
 
-### Database (Prisma)
+### Database (Prisma) — also from the repo root
 
 ```bash
 yarn db:migrate   # create + apply migration (dev)
 yarn db:generate  # regenerate Prisma client after schema changes
 yarn db:push      # push schema without migration (prototyping)
 yarn db:studio    # open Prisma Studio
-yarn db:seed      # run prisma/seed.ts
+yarn db:seed      # run packages/db/prisma/seed.ts
 yarn db:setup     # migrate + generate + seed
 yarn db:reset     # reset and re-migrate
 ```
 
-### skillbase-express — uses Bun
+### Environment
 
-```bash
-bun run index.ts  # start socket server
-```
+One `.env` at the repo root serves everything. This app loads it via `dotenv-cli`
+(`-e ../../.env`), the realtime server via `bun --env-file`, and the Prisma CLI via
+`packages/db/prisma.config.ts`. There is deliberately no `.env` in this directory.
 
 ## Architecture
 
@@ -76,7 +79,7 @@ features/
     schemas/        schema
     components/     settings tabs + forms
 shared/
-  db/prisma.ts      singleton Prisma client
+  db/prisma.ts      re-export of @skillbase/db (the client lives in packages/db)
   lib/              socket.ts, redis.ts, publish-notification.ts, mui-theme.ts, utils.ts
   components/       AppNavigation, file/image/video upload, shared UI primitives
 app/                routing only — pages delegate all logic to features/
@@ -134,7 +137,7 @@ For detailed architecture, data flows, and navigation guides, see [docs/CODEBASE
 
 ## Knowledge base
 
-`../brain/` is an 82-note vault documenting every feature, model, route and flow in both repos, with `file:line` citations throughout. Start at `brain/00-map-of-content.md`. Useful entry points:
+`brain/` at the repo root is an 82-note vault documenting every feature, model, route and flow in both apps, with `file:line` citations throughout. It is deliberately **not** committed — it lives on disk only. Start at `brain/00-map-of-content.md`. Useful entry points:
 
 - `brain/03-features/authorization-rbac.md` — the real role/capability matrix per enforcement layer
 - `brain/05-flows/` — six cross-cutting sequence diagrams (signup→first lesson, authoring, quiz attempt, live session, realtime transport, role request)
