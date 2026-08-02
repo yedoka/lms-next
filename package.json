@@ -1,0 +1,35 @@
+{
+  "name": "skillbase",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n web,realtime -c cyan,magenta \"yarn dev:web\" \"yarn dev:realtime\"",
+    "dev:web": "yarn workspace @skillbase/web dev",
+    "dev:realtime": "bun --env-file=.env --watch apps/realtime/index.ts",
+    "build": "yarn db:generate && yarn workspace @skillbase/web build",
+    "start": "yarn workspace @skillbase/web start",
+    "lint": "yarn workspace @skillbase/web lint",
+    "typecheck": "yarn workspaces run typecheck",
+    "db:generate": "yarn workspace @skillbase/db db:generate",
+    "db:migrate": "yarn workspace @skillbase/db db:migrate",
+    "db:migrate:deploy": "yarn workspace @skillbase/db db:migrate:deploy",
+    "db:migrate:status": "yarn workspace @skillbase/db db:migrate:status",
+    "db:push": "yarn workspace @skillbase/db db:push",
+    "db:pull": "yarn workspace @skillbase/db db:pull",
+    "db:seed": "yarn workspace @skillbase/db db:seed",
+    "db:studio": "yarn workspace @skillbase/db db:studio",
+    "db:reset": "yarn workspace @skillbase/db db:reset",
+    "db:setup": "yarn workspace @skillbase/db db:setup",
+    "postinstall": "yarn db:generate"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

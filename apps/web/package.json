@@ -1,28 +1,13 @@
 {
-  "name": "skillbase-next",
+  "name": "@skillbase/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "yarn db:generate && next build",
-    "start": "next start",
+    "dev": "dotenv -e ../../.env -- next dev",
+    "build": "dotenv -e ../../.env -- next build",
+    "start": "dotenv -e ../../.env -- next start",
     "lint": "eslint",
-    "prisma:version": "yarn prisma version",
-    "prisma:format": "yarn prisma format",
-    "prisma:validate": "yarn prisma validate",
-    "db:generate": "yarn prisma generate",
-    "db:push": "yarn prisma db push",
-    "db:pull": "yarn prisma db pull",
-    "db:migrate": "yarn prisma migrate dev",
-    "db:migrate:deploy": "yarn prisma migrate deploy",
-    "db:migrate:status": "yarn prisma migrate status",
-    "db:reset": "yarn prisma migrate reset",
-    "db:seed": "yarn prisma db seed",
-    "db:studio": "yarn prisma studio",
-    "db:setup": "yarn db:migrate && yarn db:generate && yarn db:seed"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
@@ -38,23 +23,20 @@
     "@mui/material-nextjs": "^9.0.1",
     "@mui/system": "^9.0.1",
     "@mui/x-charts": "^9.5.0",
-    "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
+    "@skillbase/db": "1.0.0",
     "@tiptap/pm": "^3.22.4",
     "@tiptap/react": "^3.22.4",
     "@tiptap/starter-kit": "^3.22.4",
     "argon2": "^0.44.0",
     "cloudinary": "^2.10.0",
     "clsx": "^2.1.1",
-    "dotenv": "^17.3.1",
     "ioredis": "^5.11.1",
     "lucide-react": "^1.11.0",
     "next": "16.2.1",
     "next-auth": "^5.0.0-beta.30",
     "next-cloudinary": "^6.17.5",
     "next-themes": "^0.4.6",
-    "pg": "^8.20.0",
-    "prisma": "^7.6.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.72.0",
@@ -67,22 +49,13 @@
   "devDependencies": {
     "@types/ioredis": "^5.0.0",
     "@types/node": "^20",
-    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/sanitize-html": "^2.16.1",
     "babel-plugin-react-compiler": "^1.0.0",
+    "dotenv-cli": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
-    "tsx": "^4.21.0",
     "typescript": "^5"
-  },
-  "ignoreScripts": [
-    "sharp",
-    "unrs-resolver"
-  ],
-  "trustedDependencies": [
-    "sharp",
-    "unrs-resolver"
-  ]
+  }
 }

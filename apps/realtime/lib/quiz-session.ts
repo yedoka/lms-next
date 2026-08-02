@@ -1,6 +1,6 @@
 import type { Server, Socket } from "socket.io";
+import { prisma } from "@skillbase/db";
 import { redis } from "./redis.js";
-import { prisma } from "./prisma.js";
 
 const SESSION_TTL = 86400;
 // Absorbs network latency so a player who answered in time is not rejected by

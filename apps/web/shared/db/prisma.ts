@@ -1,18 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+// The client itself lives in packages/db so the realtime server shares it.
+// Kept here as a re-export so existing `@/shared/db/prisma` imports keep working.
+import { prisma } from "@skillbase/db";
 
-const globalForPrisma = globalThis as typeof globalThis & {
-  prisma?: PrismaClient;
-};
-const adapter = new PrismaPg(process.env.DATABASE_URL!);
-const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    adapter,
-  });
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
-
+export { prisma };
 export default prisma;
