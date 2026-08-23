@@ -7,18 +7,7 @@ import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 import { BarChart } from "@mui/x-charts/BarChart";
 import type { WeeklyActivityPoint } from "../services/student-activity-service";
-
-/**
- * Categorical hues, fixed order — lessons first, quizzes second. Validated as a
- * pair against both chart surfaces: adjacent ΔE 24.5 normal vision, 23.3 under
- * deuteranopia, contrast >= 3:1 on the light and dark surface alike, so one set
- * serves both schemes. The greens carried by StatCard read as gray at chart
- * scale (chroma below the floor), which is why this is not the palette token.
- */
-const SERIES_COLORS = {
-  lessons: "#2383e2",
-  quizzes: "#1f9d55",
-} as const;
+import { activitySeriesColors as SERIES_COLORS } from "@/shared/lib/chart-colors";
 
 interface StudentActivityChartProps {
   points: WeeklyActivityPoint[];

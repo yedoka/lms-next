@@ -10,6 +10,7 @@ import type {
   TimeSeriesPoint,
   PassRateStats,
 } from "@/features/admin/services/admin-service";
+import { chartColors } from "@/shared/lib/chart-colors";
 
 interface Props {
   signups: TimeSeriesPoint[];
@@ -82,13 +83,13 @@ export function AnalyticsCharts({ signups, enrollments, passRate, days }: Props)
       >
         <TrendCard
           title="New Signups"
-          color="#2196f3"
+          color={chartColors.info}
           points={signups}
           days={days}
         />
         <TrendCard
           title="New Enrollments"
-          color="#4caf50"
+          color={chartColors.success}
           points={enrollments}
           days={days}
         />
