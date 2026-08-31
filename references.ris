@@ -1,0 +1,114 @@
+TY  - ELEC
+AU  - Blackboard
+TI  - About Blackboard
+PY  - 2026
+T2  - Blackboard
+UR  - https://www.blackboard.com/company
+ER  -
+
+TY  - ELEC
+AU  - Blackboard
+TI  - Blackboard LMS
+PY  - 2026
+T2  - Blackboard
+UR  - https://www.blackboard.com/products/teaching-and-learning/learning-effectiveness/blackboard-lms
+ER  -
+
+TY  - ELEC
+AU  - Mozilla
+TI  - Client-side rendering (CSR)
+PY  - 2026
+T2  - MDN Web Docs
+UR  - https://developer.mozilla.org/en-US/docs/Glossary/CSR
+ER  -
+
+TY  - ELEC
+AU  - Google
+TI  - Rendering on the Web
+PY  - 2026
+T2  - web.dev
+UR  - https://web.dev/articles/rendering-on-the-web
+ER  -
+
+TY  - ELEC
+AU  - Vercel
+TI  - Server and Client Components
+PY  - 2026
+T2  - Next.js Documentation
+UR  - https://nextjs.org/docs/app/getting-started/server-and-client-components
+ER  -
+
+TY  - ELEC
+AU  - Meta
+TI  - 'use client'
+PY  - 2026
+T2  - React Documentation
+UR  - https://react.dev/reference/react/use-client
+ER  -
+
+TY  - ELEC
+AU  - Socket.IO
+TI  - Using multiple nodes
+PY  - 2026
+T2  - Socket.IO Documentation
+UR  - https://socket.io/docs/v4/using-multiple-nodes/
+ER  -
+
+TY  - CHAP
+AU  - Grigorik, Ilya
+TI  - WebSocket
+T2  - High Performance Browser Networking
+PY  - 2013
+PB  - O'Reilly Media
+CY  - Sebastopol, CA, USA
+UR  - https://hpbn.co/websocket/
+ER  -
+
+TY  - STAND
+AU  - Internet Engineering Task Force (IETF)
+TI  - RFC 6455: The WebSocket Protocol
+PY  - 2011
+UR  - https://www.rfc-editor.org/rfc/rfc6455
+ER  -
+
+TY  - ELEC
+AU  - Mozilla
+TI  - Server-sent events
+PY  - 2026
+T2  - MDN Web Docs
+UR  - https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events
+ER  -
+
+TY  - CHAP
+AU  - Grigorik, Ilya
+TI  - Server-Sent Events (SSE)
+T2  - High Performance Browser Networking
+PY  - 2013
+PB  - O'Reilly Media
+CY  - Sebastopol, CA, USA
+UR  - https://hpbn.co/server-sent-events-sse/
+ER  -
+
+TY  - ELEC
+AU  - OWASP
+TI  - Authorization Cheat Sheet
+T2  - OWASP Cheat Sheet Series
+UR  - https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html
+ER  -
+
+TY  - RPRT
+AU  - Hu, Vincent C.
+AU  - Ferraiolo, David
+AU  - Kuhn, Rick
+AU  - Schnitzer, Adam
+AU  - Sandlin, Kenneth
+AU  - Miller, Robert
+AU  - Scarfone, Karen
+TI  - Guide to Attribute Based Access Control (ABAC) Definition and Considerations
+T2  - NIST Special Publication 800-162
+PY  - 2019
+PB  - National Institute of Standards and Technology
+CY  - Gaithersburg, MD, USA
+UR  - https://doi.org/10.6028/NIST.SP.800-162
+DO  - 10.6028/NIST.SP.800-162
+ER  -
