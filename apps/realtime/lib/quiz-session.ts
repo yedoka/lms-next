@@ -38,6 +38,72 @@ function stripIsCorrect(questions: SessionQuestion[]) {
   }));
 }
 
+/**
+ * What a student is shown once the session is over. Nothing in here may reach
+ * them earlier: revealing correctness mid-session tells everyone still
+ * deciding what the answer is, and a score that jumps on submit says the same
+ * thing without any words. See `buildReview` for where it comes from.
+ */
+interface QuestionReview {
+  questionId: string;
+  text: string;
+  answers: { id: string; text: string; isCorrect: boolean }[];
+  selectedAnswerId: string | null;
+  isCorrect: boolean;
+  points: number;
+}
+
+async function buildReview(
+  code: string,
+  playerId: string,
+  questions: SessionQuestion[],
+): Promise<QuestionReview[]> {
+  const answers = await redis.hgetall(
+    `quiz:session:${code}:player:${playerId}:answers`,
+  );
+  const awarded = await redis.hgetall(
+    `quiz:session:${code}:player:${playerId}:points`,
+  );
+
+  return questions.map((question) => {
+    const selectedAnswerId = answers?.[question.id] ?? null;
+    const selected = question.answers.find((a) => a.id === selectedAnswerId);
+    return {
+      questionId: question.id,
+      text: question.text,
+      answers: question.answers,
+      selectedAnswerId,
+      isCorrect: selected?.isCorrect ?? false,
+      points: parseInt(awarded?.[question.id] ?? "0", 10),
+    };
+  });
+}
+
+/**
+ * Students each get their own `session:final`: the leaderboard is shared, but
+ * the review and score are not, so this fans out per socket rather than
+ * broadcasting to the room.
+ */
+async function emitStudentFinals(
+  io: Server,
+  code: string,
+  leaderboard: { userId: string; name: string; score: number }[],
+  allPlayers: Record<string, string> | null,
+  reviews: Map<string, QuestionReview[]>,
+) {
+  const sockets = await io.in(`session:${code}`).fetchSockets();
+  for (const playerSocket of sockets) {
+    const playerId = playerSocket.data["userId"] as string | undefined;
+    const raw = playerId ? allPlayers?.[playerId] : undefined;
+    playerSocket.emit("session:final", {
+      leaderboard,
+      userId: playerId ?? null,
+      score: raw ? (JSON.parse(raw) as Player).score : 0,
+      review: playerId ? (reviews.get(playerId) ?? []) : [],
+    });
+  }
+}
+
 async function endSession(
   io: Server,
   code: string,
@@ -81,14 +147,24 @@ async function endSession(
       message: "Session ended but results could not be saved (missing quiz id).",
     });
     io.to(`teacher:${code}`).emit("session:final", { leaderboard });
-    io.to(`session:${code}`).emit("session:final", { leaderboard });
+    const reviews = new Map<string, QuestionReview[]>();
+    for (const playerId of Object.keys(allPlayers ?? {})) {
+      reviews.set(playerId, await buildReview(code, playerId, questions));
+    }
+    await emitStudentFinals(io, code, leaderboard, allPlayers, reviews);
     return;
   }
 
   const failedPlayers: string[] = [];
+  const reviews = new Map<string, QuestionReview[]>();
 
   if (allPlayers) {
     for (const [playerId] of Object.entries(allPlayers)) {
+      // The review is what the student is finally allowed to see, so build it
+      // before the grading write — a failed write must not cost them the
+      // feedback that was withheld all session.
+      reviews.set(playerId, await buildReview(code, playerId, questions));
+
       try {
         const answers = await redis.hgetall(
           `quiz:session:${code}:player:${playerId}:answers`,
@@ -138,7 +214,7 @@ async function endSession(
   }
 
   io.to(`teacher:${code}`).emit("session:final", { leaderboard });
-  io.to(`session:${code}`).emit("session:final", { leaderboard });
+  await emitStudentFinals(io, code, leaderboard, allPlayers, reviews);
 }
 
 export function registerQuizSessionHandlers(io: Server, socket: Socket) {
@@ -208,19 +284,16 @@ export function registerQuizSessionHandlers(io: Server, socket: Socket) {
         return;
       }
 
-      let player: Player;
       const existing = await redis.hget(
         `quiz:session:${code}:players`,
         userId,
       );
-      if (existing) {
-        player = JSON.parse(existing) as Player;
-      } else {
+      if (!existing) {
         const user = await prisma.user.findUnique({
           where: { id: userId },
           select: { name: true },
         });
-        player = { name: user?.name ?? "Anonymous", score: 0 };
+        const player: Player = { name: user?.name ?? "Anonymous", score: 0 };
         await redis.hset(
           `quiz:session:${code}:players`,
           userId,
@@ -241,7 +314,6 @@ export function registerQuizSessionHandlers(io: Server, socket: Socket) {
           code,
           status: "lobby",
           title: sessionData["title"],
-          score: player.score,
         });
       } else {
         const question = questions[currentIndex];
@@ -266,7 +338,6 @@ export function registerQuizSessionHandlers(io: Server, socket: Socket) {
           hasAnswered,
           questionStartedAt: sessionData["questionStartedAt"] ?? null,
           secondsPerQuestion,
-          score: player.score,
         });
       }
     }
@@ -449,11 +520,29 @@ export function registerQuizSessionHandlers(io: Server, socket: Socket) {
         SESSION_TTL,
       );
 
+      // Kept server-side until the session ends, then replayed in the review.
+      // The speed bonus cannot be recomputed after the fact, so record it now.
+      await redis.hset(
+        `quiz:session:${code}:player:${userId}:points`,
+        question.id,
+        points.toString(),
+      );
+      await redis.expire(
+        `quiz:session:${code}:player:${userId}:points`,
+        SESSION_TTL,
+      );
+
       const answeredCount = await redis.scard(
         `quiz:session:${code}:answered:${currentIndex}`,
       );
 
-      socket.emit("answer:received", { isCorrect, points });
+      // Acknowledgement only. `isCorrect` and `points` stay on the server
+      // until `endSession` — sending them here would let a student read the
+      // answer off their own screen and pass it to anyone still deciding.
+      // `index` lets the client drop an ack that arrives after the teacher has
+      // already advanced, which would otherwise lock them out of a question
+      // they never answered.
+      socket.emit("answer:received", { index: currentIndex });
 
       const allPlayers = await redis.hgetall(`quiz:session:${code}:players`);
       const leaderboard = allPlayers ? buildLeaderboard(allPlayers) : [];

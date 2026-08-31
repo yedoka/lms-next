@@ -1,28 +1,12 @@
 # TODO
 
-## Live quiz: don't reveal correctness immediately
-
-`live-quiz-player.tsx:291-321` shows "Correct!"/"Wrong answer" + points to the
-student right after they submit, before the question closes / teacher
-advances. Bad for a live quiz - signals the answer to students still
-deciding, kills the race-against-time tension.
-
-Fix: withhold `isCorrect`/points from the student until the question closes
-(teacher advances or timer ends), then reveal.
-
-Touches:
-- `apps/web/features/courses/hooks/use-live-session.ts` (`onAnswerReceived`,
-  `lastAnswer` state)
-- `apps/web/features/courses/components/live-quiz-player.tsx` (answer
-  feedback block)
-- realtime server: whatever currently emits `isCorrect`/points to the student
-  socket on submit - check apps/realtime for the grader/emit site
-
 ## Thesis: replace screenshot after the fix
 
-Once the reveal-timing fix ships, the live-quiz-player screenshot/figure in
-the thesis will show the old immediate-feedback behavior. Retake and swap it
-in `akedil-aidyn-diploma-thesis2.md`.
+The reveal-timing fix has shipped, so the live-quiz-player screenshot/figure in
+the thesis still shows the old immediate-feedback behavior. Retake and swap it
+in `akedil-aidyn-diploma-thesis2.md`. The player now shows a neutral "Answer
+locked in" card during the quiz and a full per-question review on the final
+screen, so the figure may want to be both states rather than one.
 
 ## Thesis: monospace pass for code/paths
 

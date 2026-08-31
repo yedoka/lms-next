@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useLiveSession, type LeaderboardEntry } from "../hooks/use-live-session";
+import {
+  useLiveSession,
+  type LeaderboardEntry,
+  type QuestionReview,
+} from "../hooks/use-live-session";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -13,7 +17,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { CheckCircle2, XCircle, Trophy, Clock } from "lucide-react";
+import { CheckCircle2, XCircle, Trophy, Clock, Lock, MinusCircle } from "lucide-react";
 
 function CountdownBar({
   questionStartedAt,
@@ -107,6 +111,70 @@ function FinalLeaderboard({ entries, myUserId }: { entries: LeaderboardEntry[]; 
   );
 }
 
+function QuestionReviewList({ review }: { review: QuestionReview[] }) {
+  return (
+    <Stack spacing={2}>
+      {review.map((item, i) => {
+        const skipped = item.selectedAnswerId === null;
+        return (
+          <Box key={item.questionId}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+              {skipped ? (
+                <MinusCircle size={16} color="#9ca3af" />
+              ) : item.isCorrect ? (
+                <CheckCircle2 size={16} color="green" />
+              ) : (
+                <XCircle size={16} color="red" />
+              )}
+              <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>
+                {i + 1}. {item.text}
+              </Typography>
+              <Typography
+                variant="caption"
+                fontWeight={700}
+                color={item.points > 0 ? "primary" : "text.secondary"}
+              >
+                {item.points > 0 ? `+${item.points.toLocaleString()}` : skipped ? "No answer" : "0"}
+              </Typography>
+            </Box>
+            <Stack spacing={0.5} sx={{ pl: 3 }}>
+              {item.answers.map((answer) => {
+                const chosen = answer.id === item.selectedAnswerId;
+                return (
+                  <Box
+                    key={answer.id}
+                    sx={{
+                      px: 1.5,
+                      py: 0.75,
+                      borderRadius: 1,
+                      border: "1px solid",
+                      borderColor: answer.isCorrect
+                        ? "success.main"
+                        : chosen
+                          ? "error.main"
+                          : "divider",
+                      bgcolor: answer.isCorrect
+                        ? "success.light"
+                        : chosen
+                          ? "error.light"
+                          : "transparent",
+                    }}
+                  >
+                    <Typography variant="caption" fontWeight={chosen ? 700 : 400}>
+                      {answer.text}
+                      {chosen && " · your answer"}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Stack>
+          </Box>
+        );
+      })}
+    </Stack>
+  );
+}
+
 interface LiveQuizPlayerProps {
   initialCode?: string;
 }
@@ -123,12 +191,13 @@ export function LiveQuizPlayer({ initialCode }: LiveQuizPlayerProps) {
     joinSession(code);
   };
 
-  // Lobby → player doesn't know their userId, leaderboard shows after session
-  // Use the score from state to identify "you" in the final board
-  const myRank =
-    state.status === "ended"
-      ? state.leaderboard.findIndex((e) => e.score <= state.score) + 1
-      : undefined;
+  // `session:final` carries the student's own userId, so "you" is matched by
+  // identity rather than by score — two players on the same score used to
+  // collide and both highlight the first of them.
+  const myRankIndex = state.userId
+    ? state.leaderboard.findIndex((e) => e.userId === state.userId)
+    : -1;
+  const myRank = myRankIndex >= 0 ? myRankIndex + 1 : undefined;
 
   if (!joined) {
     return (
@@ -241,9 +310,19 @@ export function LiveQuizPlayer({ initialCode }: LiveQuizPlayerProps) {
             <Typography variant="subtitle1" fontWeight={700} gutterBottom>
               Final Results
             </Typography>
-            <FinalLeaderboard entries={state.leaderboard} />
+            <FinalLeaderboard entries={state.leaderboard} myUserId={state.userId ?? undefined} />
           </CardContent>
         </Card>
+        {state.review.length > 0 && (
+          <Card variant="outlined" sx={{ mt: 2 }}>
+            <CardContent>
+              <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                Your Answers
+              </Typography>
+              <QuestionReviewList review={state.review} />
+            </CardContent>
+          </Card>
+        )}
       </Box>
     );
   }
@@ -260,8 +339,8 @@ export function LiveQuizPlayer({ initialCode }: LiveQuizPlayerProps) {
           <Typography variant="caption" color="text.secondary">
             Question {question.index + 1} / {question.total}
           </Typography>
-          <Typography variant="caption" fontWeight={600} color="primary">
-            {state.score.toLocaleString()} pts
+          <Typography variant="caption" color="text.secondary">
+            Scores at the end
           </Typography>
         </Box>
         <LinearProgress
@@ -287,39 +366,32 @@ export function LiveQuizPlayer({ initialCode }: LiveQuizPlayerProps) {
         </CardContent>
       </Card>
 
-      {/* Answer feedback */}
-      {state.lastAnswer && (
+      {/* Submission confirmation. Deliberately says nothing about correctness:
+          a coloured banner is readable across a room and hands the answer to
+          everyone still deciding. Results come at the end, in the review. */}
+      {state.hasAnswered && (
         <Box
           sx={{
             mb: 3,
             p: 2,
             borderRadius: 2,
-            bgcolor: state.lastAnswer.isCorrect ? "success.light" : "error.light",
+            bgcolor: "action.hover",
             border: "1px solid",
-            borderColor: state.lastAnswer.isCorrect ? "success.main" : "error.main",
+            borderColor: "divider",
             display: "flex",
             alignItems: "center",
             gap: 2,
           }}
         >
-          {state.lastAnswer.isCorrect ? (
-            <CheckCircle2 size={20} color="green" />
-          ) : (
-            <XCircle size={20} color="red" />
-          )}
+          <Lock size={18} />
           <Box>
             <Typography variant="body2" fontWeight={700}>
-              {state.lastAnswer.isCorrect ? "Correct!" : "Wrong answer"}
+              Answer locked in
             </Typography>
-            {state.lastAnswer.isCorrect && (
-              <Typography variant="caption" color="text.secondary">
-                +{state.lastAnswer.points.toLocaleString()} pts
-              </Typography>
-            )}
+            <Typography variant="caption" color="text.secondary">
+              You&apos;ll see how you did when the quiz ends
+            </Typography>
           </Box>
-          <Typography variant="caption" color="text.secondary" ml="auto">
-            Waiting for next question…
-          </Typography>
         </Box>
       )}
 

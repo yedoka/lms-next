@@ -20,6 +20,20 @@ export interface QuestionData {
   total: number;
 }
 
+/**
+ * One question as it is replayed to the student after the session ends. The
+ * server withholds all of this while the quiz is running — see
+ * `apps/realtime/lib/quiz-session.ts`.
+ */
+export interface QuestionReview {
+  questionId: string;
+  text: string;
+  answers: { id: string; text: string; isCorrect: boolean }[];
+  selectedAnswerId: string | null;
+  isCorrect: boolean;
+  points: number;
+}
+
 export interface LeaderboardEntry {
   userId: string;
   name: string;
@@ -37,8 +51,10 @@ export interface LiveSessionState {
   answeredCount: number;
   totalQuestions: number;
   hasAnswered: boolean;
+  /** Stays 0 until `session:final`; the server does not send it any earlier. */
   score: number;
-  lastAnswer: { isCorrect: boolean; points: number } | null;
+  userId: string | null;
+  review: QuestionReview[];
   error: string | null;
 }
 
@@ -54,7 +70,8 @@ const defaultState: LiveSessionState = {
   totalQuestions: 0,
   hasAnswered: false,
   score: 0,
-  lastAnswer: null,
+  userId: null,
+  review: [],
   error: null,
 };
 
@@ -121,7 +138,6 @@ export function useLiveSession() {
         secondsPerQuestion: data.secondsPerQuestion,
         answeredCount: data.answeredCount ?? 0,
         hasAnswered: false,
-        lastAnswer: null,
       }));
     }
 
@@ -136,20 +152,36 @@ export function useLiveSession() {
       }));
     }
 
-    function onAnswerReceived(data: { isCorrect: boolean; points: number }) {
-      setState((prev) => ({
-        ...prev,
-        hasAnswered: true,
-        score: prev.score + (data.points ?? 0),
-        lastAnswer: { isCorrect: data.isCorrect, points: data.points ?? 0 },
-      }));
+    // A bare acknowledgement. It deliberately carries no correctness or points:
+    // the answer is locked in, and that is all the student learns until the end.
+    // An ack for a question the teacher has already advanced past is dropped —
+    // applying it would lock the student out of the question now on screen.
+    function onAnswerReceived(data: { index?: number }) {
+      setState((prev) => {
+        if (
+          data?.index !== undefined &&
+          prev.currentQuestion &&
+          data.index !== prev.currentQuestion.index
+        ) {
+          return prev;
+        }
+        return { ...prev, hasAnswered: true };
+      });
     }
 
-    function onSessionFinal(data: { leaderboard: LeaderboardEntry[] }) {
+    function onSessionFinal(data: {
+      leaderboard: LeaderboardEntry[];
+      userId?: string | null;
+      score?: number;
+      review?: QuestionReview[];
+    }) {
       setState((prev) => ({
         ...prev,
         status: "ended",
         leaderboard: data.leaderboard,
+        userId: data.userId ?? prev.userId,
+        score: data.score ?? prev.score,
+        review: data.review ?? prev.review,
       }));
     }
 
