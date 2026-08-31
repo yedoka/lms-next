@@ -1,6 +1,6 @@
-# LMS Project — Real-Time Feature Tickets
+# Skillbase — Real-Time Feature Tickets
 
-> **Repo:** `lms-realtime` — Bun, Express, Socket.io, Redis &nbsp;•&nbsp; **Sprint 4 · Days 23–27**
+> **Repo:** `apps/realtime` — Bun, Express, Socket.io, Redis &nbsp;•&nbsp; **Sprint 4 · Days 23–27**
 
 ---
 
@@ -10,7 +10,7 @@
 
 ---
 
-### LMS-014 · Deploy `lms-realtime` to Render.com
+### SKB-014 · Deploy `apps/realtime` to Render.com
 
 `[Setup]` &nbsp;|&nbsp; Priority: **High** &nbsp;|&nbsp; Estimate: **3h**
 
@@ -20,7 +20,7 @@
 
 #### ✅ Acceptance Criteria
 
-1. `lms-realtime` deployed to Render.com as a Web Service.
+1. `apps/realtime` deployed to Render.com as a Web Service.
 2. Render uses Bun as the runtime (`bun src/index.ts` as start command).
 3. All environment variables set in Render dashboard: `PORT`, `CLIENT_URL`, `REDIS_URL`, `DATABASE_URL`.
 4. `CLIENT_URL` set to the Vercel production domain; CORS works correctly.
@@ -32,11 +32,11 @@
 #### 🔧 Technical Notes
 
 - Render free tier sleeps after 15 min inactivity — the cron ping keeps it awake for the demo.
-- GitHub Actions workflow in `lms-realtime` deploys to Render on push to `main` via Render Deploy Hook.
+- GitHub Actions workflow in `apps/realtime` deploys to Render on push to `main` via Render Deploy Hook.
 
 ---
 
-### LMS-015 · Live Notifications System
+### SKB-015 · Live Notifications System
 
 `[Feature]` &nbsp;|&nbsp; Priority: **High** &nbsp;|&nbsp; Estimate: **5h**
 
@@ -63,7 +63,7 @@
 
 ---
 
-### LMS-016 · Live Quiz Session (Teacher Hosts)
+### SKB-016 · Live Quiz Session (Teacher Hosts)
 
 `[Feature]` &nbsp;|&nbsp; Priority: **High** &nbsp;|&nbsp; Estimate: **8h**
 
@@ -87,12 +87,12 @@
 - Socket.io rooms: `session:{sessionCode}` for students, `teacher:{sessionCode}` for the host.
 - Full session state (current question index, scores per student) stored in a Redis hash — survives server restarts.
 - Events: `session:join`, `session:start`, `question:next`, `answer:submit`, `leaderboard:update`, `session:end`.
-- Final scores written to `QuizAttempt` by `lms-realtime` directly using Prisma Client on `session:end`.
+- Final scores written to `QuizAttempt` by `apps/realtime` directly using Prisma Client on `session:end`.
 - Session code expiry: set a Redis TTL of 24 hours on the session hash.
 
 ---
 
-### LMS-017 · Real-Time Progress Tracking
+### SKB-017 · Real-Time Progress Tracking
 
 `[Feature]` &nbsp;|&nbsp; Priority: **Medium** &nbsp;|&nbsp; Estimate: **4h**
 
@@ -120,9 +120,9 @@
 
 | ID      | Title                               | Sprint | Type    | Priority | Est. |
 | ------- | ----------------------------------- | ------ | ------- | -------- | ---- |
-| LMS-014 | Deploy `lms-realtime` to Render.com | 4      | Setup   | High     | 3h   |
-| LMS-015 | Live Notifications System           | 4      | Feature | High     | 5h   |
-| LMS-016 | Live Quiz Session (Teacher Hosts)   | 4      | Feature | High     | 8h   |
-| LMS-017 | Real-Time Progress Tracking         | 4      | Feature | Medium   | 4h   |
+| SKB-014 | Deploy `apps/realtime` to Render.com | 4      | Setup   | High     | 3h   |
+| SKB-015 | Live Notifications System           | 4      | Feature | High     | 5h   |
+| SKB-016 | Live Quiz Session (Teacher Hosts)   | 4      | Feature | High     | 8h   |
+| SKB-017 | Real-Time Progress Tracking         | 4      | Feature | Medium   | 4h   |
 
 **Total estimated development time: ~20 hours**

@@ -1,4 +1,4 @@
-# LMS Project — Tech Stack & Architecture
+# Skillbase — Tech Stack & Architecture
 
 > Bachelor's Diploma: _"Development of a Full-Stack Learning Management System using Next.js and modern web technologies"_
 
@@ -30,7 +30,7 @@ Two separate repositories — no monorepo overhead:
 
 ## Tech Stack
 
-### Frontend + Non-Realtime Backend (`lms-web`)
+### Frontend + Non-Realtime Backend (`apps/web`)
 
 | Layer     | Technology                       | Notes                                               |
 | --------- | -------------------------------- | --------------------------------------------------- |
@@ -52,7 +52,7 @@ Two separate repositories — no monorepo overhead:
 | **`refresh()`**              | New server-side `refresh()` from `next/cache` for refreshing client router from Server Actions                    |
 | **`create-next-app`**        | Redesigned — App Router, TypeScript, Tailwind, ESLint by default. Also generates `AGENTS.md` for AI coding agents |
 
-### Realtime Backend (`lms-realtime`)
+### Realtime Backend (`apps/realtime`)
 
 | Layer   | Technology              | Notes                                                          |
 | ------- | ----------------------- | -------------------------------------------------------------- |
@@ -115,7 +115,7 @@ Two separate repositories — no monorepo overhead:
 ### `skillbase-next` (Next.js 16)
 
 ```
-lms-web/
+apps/web/
 ├── app/
 │   ├── api/              # Route Handlers (auth, courses, uploads)
 │   ├── (auth)/           # login, register pages
@@ -132,7 +132,7 @@ lms-web/
 ### `skillbase-express` (Bun + Express + Socket.io)
 
 ```
-lms-realtime/
+apps/realtime/
 ├── src/
 │   ├── rooms/            # quiz room logic
 │   ├── notifications/    # grade & enrollment events

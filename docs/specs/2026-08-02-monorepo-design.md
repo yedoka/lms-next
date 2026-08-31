@@ -32,7 +32,7 @@ The project runs locally only.
 ## Target layout
 
 ```
-diploma/                      git root
+skillbase/                    git root
   package.json                workspaces: ["apps/*", "packages/*"]
   yarn.lock
   .env                        shared runtime config
@@ -106,7 +106,7 @@ web-only keys). Apps load it explicitly rather than relying on per-directory `.e
 Both existing repositories stay untouched on GitHub as the rollback point. All local branches are
 already pushed.
 
-1. `git init` at `diploma/`, empty initial commit.
+1. `git init` at `skillbase/`, empty initial commit.
 2. `git subtree add --prefix=apps/web <local lms-next path> feat/student-courses-page` — that
    branch is strictly ahead of `master` and is the real tip.
 3. `git subtree add --prefix=apps/realtime <local lms-express path> master`.

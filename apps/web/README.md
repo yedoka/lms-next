@@ -1,6 +1,6 @@
-# LMS Platform (Next.js)
+# Skillbase (Next.js)
 
-A modern, full-stack Learning Management System (LMS) built with Next.js 16.2, TypeScript, and Prisma. This platform provides a robust environment for educators to create and manage courses, and for students to enroll, track their progress, and complete assessments.
+A modern, full-stack Learning Management System built with Next.js 16.2, TypeScript, and Prisma. This platform provides a robust environment for educators to create and manage courses, and for students to enroll, track their progress, and complete assessments.
 
 ## 🚀 Tech Stack
 
@@ -133,7 +133,7 @@ The application follows a minimalist, "Notion-like" aesthetic:
 - Typography driven by Geist and Inter fonts.
 
 ## 🤝 Development Conventions
-- **Commit Messages:** Must be prefixed with the ticket number (e.g., `[LMS-001] Fix login bug`).
+- **Commit Messages:** Must be prefixed with the ticket number (e.g., `[SKB-001] Fix login bug`).
 - **Separation of Concerns (SoC):**
   - **Server Actions** (`actions/`) handle HTTP context, routing, and Zod validation.
   - **Services** (`services/`) encapsulate business logic and Prisma queries.
