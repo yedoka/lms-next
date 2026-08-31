@@ -34,6 +34,20 @@ export interface QuestionReview {
   points: number;
 }
 
+/**
+ * The verdict for one question, delivered only once that question has closed
+ * for everybody. See `apps/realtime/lib/quiz-session.ts`.
+ */
+export interface QuestionReveal {
+  index: number;
+  questionId: string;
+  correctAnswerId: string | null;
+  selectedAnswerId: string | null;
+  isCorrect: boolean;
+  points: number;
+  score: number;
+}
+
 export interface LeaderboardEntry {
   userId: string;
   name: string;
@@ -51,7 +65,9 @@ export interface LiveSessionState {
   answeredCount: number;
   totalQuestions: number;
   hasAnswered: boolean;
-  /** Stays 0 until `session:final`; the server does not send it any earlier. */
+  /** Null while the current question is still open. */
+  reveal: QuestionReveal | null;
+  /** Only ever advanced by a reveal, never by submitting. */
   score: number;
   userId: string | null;
   review: QuestionReview[];
@@ -69,6 +85,7 @@ const defaultState: LiveSessionState = {
   answeredCount: 0,
   totalQuestions: 0,
   hasAnswered: false,
+  reveal: null,
   score: 0,
   userId: null,
   review: [],
@@ -116,6 +133,10 @@ export function useLiveSession() {
         totalQuestions: (data as { totalQuestions?: number }).totalQuestions ?? prev.totalQuestions,
         hasAnswered: (data as { hasAnswered?: boolean }).hasAnswered ?? prev.hasAnswered,
         score: (data as { score?: number }).score ?? prev.score,
+        reveal:
+          (data as { reveal?: QuestionReveal | null }).reveal !== undefined
+            ? (data as { reveal?: QuestionReveal | null }).reveal ?? null
+            : prev.reveal,
         error: null,
       }));
     }
@@ -138,6 +159,7 @@ export function useLiveSession() {
         secondsPerQuestion: data.secondsPerQuestion,
         answeredCount: data.answeredCount ?? 0,
         hasAnswered: false,
+        reveal: null,
       }));
     }
 
@@ -166,6 +188,16 @@ export function useLiveSession() {
           return prev;
         }
         return { ...prev, hasAnswered: true };
+      });
+    }
+
+    // The question is now shut for everyone, so the verdict can land.
+    function onQuestionReveal(data: QuestionReveal) {
+      setState((prev) => {
+        if (prev.currentQuestion && data.index !== prev.currentQuestion.index) {
+          return prev;
+        }
+        return { ...prev, reveal: data, score: data.score };
       });
     }
 
@@ -198,6 +230,7 @@ export function useLiveSession() {
     socket.on("question:show", onQuestionShow);
     socket.on("leaderboard:update", onLeaderboardUpdate);
     socket.on("answer:received", onAnswerReceived);
+    socket.on("question:reveal", onQuestionReveal);
     socket.on("session:final", onSessionFinal);
     socket.on("session:error", onSessionError);
 
@@ -208,11 +241,39 @@ export function useLiveSession() {
       socket.off("question:show", onQuestionShow);
       socket.off("leaderboard:update", onLeaderboardUpdate);
       socket.off("answer:received", onAnswerReceived);
+      socket.off("question:reveal", onQuestionReveal);
       socket.off("session:final", onSessionFinal);
       socket.off("session:error", onSessionError);
       // Do NOT disconnect — NotificationBell manages the shared socket lifecycle
     };
   }, [connectSocket]);
+
+  // Ask for the verdict once this question's countdown has run out. The server
+  // is the authority on whether it really has, so this keeps asking until the
+  // reveal arrives rather than trusting the local clock. The host is skipped:
+  // it already holds the answer key, which is how its payload is recognised.
+  const questionIndex = state.currentQuestion?.index ?? null;
+  const isHost = state.currentQuestion?.answers.some(
+    (a) => a.isCorrect !== undefined,
+  );
+  const { questionStartedAt, secondsPerQuestion } = state;
+  const awaitingReveal = questionIndex !== null && !state.reveal && !isHost;
+
+  useEffect(() => {
+    if (!awaitingReveal || !questionStartedAt) return;
+
+    const ask = () => {
+      const elapsed =
+        (Date.now() - new Date(questionStartedAt).getTime()) / 1000;
+      if (elapsed >= secondsPerQuestion) {
+        socket.emit("question:reveal:request", { code: codeRef.current });
+      }
+    };
+
+    ask();
+    const id = setInterval(ask, 1000);
+    return () => clearInterval(id);
+  }, [awaitingReveal, questionStartedAt, secondsPerQuestion, questionIndex]);
 
   const joinSession = useCallback((code: string) => {
     codeRef.current = code;

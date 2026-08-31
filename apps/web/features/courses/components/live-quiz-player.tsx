@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   useLiveSession,
   type LeaderboardEntry,
@@ -22,33 +22,23 @@ import { CheckCircle2, XCircle, Trophy, Clock, Lock, MinusCircle } from "lucide-
 function CountdownBar({
   questionStartedAt,
   secondsPerQuestion,
-  onExpire,
 }: {
   questionStartedAt: string;
   secondsPerQuestion: number;
-  onExpire: () => void;
 }) {
   const [timeLeft, setTimeLeft] = useState(() => {
     const elapsed = (Date.now() - new Date(questionStartedAt).getTime()) / 1000;
     return Math.max(0, secondsPerQuestion - Math.floor(elapsed));
   });
-  const expired = useRef(false);
-
   useEffect(() => {
-    expired.current = false;
     const tick = () => {
       const elapsed = (Date.now() - new Date(questionStartedAt).getTime()) / 1000;
-      const left = Math.max(0, secondsPerQuestion - Math.floor(elapsed));
-      setTimeLeft(left);
-      if (left === 0 && !expired.current) {
-        expired.current = true;
-        onExpire();
-      }
+      setTimeLeft(Math.max(0, secondsPerQuestion - Math.floor(elapsed)));
     };
     tick();
     const id = setInterval(tick, 500);
     return () => clearInterval(id);
-  }, [questionStartedAt, secondsPerQuestion, onExpire]);
+  }, [questionStartedAt, secondsPerQuestion]);
 
   const pct = (timeLeft / secondsPerQuestion) * 100;
   const isWarning = timeLeft <= 5;
@@ -339,8 +329,8 @@ export function LiveQuizPlayer({ initialCode }: LiveQuizPlayerProps) {
           <Typography variant="caption" color="text.secondary">
             Question {question.index + 1} / {question.total}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Scores at the end
+          <Typography variant="caption" fontWeight={600} color="primary">
+            {state.score.toLocaleString()} pts
           </Typography>
         </Box>
         <LinearProgress
@@ -348,11 +338,10 @@ export function LiveQuizPlayer({ initialCode }: LiveQuizPlayerProps) {
           value={((question.index + 1) / question.total) * 100}
           sx={{ height: 4, borderRadius: 2, mb: 2 }}
         />
-        {state.questionStartedAt && !state.hasAnswered && (
+        {state.questionStartedAt && !state.reveal && (
           <CountdownBar
             questionStartedAt={state.questionStartedAt}
             secondsPerQuestion={state.secondsPerQuestion}
-            onExpire={() => {/* timer expired — teacher controls advancing */}}
           />
         )}
       </Box>
@@ -366,10 +355,52 @@ export function LiveQuizPlayer({ initialCode }: LiveQuizPlayerProps) {
         </CardContent>
       </Card>
 
-      {/* Submission confirmation. Deliberately says nothing about correctness:
-          a coloured banner is readable across a room and hands the answer to
-          everyone still deciding. Results come at the end, in the review. */}
-      {state.hasAnswered && (
+      {/* Verdict for the question just closed. It can say everything now: no
+          answer is still being accepted, so there is nobody left to tip off. */}
+      {state.reveal && (
+        <Box
+          sx={{
+            mb: 3,
+            p: 2,
+            borderRadius: 2,
+            bgcolor: state.reveal.isCorrect ? "success.light" : "error.light",
+            border: "1px solid",
+            borderColor: state.reveal.isCorrect ? "success.main" : "error.main",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          {state.reveal.isCorrect ? (
+            <CheckCircle2 size={20} color="green" />
+          ) : (
+            <XCircle size={20} color="red" />
+          )}
+          <Box>
+            <Typography variant="body2" fontWeight={700}>
+              {state.reveal.isCorrect
+                ? "Correct!"
+                : state.reveal.selectedAnswerId === null
+                  ? "No answer"
+                  : "Wrong answer"}
+            </Typography>
+            {state.reveal.points > 0 && (
+              <Typography variant="caption" color="text.secondary">
+                +{state.reveal.points.toLocaleString()} pts
+              </Typography>
+            )}
+          </Box>
+          <Typography variant="caption" color="text.secondary" ml="auto">
+            Waiting for next question…
+          </Typography>
+        </Box>
+      )}
+
+      {/* Submission confirmation, shown only while the question is still open.
+          Deliberately says nothing about correctness: a coloured banner is
+          readable across a room and hands the answer to everyone still
+          deciding. It turns into the verdict above once the timer runs out. */}
+      {state.hasAnswered && !state.reveal && (
         <Box
           sx={{
             mb: 3,
@@ -389,7 +420,7 @@ export function LiveQuizPlayer({ initialCode }: LiveQuizPlayerProps) {
               Answer locked in
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              You&apos;ll see how you did when the quiz ends
+              You&apos;ll see how you did when the timer runs out
             </Typography>
           </Box>
         </Box>
@@ -397,27 +428,50 @@ export function LiveQuizPlayer({ initialCode }: LiveQuizPlayerProps) {
 
       {/* Answers */}
       <Stack spacing={1.5}>
-        {question.answers.map((answer) => (
-          <Button
-            key={answer.id}
-            variant="outlined"
-            fullWidth
-            disabled={state.hasAnswered}
-            onClick={() => submitAnswer(answer.id)}
-            sx={{
-              justifyContent: "flex-start",
-              textAlign: "left",
-              p: 2,
-              borderRadius: 2,
-              textTransform: "none",
-              fontSize: "0.95rem",
-              opacity: state.hasAnswered ? 0.6 : 1,
-              "&:hover": { borderColor: "primary.main", bgcolor: "action.hover" },
-            }}
-          >
-            {answer.text}
-          </Button>
-        ))}
+        {question.answers.map((answer) => {
+          const reveal = state.reveal;
+          const isKey = reveal?.correctAnswerId === answer.id;
+          const isMyWrongPick =
+            reveal != null &&
+            reveal.selectedAnswerId === answer.id &&
+            !reveal.isCorrect;
+
+          return (
+            <Button
+              key={answer.id}
+              variant="outlined"
+              fullWidth
+              disabled={state.hasAnswered || reveal != null}
+              onClick={() => submitAnswer(answer.id)}
+              sx={{
+                justifyContent: "flex-start",
+                textAlign: "left",
+                p: 2,
+                borderRadius: 2,
+                textTransform: "none",
+                fontSize: "0.95rem",
+                // Before the reveal every option looks the same, whatever the
+                // student picked. Afterwards the key is green and their own
+                // wrong pick is red, as on the teacher's shared screen.
+                opacity: reveal ? (isKey || isMyWrongPick ? 1 : 0.5) : state.hasAnswered ? 0.6 : 1,
+                ...(isKey && {
+                  borderColor: "success.main",
+                  bgcolor: "success.light",
+                  "&.Mui-disabled": { borderColor: "success.main", color: "text.primary" },
+                }),
+                ...(isMyWrongPick && {
+                  borderColor: "error.main",
+                  bgcolor: "error.light",
+                  "&.Mui-disabled": { borderColor: "error.main", color: "text.primary" },
+                }),
+                "&:hover": { borderColor: "primary.main", bgcolor: "action.hover" },
+              }}
+            >
+              {answer.text}
+              {isKey && " ✓"}
+            </Button>
+          );
+        })}
       </Stack>
     </Box>
   );

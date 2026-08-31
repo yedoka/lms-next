@@ -80,6 +80,72 @@ async function buildReview(
 }
 
 /**
+ * What one player is told once a question has closed. Kahoot's model: the
+ * verdict is per question, but it lands only after the question is shut for
+ * everyone, so there is never a moment where one student knows the answer
+ * while another can still pick one.
+ */
+interface QuestionRevealPayload {
+  index: number;
+  questionId: string;
+  correctAnswerId: string | null;
+  selectedAnswerId: string | null;
+  isCorrect: boolean;
+  points: number;
+  score: number;
+}
+
+async function buildQuestionReveal(
+  code: string,
+  playerId: string,
+  question: SessionQuestion,
+  index: number,
+): Promise<QuestionRevealPayload> {
+  const selectedAnswerId =
+    (await redis.hget(
+      `quiz:session:${code}:player:${playerId}:answers`,
+      question.id,
+    )) ?? null;
+  const points = parseInt(
+    (await redis.hget(
+      `quiz:session:${code}:player:${playerId}:points`,
+      question.id,
+    )) ?? "0",
+    10,
+  );
+  const raw = await redis.hget(`quiz:session:${code}:players`, playerId);
+  const selected = question.answers.find((a) => a.id === selectedAnswerId);
+
+  return {
+    index,
+    questionId: question.id,
+    correctAnswerId: question.answers.find((a) => a.isCorrect)?.id ?? null,
+    selectedAnswerId,
+    isCorrect: selected?.isCorrect ?? false,
+    points,
+    score: raw ? (JSON.parse(raw) as Player).score : 0,
+  };
+}
+
+async function playerScore(code: string, playerId: string) {
+  const raw = await redis.hget(`quiz:session:${code}:players`, playerId);
+  return raw ? (JSON.parse(raw) as Player).score : 0;
+}
+
+/** A question is closed once no further answer can be accepted for it. */
+function isQuestionClosed(
+  sessionData: Record<string, string>,
+  secondsPerQuestion: number,
+) {
+  const startedAt = new Date(sessionData["questionStartedAt"] ?? Date.now());
+  const elapsedSeconds = (Date.now() - startedAt.getTime()) / 1000;
+  // Deliberately the same bound `answer:submit` enforces. Revealing at plain
+  // `secondsPerQuestion` would overlap the grace window, so a student could
+  // still be submitting while others already saw the answer.
+  return elapsedSeconds >= secondsPerQuestion + ANSWER_GRACE_SECONDS;
+}
+
+/**
  * Students each get their own `session:final`: the leaderboard is shared, but
  * the review and score are not, so this fans out per socket rather than
  * broadcasting to the room.
@@ -323,21 +389,46 @@ export function registerQuizSessionHandlers(io: Server, socket: Socket) {
             userId,
           )) === 1;
         const stripped = stripIsCorrect(questions);
+        const closed = isQuestionClosed(sessionData, secondsPerQuestion);
+
+        // Reloading mid-question must not become a side channel. While the
+        // question is open the score is rolled back by whatever this question
+        // just awarded, so it reads exactly as it did before answering.
+        const totalScore = await playerScore(code, userId);
+        const pending =
+          closed || !question
+            ? 0
+            : parseInt(
+                (await redis.hget(
+                  `quiz:session:${code}:player:${userId}:points`,
+                  question.id,
+                )) ?? "0",
+                10,
+              );
 
         socket.emit("session:state", {
           code,
           status: "active",
           title: sessionData["title"],
-          question: question
+          // Named to match the host branch above and `LiveSessionState`. It was
+          // `question` here, which no client ever read, so a student who
+          // rejoined mid-question got a blank screen until the next one.
+          currentQuestion: question
             ? {
                 ...stripped[currentIndex],
                 index: currentIndex,
                 total: questions.length,
               }
             : null,
+          totalQuestions: questions.length,
           hasAnswered,
           questionStartedAt: sessionData["questionStartedAt"] ?? null,
           secondsPerQuestion,
+          score: totalScore - pending,
+          reveal:
+            closed && question
+              ? await buildQuestionReveal(code, userId, question, currentIndex)
+              : null,
         });
       }
     }
@@ -552,6 +643,33 @@ export function registerQuizSessionHandlers(io: Server, socket: Socket) {
       });
     },
   );
+
+  // The client asks for this when its own countdown reaches zero. Its clock is
+  // not trusted — the server re-checks that the question is really closed, so a
+  // fast or tampered clock gets nothing and simply asks again.
+  socket.on("question:reveal:request", async ({ code }: { code: string }) => {
+    const sessionData = await redis.hgetall(`quiz:session:${code}`);
+    if (!sessionData || sessionData["status"] !== "active") return;
+    if (userId === sessionData["teacherId"]) return;
+
+    const secondsPerQuestion = parseInt(
+      sessionData["secondsPerQuestion"] ?? "20",
+      10,
+    );
+    if (!isQuestionClosed(sessionData, secondsPerQuestion)) return;
+
+    const currentIndex = parseInt(sessionData["currentIndex"] ?? "0", 10);
+    const questions = JSON.parse(
+      sessionData["questions"] ?? "[]",
+    ) as SessionQuestion[];
+    const question = questions[currentIndex];
+    if (!question) return;
+
+    socket.emit(
+      "question:reveal",
+      await buildQuestionReveal(code, userId, question, currentIndex),
+    );
+  });
 
   socket.on("session:end", async ({ code }: { code: string }) => {
     const sessionData = await redis.hgetall(`quiz:session:${code}`);
