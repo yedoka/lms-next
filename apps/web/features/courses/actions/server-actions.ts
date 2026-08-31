@@ -133,13 +133,21 @@ export async function enrollInCourse(courseId: string) {
     },
   });
 
-  // Notify the student of confirmed enrollment
-  const course = await prisma.course.findUnique({ where: { id: courseId }, select: { title: true } });
+  // Notify the student of confirmed enrollment, and the teacher of the new enrollee
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+    select: { title: true, teacherId: true },
+  });
   if (course) {
     await publishNotification({
       userId: session.user.id,
       type: "ENROLLMENT",
       message: `You have successfully enrolled in "${course.title}"`,
+    });
+    await publishNotification({
+      userId: course.teacherId,
+      type: "ENROLLMENT",
+      message: `${session.user.name ?? "A student"} enrolled in "${course.title}"`,
     });
     await publishAdminEvent({
       kind: "enrollment",

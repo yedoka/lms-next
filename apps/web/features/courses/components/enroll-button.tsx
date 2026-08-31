@@ -19,6 +19,11 @@ export const EnrollButton = ({ courseId }: EnrollButtonProps) => {
         await enrollInCourse(courseId);
         toast.success("Enrolled successfully!");
       } catch (error) {
+        // Next.js redirect() throws a special error that should not be caught
+        if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+          throw error;
+        }
+
         toast.error("Something went wrong");
         console.error(error);
       }
